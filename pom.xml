@@ -20,6 +20,7 @@
     <modules>
         <module>controller</module>
         <module>dgis</module>
+        <module>metadata</module>
     </modules>
 
     <name>Pegacorn :: Ponos</name>
