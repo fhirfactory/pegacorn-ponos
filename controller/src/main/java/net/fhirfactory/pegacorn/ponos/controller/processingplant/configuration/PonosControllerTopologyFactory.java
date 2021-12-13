@@ -46,22 +46,10 @@ public class PonosControllerTopologyFactory extends FHIRIMSubsystemTopologyFacto
         addKubeLivelinessPort(processingPlantSoftwareComponent);
         addKubeReadinessPort(processingPlantSoftwareComponent);
         addEdgeAnswerPort(processingPlantSoftwareComponent);
+        addEdgeAskPort(processingPlantSoftwareComponent);
         addAllJGroupsEndpoints(processingPlantSoftwareComponent);
 
-        // Unique to HestiaIM
-        getLogger().trace(".buildSubsystemTopology(): Add the httpFHIRClient port to the ProcessingPlant Topology Node");
-        addHTTPClientPorts(processingPlantSoftwareComponent);
         return(processingPlantSoftwareComponent);
-    }
-
-    protected void addHTTPClientPorts( EndpointProviderInterface endpointProvider) {
-        getLogger().debug(".addHTTPClientPorts(): Entry, endpointProvider->{}", endpointProvider);
-
-        getLogger().trace(".addHTTPClientPorts(): Creating the HTTP Client (Used to Connect-To Hestia Task DM)");
-        StandardInteractClientPortSegment interactHTTPClient = ((PonosControllerConfigurationFile) getPropertyFile()).getInteractHestiaDMHTTPClient();
-        newHTTPClient(endpointProvider, ponosControllerNames.getInteractFHIRHTTPClientName(),interactHTTPClient );
-
-        getLogger().debug(".addHTTPClientPorts(): Exit");
     }
 
     protected String specifyPropertyFileName() {

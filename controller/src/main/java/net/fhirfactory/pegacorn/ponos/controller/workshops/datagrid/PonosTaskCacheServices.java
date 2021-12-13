@@ -75,6 +75,7 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
     private Cache<DatagridElementKeyInterface, PetasosActionableTaskRegistrationType> taskRegistrationCache;
     private Cache<DataParcelTypeDescriptor, DatagridPersistenceServiceRegistrationType> taskPersistenceServiceCache;
 
+    @Inject
     private PonosControllerTopologyFactory ponosControllerTopologyFactory;
 
     @Inject
@@ -101,11 +102,19 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
 
     @PostConstruct
     public void initialise(){
+        getLogger().debug(".initialise(): Entry");
         if(!initialised) {
+            getLogger().info(".initialise(): Initialisation Start");
             //
             // Get the Infinispan-Task-JGroups-Configuration-File
+            getLogger().info(".initialise(): [Retrieve JGroups Configuration File Name] Start");
             PonosControllerConfigurationFile propertyFile = (PonosControllerConfigurationFile) ponosControllerTopologyFactory.getPropertyFile();
-            String configurationFileName = propertyFile.getDeploymentMode().getMultiZoneInfinispanStackConfigFile();
+            getLogger().trace(".initialise(): [Retrieve JGroups Configuration File Name] propertyFile->{}", propertyFile);
+            String configurationFileName = propertyFile.getDeploymentMode().getMultiuseInfinispanStackConfigFile();
+            getLogger().debug(".initialise(): [Retrieve JGroups Configuration File Name] configurationFileName->{}", configurationFileName);
+            getLogger().info(".initialise(): [Retrieve JGroups Configuration File Name] End");
+
+            getLogger().info(".initialise(): [Initialising Infinispan Cache Manager] Start");
             GlobalConfiguration globalConfig = new GlobalConfigurationBuilder().transport()
                     .defaultTransport()
                     .clusterName("petasos-task-cache")
@@ -117,12 +126,17 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
             cacheConfigurationBuilder = new ConfigurationBuilder();
             cacheConfigurationBuilder.clustering().cacheMode(CacheMode.REPL_SYNC);
             Configuration cacheConfigurationBuild = cacheConfigurationBuilder.build();
+            getLogger().info(".initialise(): [Initialising Infinispan Cache Manager] End");
+
+            getLogger().info(".initialise(): [Initialising Caches] Start");
             taskCache = cacheManager.createCache("ActionableTaskCache", cacheConfigurationBuild);
             taskRegistrationCache = cacheManager.createCache("ActionableTaskRegistrationCache", cacheConfigurationBuild);
             taskPersistenceServiceCache = cacheManager.createCache("ActionableTaskPersistenceServiceCache", cacheConfigurationBuild);
+            getLogger().info(".initialise(): [Initialising Caches] End");
 
             //
             // Register Myself as a Persistence Service
+            getLogger().info(".initialise(): [Register As a Persistence Service] Start");
             DatagridPersistenceServiceType persistenceService = new DatagridPersistenceServiceType();
             DataParcelTypeDescriptor supportedResourceType = new DataParcelTypeDescriptor();
             supportedResourceType.setDataParcelDefiner("FHIRFactory");
@@ -147,7 +161,11 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
                 persistenceServiceRegistration.setResourceType(supportedResourceType);
                 getTaskPersistenceServiceCache().put(supportedResourceType, persistenceServiceRegistration);
             }
+            getLogger().info(".initialise(): [Register As a Persistence Service] End");
+        } else {
+            getLogger().debug(".initialise(): Nothing to do, already initialised");
         }
+        getLogger().debug(".initialise(): Exit");
     }
 
     //
@@ -182,6 +200,7 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
             getTaskCache().put(entryKey, actionableTask);
             getTaskRegistrationCache().put(entryKey, actionableTaskRegistration);
         } else {
+            getTaskCache().replace(entryKey, actionableTask);
             getTaskRegistrationCache().replace(entryKey, actionableTaskRegistration);
         }
         getLogger().debug(".registerPetasosActionableTask(): Exit, actionableTaskRegistration->{}", actionableTaskRegistration);
@@ -198,16 +217,14 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
         PonosDatagridTaskKey entryKey = new PonosDatagridTaskKey(actionableTask.getTaskId());
         PetasosActionableTaskRegistrationType actionableTaskRegistration = null;
         if(getTaskRegistrationCache().containsKey(entryKey)){
-            PetasosActionableTask registeredActionableTask = getTaskCache().get(actionableTask.getTaskId());
-            actionableTaskRegistration = SerializationUtils.clone(getTaskRegistrationCache().get(actionableTask.getTaskId()));
-            if(!registeredActionableTask.equals(actionableTask)) {
-                getTaskCache().replace(entryKey, actionableTask);
-                actionableTaskRegistration.setCheckInstant(Instant.now());
-                actionableTaskRegistration.addFulfillmentServiceName(endpointIdentifier.getEndpointName());
-                actionableTaskRegistration.addPerformerTypes(actionableTask.getTaskPerformerTypes());
-                actionableTaskRegistration.addFulfillmentProcessingPlant(endpointIdentifier.getProcessingPlantComponentID());
-                getTaskRegistrationCache().replace(entryKey, actionableTaskRegistration);
-            }
+            PetasosActionableTask registeredActionableTask = getTaskCache().get(entryKey);
+            actionableTaskRegistration = SerializationUtils.clone(getTaskRegistrationCache().get(entryKey));
+            getTaskCache().replace(entryKey, actionableTask);
+            actionableTaskRegistration.setCheckInstant(Instant.now());
+            actionableTaskRegistration.addFulfillmentServiceName(endpointIdentifier.getEndpointName());
+            actionableTaskRegistration.addPerformerTypes(actionableTask.getTaskPerformerTypes());
+            actionableTaskRegistration.addFulfillmentProcessingPlant(endpointIdentifier.getProcessingPlantComponentID());
+            getTaskRegistrationCache().replace(entryKey, actionableTaskRegistration);
         } else{
             actionableTaskRegistration = registerPetasosActionableTask(actionableTask, endpointIdentifier);
         }
@@ -222,8 +239,9 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
             getLogger().debug(".getPetasosActionableTask(): Exit, taskId is null");
             return null;
         }
-        if(getTaskCache().containsKey(taskId)){
-            PetasosActionableTask actionableTask = SerializationUtils.clone(getTaskCache().get(taskId));
+        PonosDatagridTaskKey entryKey = new PonosDatagridTaskKey(taskId);
+        if(getTaskCache().containsKey(entryKey)){
+            PetasosActionableTask actionableTask = SerializationUtils.clone(getTaskCache().get(entryKey));
             getLogger().debug(".getPetasosActionableTask(): Exit, actionableTask->{}", actionableTask);
             return (actionableTask);
         }
@@ -242,7 +260,8 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
         for(PetasosActionableTaskRegistrationType currentTaskRegistration: getTaskRegistrationCache().values()){
             for(ComponentIdType currentComponentId: currentTaskRegistration.getFulfillmentProcessingPlants()) {
                 if (currentComponentId.equals(componentId)) {
-                    PetasosActionableTask actionableTask = SerializationUtils.clone(getTaskCache().get(currentTaskRegistration.getActionableTaskId()));
+                    PonosDatagridTaskKey entryKey = new PonosDatagridTaskKey(currentTaskRegistration.getActionableTaskId());
+                    PetasosActionableTask actionableTask = SerializationUtils.clone(getTaskCache().get(entryKey));
                     activeActionableTasks.add(actionableTask);
                 }
             }
@@ -262,7 +281,8 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
         for(PetasosActionableTaskRegistrationType currentTaskRegistration: getTaskRegistrationCache().values()){
             for(ComponentIdType currentComponentId: currentTaskRegistration.getFulfillmentProcessingPlants()) {
                 if (currentComponentId.equals(componentId)) {
-                    PetasosActionableTask actionableTask = SerializationUtils.clone(getTaskCache().get(currentTaskRegistration.getActionableTaskId()));
+                    PonosDatagridTaskKey entryKey = new PonosDatagridTaskKey(currentTaskRegistration.getActionableTaskId());
+                    PetasosActionableTask actionableTask = SerializationUtils.clone(getTaskCache().get(entryKey));
                     if(actionableTask.getTaskFulfillment().getStatus().equals(FulfillmentExecutionStatusEnum.FULFILLMENT_EXECUTION_STATUS_REGISTERED)) {
                         waitingActionableTasks.add(actionableTask);
                     }

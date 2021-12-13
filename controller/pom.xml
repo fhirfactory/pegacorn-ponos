@@ -12,7 +12,7 @@
     <parent>
         <groupId>net.fhirfactory.pegacorn</groupId>
         <artifactId>pegacorn-ponos</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.5.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>pegacorn-ponos-controller</artifactId>
@@ -184,7 +184,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.10.4</version>
+            <version>${version-com.fasterxml.jackson.core-jackson-core}</version>
         </dependency>
 
         <!--*******************************************************************************-->
@@ -208,6 +208,7 @@
             <artifactId>pegacorn-buildingblocks-datamodels-core</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
+            <type>jar</type>
         </dependency>
 
         <!--*******************************************************************************-->
@@ -219,6 +220,7 @@
             <artifactId>pegacorn-deployment-properties</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
+            <type>jar</type>
         </dependency>
 
         <dependency>
@@ -276,6 +278,14 @@
         <!--*******************************************************************************-->
         <!-- Pegacorn (Petasos Task Services Manager) Libraries                            -->
         <!--*******************************************************************************-->
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-buildingblocks-taskservices-common</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
@@ -346,6 +356,7 @@
             <artifactId>pegacorn-buildingblocks-processingplant</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
+            <type>jar</type>
         </dependency>
 
         <dependency>
@@ -353,6 +364,7 @@
             <artifactId>pegacorn-buildingblocks-workshop</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
+            <type>jar</type>
         </dependency>
 
         <dependency>
@@ -360,19 +372,22 @@
             <artifactId>pegacorn-buildingblocks-workunitprocessors</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
+            <type>jar</type>
         </dependency>
 
         <!--*******************************************************************************-->
         <!-- Pegacorn (Ponos - Task Resilience, Recovery and Management) Archetypes        -->
         <!--*******************************************************************************-->
 
+        <!--
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
             <artifactId>pegacorn-ponos-dgis</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
-
+        -->
+        
         <!--*******************************************************************************-->
         <!-- JGroups Manipulation Libraries                                                -->
         <!--*******************************************************************************-->
@@ -556,7 +571,7 @@
             <!-- An optional Arquillian testing profile -->
             <id>arquillian-managed-wildfly</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <dependencies>
                 <dependency>

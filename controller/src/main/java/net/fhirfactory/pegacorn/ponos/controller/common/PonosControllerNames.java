@@ -26,7 +26,4 @@ import javax.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class PonosControllerNames {
 
-    public String getInteractFHIRHTTPClientName(){
-        return("ladon-fhir-im");
-    }
 }

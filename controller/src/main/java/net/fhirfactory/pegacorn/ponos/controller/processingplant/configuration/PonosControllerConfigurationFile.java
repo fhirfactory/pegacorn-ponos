@@ -22,27 +22,24 @@
 package net.fhirfactory.pegacorn.ponos.controller.processingplant.configuration;
 
 import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.archetypes.PetasosEnabledSubsystemPropertyFile;
-import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.segments.ports.interact.StandardInteractClientPortSegment;
 
 public class PonosControllerConfigurationFile extends PetasosEnabledSubsystemPropertyFile {
 
-    private StandardInteractClientPortSegment edgeAsk;
+    //
+    // Constructor(s)
+    //
 
     public PonosControllerConfigurationFile(){
-        edgeAsk = new StandardInteractClientPortSegment();
+        super();
     }
 
-    public StandardInteractClientPortSegment getInteractHestiaDMHTTPClient() {
-        return edgeAsk;
-    }
-
-    public void setInteractHestiaDMHTTPClient(StandardInteractClientPortSegment interactTaskDMHTTPClient) {
-        this.edgeAsk = interactTaskDMHTTPClient;
-    }
+    //
+    // To Stirng
+    //
 
     @Override
     public String toString() {
-        return "HestiaTaskIMConfigurationFile{" +
+        return "PonosControllerConfigurationFile{" +
                 "kubeReadinessProbe=" + getKubeReadinessProbe() +
                 ", kubeLivelinessProbe=" + getKubeLivelinessProbe() +
                 ", prometheusPort=" + getPrometheusPort() +
@@ -60,7 +57,16 @@ public class PonosControllerConfigurationFile extends PetasosEnabledSubsystemPro
                 ", debugProperties=" + getDebugProperties() +
                 ", hapiAPIKey=" + getHapiAPIKey() +
                 ", javaDeploymentParameters=" + getJavaDeploymentParameters() +
-                ", interactTaskDMHTTPServer=" + edgeAsk +
+                ", petasosSubscriptionsEndpoint=" + getPetasosSubscriptionsEndpoint() +
+                ", edgeAsk=" + getEdgeAsk() +
+                ", petasosAuditServicesEndpoint=" + getPetasosAuditServicesEndpoint() +
+                ", petasosInterceptionEndpoint=" + getPetasosInterceptionEndpoint() +
+                ", petasosTaskServicesEndpoint=" + getPetasosTaskServicesEndpoint() +
+                ", multiuseInfinispanEndpoint=" + getMultiuseInfinispanEndpoint() +
+                ", petasosMetricsEndpoint=" + getPetasosMetricsEndpoint() +
+                ", petasosIPCMessagingEndpoint=" + getPetasosIPCMessagingEndpoint() +
+                ", edgeAnswer=" + getEdgeAnswer() +
+                ", petasosTopologyDiscoveryEndpoint=" + getPetasosTopologyDiscoveryEndpoint() +
                 '}';
     }
 }

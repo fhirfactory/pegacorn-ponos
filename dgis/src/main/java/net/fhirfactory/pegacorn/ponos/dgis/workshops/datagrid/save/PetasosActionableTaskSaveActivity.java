@@ -26,7 +26,6 @@ import net.fhirfactory.pegacorn.platform.edge.ask.EncounterFHIRClientService;
 import net.fhirfactory.pegacorn.platform.edge.ask.PatientFHIRClientService;
 import net.fhirfactory.pegacorn.platform.edge.ask.ProvenanceFHIRClientService;
 import net.fhirfactory.pegacorn.platform.edge.ask.TaskFHIRClientService;
-import net.fhirfactory.pegacorn.ponos.dgis.workshops.edge.ask.LadonDataGridHTTPClient;
 import net.fhirfactory.pegacorn.services.tasks.transforms.tofhir.FHIRResourceSetFromPetasosActionableTask;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;

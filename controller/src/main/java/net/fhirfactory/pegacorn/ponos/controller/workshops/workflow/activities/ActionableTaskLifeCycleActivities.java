@@ -24,8 +24,6 @@ package net.fhirfactory.pegacorn.ponos.controller.workshops.workflow.activities;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.ponos.controller.workshops.datagrid.PonosTaskCacheServices;
-import net.fhirfactory.pegacorn.ponos.dgis.workshops.datagrid.load.PetasosActionableTaskLoadActivity;
-import net.fhirfactory.pegacorn.ponos.dgis.workshops.datagrid.save.PetasosActionableTaskSaveActivity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,11 +40,11 @@ public class ActionableTaskLifeCycleActivities {
     @Inject
     private PonosTaskCacheServices taskCacheServices;
 
-    @Inject
-    private PetasosActionableTaskLoadActivity actionableTaskLoadActivity;
+//    @Inject
+//    private PetasosActionableTaskLoadActivity actionableTaskLoadActivity;
 
-    @Inject
-    private PetasosActionableTaskSaveActivity actionableTaskSaveActivity;
+//    @Inject
+//    private PetasosActionableTaskSaveActivity actionableTaskSaveActivity;
 
     //
     // Constructor(s)
@@ -70,7 +68,7 @@ public class ActionableTaskLifeCycleActivities {
     //
 
     public void createActionableTask(PetasosActionableTask actionableTask){
-        actionableTaskSaveActivity.savePetasosActionableTask(actionableTask);
+  //      actionableTaskSaveActivity.savePetasosActionableTask(actionableTask);
     }
 
     public PetasosActionableTask reviewActionableTask(TaskIdType actionableTaskId){

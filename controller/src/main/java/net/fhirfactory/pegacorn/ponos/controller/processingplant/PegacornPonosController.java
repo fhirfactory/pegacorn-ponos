@@ -21,14 +21,9 @@
  */
 package net.fhirfactory.pegacorn.ponos.controller.processingplant;
 
-import net.fhirfactory.pegacorn.ponos.controller.workshops.workflow.PonosTaskController;
 import net.fhirfactory.pegacorn.ponos.controller.workshops.workflow.PonosTaskWatchdog;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
-import org.apache.camel.builder.RouteBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 public abstract class PegacornPonosController extends ProcessingPlant {
