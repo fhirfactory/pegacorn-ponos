@@ -19,11 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.common;
+package net.fhirfactory.pegacorn.ponos.subsystem.common;
 
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class PonosControllerNames {
+public class PonosAcolyteNames {
 
 }

@@ -19,38 +19,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.workshops.workflow.activities;
+package net.fhirfactory.pegacorn.ponos.tasks.status.activities;
 
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosAggregateTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
-import net.fhirfactory.pegacorn.ponos.controller.workshops.datagrid.PonosTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.datagrid.PonosTaskCacheServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.time.Instant;
 
 @ApplicationScoped
-public class ActionableTaskLifeCycleActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskLifeCycleActivities.class);
+public class AggregateTaskLifeCycleActivities {
+    private static final Logger LOG = LoggerFactory.getLogger(AggregateTaskLifeCycleActivities.class);
 
     private boolean initialised;
 
     @Inject
     private PonosTaskCacheServices taskCacheServices;
 
-//    @Inject
-//    private PetasosActionableTaskLoadActivity actionableTaskLoadActivity;
-
-//    @Inject
-//    private PetasosActionableTaskSaveActivity actionableTaskSaveActivity;
-
     //
     // Constructor(s)
     //
 
-    public ActionableTaskLifeCycleActivities(){
+    public AggregateTaskLifeCycleActivities(){
         this.initialised = false;
     }
 
@@ -67,16 +63,23 @@ public class ActionableTaskLifeCycleActivities {
     // Business Methods
     //
 
-    public void createActionableTask(PetasosActionableTask actionableTask){
-  //      actionableTaskSaveActivity.savePetasosActionableTask(actionableTask);
+    public PetasosAggregateTask buildAggregateTask(PetasosActionableTask triggerEvent){
+        PetasosAggregateTask aggregateTask = new PetasosAggregateTask();
+
+        return(aggregateTask);
     }
 
-    public PetasosActionableTask reviewActionableTask(TaskIdType actionableTaskId){
-        return(null);
+    public Instant saveAggregateTask(PetasosAggregateTask aggregateTask){
+
+
+        Instant saveInstant = Instant.now();
+        return(saveInstant);
     }
 
-    public void updateActiableTask(PetasosActionableTask actionableTask){
+    public PetasosAggregateTask loadAggregateTask(TaskIdType aggregateTaskId){
+        PetasosAggregateTask aggregateTask = new PetasosAggregateTask();
 
+        return(aggregateTask);
     }
 
     //

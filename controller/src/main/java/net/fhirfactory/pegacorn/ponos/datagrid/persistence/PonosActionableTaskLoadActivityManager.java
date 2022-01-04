@@ -19,42 +19,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.workshops.datagrid.persistence;
+package net.fhirfactory.pegacorn.ponos.datagrid.persistence;
 
 import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridEntrySaveRequestInterface;
-import net.fhirfactory.pegacorn.ponos.controller.workshops.datagrid.PonosTaskCacheServices;
+import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridEntryLoadRequestInterface;
+import net.fhirfactory.pegacorn.ponos.datagrid.PonosTaskCacheServices;
+import org.hl7.fhir.r4.model.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
-public class PonosActionableTaskSaveActivityManager implements DatagridEntrySaveRequestInterface {
-    private static final Logger LOG = LoggerFactory.getLogger(PonosActionableTaskSaveActivityManager.class);
-
-    private static Long PONOS_DATAGRID_ENTRY_SAVE_SERVICE_CHECK_PERIOD = 500L;
-    private static Long PONOS_DATAGRID_ENTRY_SAVE_SERVICE_START_DELAY = 30000L;
+public class PonosActionableTaskLoadActivityManager implements DatagridEntryLoadRequestInterface {
+    private static final Logger LOG = LoggerFactory.getLogger(PonosActionableTaskLoadActivityManager.class);
 
     private boolean initialised;
-
-    private Set<DatagridElementKeyInterface> saveActivityQueue;
 
     @Inject
     private PonosTaskCacheServices ponosTaskCache;
 
     //
-    // Constructor
+    // Constructor(s)
     //
 
-    public PonosActionableTaskSaveActivityManager(){
+    public PonosActionableTaskLoadActivityManager(){
         this.initialised = false;
-        saveActivityQueue = new HashSet<>();
     }
 
     //
@@ -76,27 +68,12 @@ public class PonosActionableTaskSaveActivityManager implements DatagridEntrySave
     //
 
     @Override
-    public void requestDatagridEntrySave(DatagridElementKeyInterface element) {
-        if(element != null){
-            if(getSaveActivityQueue().contains(element)){
-                // do nothing, it's already in queue
-            } else {
-                getSaveActivityQueue().add(element);
-            }
-        }
+    public void requestDatagridEntryLoad(DatagridElementKeyInterface elementId) {
 
     }
 
-    //
-    // The Save Daemon
-    //
-
-    protected void datagridSaveDaemon(){
-        getLogger().debug(".datagridSaveDaemon(): Entry");
-        if(getSaveActivityQueue().isEmpty()){
-            getLogger().debug(".datagridSaveDaemon(): Exit, SaveActivityQueue is empty");
-            return;
-        }
+    @Override
+    public void requestDatagridEntryLoad(Identifier elementIdentifier) {
 
     }
 
@@ -112,15 +89,4 @@ public class PonosActionableTaskSaveActivityManager implements DatagridEntrySave
         return(this.ponosTaskCache);
     }
 
-    public static Long getPonosDatagridEntrySaveServiceCheckPeriod() {
-        return PONOS_DATAGRID_ENTRY_SAVE_SERVICE_CHECK_PERIOD;
-    }
-
-    public static Long getPonosDatagridEntrySaveServiceStartDelay() {
-        return PONOS_DATAGRID_ENTRY_SAVE_SERVICE_START_DELAY;
-    }
-
-    protected Set<DatagridElementKeyInterface> getSaveActivityQueue() {
-        return saveActivityQueue;
-    }
 }

@@ -19,9 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.workshops.workflow;
+package net.fhirfactory.pegacorn.ponos.tasks.status;
 
-import net.fhirfactory.pegacorn.ponos.controller.workshops.datagrid.PonosTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.datagrid.PonosTaskCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
 import net.fhirfactory.pegacorn.services.tasks.manager.PetasosTaskServicesManagerHandler;
 import org.slf4j.Logger;
@@ -32,8 +32,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 @ApplicationScoped
-public class PonosTaskController extends PetasosTaskServicesManagerHandler {
-    private static final Logger LOG = LoggerFactory.getLogger(PonosTaskController.class);
+public class TaskStatusManagementService extends PetasosTaskServicesManagerHandler {
+    private static final Logger LOG = LoggerFactory.getLogger(TaskStatusManagementService.class);
 
     private boolean initialised;
 
@@ -44,7 +44,7 @@ public class PonosTaskController extends PetasosTaskServicesManagerHandler {
     // Constructor(s)
     //
 
-    public PonosTaskController(){
+    public TaskStatusManagementService(){
         super();
         this.initialised = false;
     }

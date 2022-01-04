@@ -19,17 +19,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.processingplant.configuration;
+package net.fhirfactory.pegacorn.ponos.subsystem.processingplant.configuration;
 
 import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.archetypes.PetasosEnabledSubsystemPropertyFile;
 
-public class PonosControllerConfigurationFile extends PetasosEnabledSubsystemPropertyFile {
+public class PonosAcolyteConfigurationFile extends PetasosEnabledSubsystemPropertyFile {
 
     //
     // Constructor(s)
     //
 
-    public PonosControllerConfigurationFile(){
+    public PonosAcolyteConfigurationFile(){
         super();
     }
 

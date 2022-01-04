@@ -19,56 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.workshops.workflow.activities;
+package net.fhirfactory.pegacorn.ponos.subsystem.workshops.replica.common;
 
-import net.fhirfactory.pegacorn.ponos.controller.workshops.datagrid.PonosTaskCacheServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-@ApplicationScoped
-public class ActionableTaskFulfillmentActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskFulfillmentActivities.class);
-
-    private boolean initialised;
-
-    @Inject
-    private PonosTaskCacheServices taskCacheServices;
-
-    //
-    // Constructor(s)
-    //
-
-    public ActionableTaskFulfillmentActivities(){
-        this.initialised = false;
-    }
-
-    //
-    // Post Construct
-    //
-
-    @PostConstruct
-    public void initialise(){
-
-    }
-
-    //
-    // Business Methods
-    //
-
-
-    //
-    // Getters (and Setters)
-    //
-
-    protected Logger getLogger(){
-        return(LOG);
-    }
-
-    protected PonosTaskCacheServices getTaskCacheServices(){
-        return(taskCacheServices);
-    }
+public class ReplicateServicesBase {
 }

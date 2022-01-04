@@ -1,10 +1,8 @@
-package net.fhirfactory.pegacorn.ponos.controller.processingplant.configuration;
+package net.fhirfactory.pegacorn.ponos.subsystem.processingplant.configuration;
 
 import net.fhirfactory.pegacorn.core.model.topology.nodes.*;
-import net.fhirfactory.pegacorn.core.model.topology.nodes.common.EndpointProviderInterface;
-import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.segments.ports.interact.StandardInteractClientPortSegment;
 import net.fhirfactory.pegacorn.deployment.topology.factories.archetypes.fhirpersistence.im.FHIRIMSubsystemTopologyFactory;
-import net.fhirfactory.pegacorn.ponos.controller.common.PonosControllerNames;
+import net.fhirfactory.pegacorn.ponos.subsystem.common.PonosAcolyteNames;
 import net.fhirfactory.pegacorn.util.PegacornEnvironmentProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +11,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 @ApplicationScoped
-public class PonosControllerTopologyFactory extends FHIRIMSubsystemTopologyFactory {
-    private static final Logger LOG = LoggerFactory.getLogger(PonosControllerTopologyFactory.class);
+public class PonosAcolyteTopologyFactory extends FHIRIMSubsystemTopologyFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(PonosAcolyteTopologyFactory.class);
 
     @Inject
-    private PonosControllerNames ponosControllerNames;
+    private PonosAcolyteNames ponosAcolyteNames;
 
     @Inject
     private PegacornEnvironmentProperties pegacornEnvironmentProperties;
@@ -29,7 +27,7 @@ public class PonosControllerTopologyFactory extends FHIRIMSubsystemTopologyFacto
 
     @Override
     protected Class specifyPropertyFileClass() {
-        return (PonosControllerConfigurationFile.class);
+        return (PonosAcolyteConfigurationFile.class);
     }
 
     @Override

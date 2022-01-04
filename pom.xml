@@ -25,6 +25,14 @@
 
     <name>Pegacorn :: Ponos</name>
     <description>The Tasking and Work-Distribution Controller</description>
+    <dependencies>
+        <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <version>2.0.SP1</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 
 </project>

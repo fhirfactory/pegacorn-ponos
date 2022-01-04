@@ -19,49 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.workshops.workflow;
+package net.fhirfactory.pegacorn.ponos.subsystem.workshops.replica;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-@ApplicationScoped
-public class PonosTaskWatchdog {
-    private static Logger LOG = LoggerFactory.getLogger(PonosTaskWatchdog.class);
-
-    private boolean initialised;
-
-    //
-    // Constructor(s)
-    //
-
-    public PonosTaskWatchdog(){
-        this.initialised = false;
-    }
-
-    //
-    // Post Construct
-    //
-
-    @PostConstruct
-    public void initialise(){
-
-    }
-
-    //
-    // Business Methods
-    //
-
-
-    //
-    // Getters and Setters
-    //
-
-    protected Logger getLogger(){
-        return(LOG);
-    }
-
+public class ReplicateAggregateTaskSummary {
 }

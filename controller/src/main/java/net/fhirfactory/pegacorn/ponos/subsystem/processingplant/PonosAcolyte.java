@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Mark A. Hunter
+ * Copyright (c) 2021 Mark A. Hunter (ACT Health)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,56 +19,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.workshops.workflow.activities;
+package net.fhirfactory.pegacorn.ponos.subsystem.processingplant;
 
-import net.fhirfactory.pegacorn.ponos.controller.workshops.datagrid.PonosTaskCacheServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.fhirfactory.pegacorn.ponos.tasks.monitoring.TaskFulfillmentWatchdog;
+import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-@ApplicationScoped
-public class AggregateTaskReportingActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(AggregateTaskReportingActivities.class);
-
-    private boolean initialised;
+public abstract class PonosAcolyte extends ProcessingPlant {
 
     @Inject
-    private PonosTaskCacheServices taskCacheServices;
+    private TaskFulfillmentWatchdog taskWatchdog;
 
     //
     // Constructor(s)
     //
 
-    public AggregateTaskReportingActivities(){
-        this.initialised = false;
+    public PonosAcolyte(){
+        super();
     }
 
     //
     // Post Construct
     //
 
-    @PostConstruct
-    public void initialise(){
 
-    }
 
     //
     // Business Methods
     //
 
 
+
     //
     // Getters (and Setters)
     //
 
-    protected Logger getLogger(){
-        return(LOG);
-    }
 
-    protected PonosTaskCacheServices getTaskCacheServices(){
-        return(taskCacheServices);
-    }
 }

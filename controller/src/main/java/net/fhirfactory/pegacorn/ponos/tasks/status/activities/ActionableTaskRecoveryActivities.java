@@ -19,23 +19,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.workshops.workflow.activities;
+package net.fhirfactory.pegacorn.ponos.tasks.status.activities;
 
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosAggregateTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
-import net.fhirfactory.pegacorn.ponos.controller.workshops.datagrid.PonosTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.datagrid.PonosTaskCacheServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.time.Instant;
 
 @ApplicationScoped
-public class AggregateTaskLifeCycleActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(AggregateTaskLifeCycleActivities.class);
+public class ActionableTaskRecoveryActivities {
+    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskRecoveryActivities.class);
 
     private boolean initialised;
 
@@ -46,7 +42,7 @@ public class AggregateTaskLifeCycleActivities {
     // Constructor(s)
     //
 
-    public AggregateTaskLifeCycleActivities(){
+    public ActionableTaskRecoveryActivities(){
         this.initialised = false;
     }
 
@@ -63,24 +59,6 @@ public class AggregateTaskLifeCycleActivities {
     // Business Methods
     //
 
-    public PetasosAggregateTask buildAggregateTask(PetasosActionableTask triggerEvent){
-        PetasosAggregateTask aggregateTask = new PetasosAggregateTask();
-
-        return(aggregateTask);
-    }
-
-    public Instant saveAggregateTask(PetasosAggregateTask aggregateTask){
-
-
-        Instant saveInstant = Instant.now();
-        return(saveInstant);
-    }
-
-    public PetasosAggregateTask loadAggregateTask(TaskIdType aggregateTaskId){
-        PetasosAggregateTask aggregateTask = new PetasosAggregateTask();
-
-        return(aggregateTask);
-    }
 
     //
     // Getters (and Setters)

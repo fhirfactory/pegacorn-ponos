@@ -19,9 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.controller.workshops.workflow.activities;
+package net.fhirfactory.pegacorn.ponos.tasks.status.activities;
 
-import net.fhirfactory.pegacorn.ponos.controller.workshops.datagrid.PonosTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.datagrid.PonosTaskCacheServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +30,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 @ApplicationScoped
-public class ActionableTaskRecoveryActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskRecoveryActivities.class);
+public class AggregateTaskReportingActivities {
+    private static final Logger LOG = LoggerFactory.getLogger(AggregateTaskReportingActivities.class);
 
     private boolean initialised;
 
@@ -42,7 +42,7 @@ public class ActionableTaskRecoveryActivities {
     // Constructor(s)
     //
 
-    public ActionableTaskRecoveryActivities(){
+    public AggregateTaskReportingActivities(){
         this.initialised = false;
     }
 
