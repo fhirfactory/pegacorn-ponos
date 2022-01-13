@@ -262,18 +262,6 @@
         </dependency>
 
         <!--*******************************************************************************-->
-        <!-- Pegacorn (Petasos IT-Ops) Libraries                                           -->
-        <!--*******************************************************************************-->
-
-        <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-petasos-oam</artifactId>
-            <version>${project.version}</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-
-        <!--*******************************************************************************-->
         <!-- Pegacorn (Petasos Task Services Manager) Libraries                            -->
         <!--*******************************************************************************-->
 
