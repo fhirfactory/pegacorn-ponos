@@ -30,12 +30,24 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.time.Instant;
+import java.util.Timer;
+import java.util.TimerTask;
 
 @ApplicationScoped
 public class TaskStatusManagementService extends PetasosTaskServicesManagerHandler {
     private static final Logger LOG = LoggerFactory.getLogger(TaskStatusManagementService.class);
 
     private boolean initialised;
+
+    private boolean firstRunComplete;
+
+    private boolean daemonIsStillRunning;
+    private Instant daemonLastRunTime;
+
+    private static Long TASK_STATUS_MANAGEMENT_DAEMON_STARTUP_DELAY = 60000L;
+    private static Long TASK_STATUS_MANAGEMENT_DAEMON_CHECK_PERIOD = 10000L;
+    private static Long TASK_STATUS_MANAGEMENT_DAEMON_RESET_PERIOD = 180L;
 
     @Inject
     private PonosTaskCacheServices taskCacheServices;
@@ -54,7 +66,53 @@ public class TaskStatusManagementService extends PetasosTaskServicesManagerHandl
     //
 
     @PostConstruct
-    public void initialise(){
+    public void initialise() {
+        getLogger().debug(".initialise(): Entry");
+        if (initialised) {
+            getLogger().debug(".initialise(): Exit, already initialised, nothing to do");
+            return;
+        }
+        getLogger().info(".initialise(): Initialisation Start...");
+
+        scheduleTaskStatusManagementDaemon();
+
+        this.initialised = true;
+
+        getLogger().info(".initialise(): Initialisation Finish...");
+    }
+
+    //
+    // Daemon Scheduler
+    //
+
+    private void scheduleTaskStatusManagementDaemon() {
+        getLogger().debug(".scheduleTaskStatusManagementDaemon(): Entry");
+        TimerTask taskStatusManagementDaemonTimerTask = new TimerTask() {
+            public void run() {
+                getLogger().debug(".taskStatusManagementDaemonTimerTask(): Entry");
+                if (!daemonIsStillRunning) {
+                    taskStatusManagementDaemon();
+                    setDaemonLastRunTime(Instant.now());
+                } else {
+                    Long ageSinceRun = Instant.now().getEpochSecond() - getDaemonLastRunTime().getEpochSecond();
+                    if (ageSinceRun > getTaskStatusManagementDaemonResetPeriod()) {
+                        taskStatusManagementDaemon();
+                        setDaemonLastRunTime(Instant.now());
+                    }
+                }
+                getLogger().debug(".taskStatusManagementDaemonTimerTask(): Exit");
+            }
+        };
+        Timer timer = new Timer("TaskStatusManagementDaemonTimer");
+        timer.schedule(taskStatusManagementDaemonTimerTask, getTaskStatusManagementDaemonStartupDelay(), getTaskStatusManagementDaemonCheckPeriod());
+        getLogger().debug(".scheduleTaskStatusManagementDaemon(): Exit");
+    }
+
+    //
+    // Daemon
+    //
+
+    public void taskStatusManagementDaemon(){
 
     }
 
@@ -76,5 +134,25 @@ public class TaskStatusManagementService extends PetasosTaskServicesManagerHandl
     @Override
     protected PetasosActionableTaskDM specifyActionableTaskDM() {
         return (taskCacheServices);
+    }
+
+    protected Instant getDaemonLastRunTime() {
+        return (daemonLastRunTime);
+    }
+
+    protected void setDaemonLastRunTime(Instant instant){
+        this.daemonLastRunTime = instant;
+    }
+
+    public static Long getTaskStatusManagementDaemonStartupDelay() {
+        return TASK_STATUS_MANAGEMENT_DAEMON_STARTUP_DELAY;
+    }
+
+    public static Long getTaskStatusManagementDaemonCheckPeriod() {
+        return TASK_STATUS_MANAGEMENT_DAEMON_CHECK_PERIOD;
+    }
+
+    public static Long getTaskStatusManagementDaemonResetPeriod() {
+        return TASK_STATUS_MANAGEMENT_DAEMON_RESET_PERIOD;
     }
 }
