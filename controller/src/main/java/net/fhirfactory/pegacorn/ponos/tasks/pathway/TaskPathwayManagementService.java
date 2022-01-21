@@ -55,7 +55,7 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
 
     @Override
     public Set<PetasosParticipant> getDownstreamTaskPerformersForTaskProducer(String producerServiceName) {
-        getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): Entry, producerServiceName->{}", producerServiceName);
+        getLogger().info(".TaskPathwayManagementService(): Entry, producerServiceName->{}", producerServiceName);
         Set<PetasosParticipant> subscriberSet = petasosParticipantCache.getDownstreamTaskPerformersForTaskProducer(producerServiceName);
         if(getLogger().isInfoEnabled()){
             getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
@@ -66,61 +66,61 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
 
     @Override
     public PetasosParticipantRegistration registerPetasosParticipant(PetasosParticipant participant) {
-        getLogger().info(".registerPetasosParticipant(): Entry, participant->{}", participant);
+        getLogger().debug(".registerPetasosParticipant(): Entry, participant->{}", participant);
         if(participant == null) {
             getLogger().info(".registerPetasosParticipant(): Exit, participant is null, returning null");
             return (null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.registerPetasosParticipant(participant);
-        getLogger().info(".registerPetasosParticipant(): Exit, registration->{}", registration);
+        getLogger().debug(".registerPetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
     }
 
     @Override
     public PetasosParticipantRegistration updatePetasosParticipant(PetasosParticipant participant) {
-        getLogger().info(".updatePetasosParticipant(): Entry, participant->{}", participant);
+        getLogger().debug(".updatePetasosParticipant(): Entry, participant->{}", participant);
         if(participant == null){
-            getLogger().info(".updatePetasosParticipant(): Exit, participant is null, returning null");
+            getLogger().debug(".updatePetasosParticipant(): Exit, participant is null, returning null");
             return(null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.updatePetasosParticipant(participant);
-        getLogger().info(".updatePetasosParticipant(): Exit, registration->{}", registration);
+        getLogger().debug(".updatePetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
     }
 
     @Override
     public PetasosParticipantRegistration deregisterPetasosParticipant(PetasosParticipant participant) {
-        getLogger().info(".deregisterPetasosParticipant(): Entry, participant->{}", participant);
+        getLogger().debug(".deregisterPetasosParticipant(): Entry, participant->{}", participant);
         if(participant == null){
-            getLogger().info(".deregisterPetasosParticipant(): Exit, participant is null, returning null");
+            getLogger().debug(".deregisterPetasosParticipant(): Exit, participant is null, returning null");
             return(null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.deregisterPetasosParticipant(participant);
-        getLogger().info(".deregisterPetasosParticipant(): Exit, registration->{}", registration);
+        getLogger().debug(".deregisterPetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
     }
 
     @Override
     public PetasosParticipantRegistration getPetasosParticipantRegistration(ComponentIdType participantId) {
-        getLogger().info(".getPetasosParticipantRegistration(): Entry, participantId->{}", participantId);
+        getLogger().debug(".getPetasosParticipantRegistration(): Entry, participantId->{}", participantId);
         if(participantId == null){
-            getLogger().info(".getPetasosParticipantRegistration(): Exit, participantId is null, returning null");
+            getLogger().debug(".getPetasosParticipantRegistration(): Exit, participantId is null, returning null");
             return(null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.deregisterPetasosParticipant(participantId);
-        getLogger().info(".getPetasosParticipantRegistration(): Exit, registration->{}", registration);
+        getLogger().debug(".getPetasosParticipantRegistration(): Exit, registration->{}", registration);
         return(registration);
     }
 
     @Override
     public Set<PetasosParticipantRegistration> getParticipantRegistrationSetForService(String participantName) {
-        getLogger().info(".getParticipantRegistrationSetForService(): Entry, participantName->{}", participantName);
+        getLogger().debug(".getParticipantRegistrationSetForService(): Entry, participantName->{}", participantName);
         if(StringUtils.isEmpty(participantName)){
-            getLogger().info(".getParticipantRegistrationSetForService(): Exit, participantName is null, returning empty set");
+            getLogger().debug(".getParticipantRegistrationSetForService(): Exit, participantName is null, returning empty set");
             return(new HashSet<>());
         }
         Set<PetasosParticipantRegistration> downstreamTaskPerformers = petasosParticipantCache.getParticipantRegistrationSetForService(participantName);
-        getLogger().info(".getParticipantRegistrationSetForService(): Exit");
+        getLogger().debug(".getParticipantRegistrationSetForService(): Exit");
         return (downstreamTaskPerformers);
     }
 
