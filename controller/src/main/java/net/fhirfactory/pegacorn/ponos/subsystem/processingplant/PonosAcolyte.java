@@ -21,6 +21,7 @@
  */
 package net.fhirfactory.pegacorn.ponos.subsystem.processingplant;
 
+import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
 import net.fhirfactory.pegacorn.ponos.tasks.monitoring.TaskFulfillmentWatchdog;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
 
@@ -43,12 +44,18 @@ public abstract class PonosAcolyte extends ProcessingPlant {
     // Post Construct
     //
 
+    //
+    // Abstract Method Implementations
+    //
 
+    @Override
+    public ProcessingPlantRoleEnum getProcessingPlantCapability() {
+        return (ProcessingPlantRoleEnum.PETASOS_SERVICE_PROVIDER_TASK_MANAGEMENT);
+    }
 
     //
     // Business Methods
     //
-
 
 
     //

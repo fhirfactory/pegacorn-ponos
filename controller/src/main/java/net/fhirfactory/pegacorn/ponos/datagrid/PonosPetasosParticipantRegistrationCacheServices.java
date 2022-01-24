@@ -26,7 +26,7 @@ import net.fhirfactory.pegacorn.core.model.componentid.PegacornSystemComponentTy
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistrationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
 import net.fhirfactory.pegacorn.ponos.datagrid.cache.PonosReplicatedCacheServices;
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.Cache;
@@ -137,7 +137,7 @@ public class PonosPetasosParticipantRegistrationCacheServices {
                 getPetasosParticipantComponentIdMap().put(participant.getComponentID(), registration.getRegistrationId());
             }
             if(participant.getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)) {
-                for (TaskWorkItemManifestType currentTaskWorkItem : participant.getSubscribedWorkItemManifests()) {
+                for (TaskWorkItemSubscriptionType currentTaskWorkItem : participant.getSubscriptions()) {
                     addDownstreamTaskPerformer(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
                 }
                 addPetasosParticipantInstanceForServiceName(participant.getSubsystemParticipantName(), registration);
@@ -185,7 +185,7 @@ public class PonosPetasosParticipantRegistrationCacheServices {
                 getPetasosParticipantComponentIdMap().remove(participantId);
             }
             if(registration.getParticipant().getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)) {
-                for (TaskWorkItemManifestType currentTaskWorkItem : registration.getParticipant().getSubscribedWorkItemManifests()) {
+                for (TaskWorkItemSubscriptionType currentTaskWorkItem : registration.getParticipant().getSubscriptions()) {
                     removeDownstreamTaskPerformer(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
                 }
                 removePetasosParticipantInstanceForServiceName(registration.getParticipant().getSubsystemParticipantName(), registration);
@@ -251,21 +251,19 @@ public class PonosPetasosParticipantRegistrationCacheServices {
             getLogger().debug(".addDownstreamTaskPerformer(): Exit, performerRegistration is null");
             return;
         }
-        for(TaskWorkItemManifestType currentWorkItemManifest: performerRegistration.getParticipant().getSubscribedWorkItemManifests()){
-            getLogger().trace(".addDownstreamTaskPerformer(): Iterating through WorkItemManifests for participant");
-            synchronized (getProducerTaskConsumerMapLock()){
-                if(getProducerTaskConsumerMap().containsKey(producerServiceName)) {
-                    Set<String> registrationIdSet = getProducerTaskConsumerMap().get(producerServiceName);
-                    if(!registrationIdSet.contains(performerRegistration.getRegistrationId())){
-                        getLogger().trace(".addDownstreamTaskPerformer(): Adding consumer into already existing set");
-                        registrationIdSet.add(performerRegistration.getRegistrationId());
-                    }
-                } else {
-                    getLogger().trace(".addDownstreamTaskPerformer(): Creating a new Consumer set and adding this consumer to it!");
-                    Set<String> registrationIdSet = new HashSet<>();
+        getLogger().trace(".addDownstreamTaskPerformer(): Iterating through WorkItemManifests for participant");
+        synchronized (getProducerTaskConsumerMapLock()){
+            if(getProducerTaskConsumerMap().containsKey(producerServiceName)) {
+                Set<String> registrationIdSet = getProducerTaskConsumerMap().get(producerServiceName);
+                if(!registrationIdSet.contains(performerRegistration.getRegistrationId())){
+                    getLogger().trace(".addDownstreamTaskPerformer(): Adding consumer into already existing set");
                     registrationIdSet.add(performerRegistration.getRegistrationId());
-                    getProducerTaskConsumerMap().put(producerServiceName, registrationIdSet);
                 }
+            } else {
+                getLogger().trace(".addDownstreamTaskPerformer(): Creating a new Consumer set and adding this consumer to it!");
+                Set<String> registrationIdSet = new HashSet<>();
+                registrationIdSet.add(performerRegistration.getRegistrationId());
+                getProducerTaskConsumerMap().put(producerServiceName, registrationIdSet);
             }
         }
         getLogger().debug(".addDownstreamTaskPerformer(): Exit");
@@ -286,18 +284,16 @@ public class PonosPetasosParticipantRegistrationCacheServices {
             getLogger().debug(".removeDownstreamTaskPerformer(): Exit, performerRegistration is null");
             return;
         }
-        for(TaskWorkItemManifestType currentWorkItemManifest: performerRegistration.getParticipant().getSubscribedWorkItemManifests()){
-            getLogger().trace(".addDownstreamTaskPerformer(): Iterating through WorkItemManifests for participant");
-            synchronized (getProducerTaskConsumerMapLock()){
-                if(getProducerTaskConsumerMap().containsKey(producerServiceName)) {
-                    Set<String> registrationIdSet = getProducerTaskConsumerMap().get(producerServiceName);
-                    if(registrationIdSet.contains(performerRegistration.getRegistrationId())){
-                        getLogger().trace(".addDownstreamTaskPerformer(): Removing consumer from Consumer set");
-                        registrationIdSet.remove(performerRegistration.getRegistrationId());
-                    }
-                    if(registrationIdSet.isEmpty()){
-                        getProducerTaskConsumerMap().remove(producerServiceName);
-                    }
+        getLogger().trace(".addDownstreamTaskPerformer(): Iterating through WorkItemManifests for participant");
+        synchronized (getProducerTaskConsumerMapLock()){
+            if(getProducerTaskConsumerMap().containsKey(producerServiceName)) {
+                Set<String> registrationIdSet = getProducerTaskConsumerMap().get(producerServiceName);
+                if(registrationIdSet.contains(performerRegistration.getRegistrationId())){
+                    getLogger().trace(".addDownstreamTaskPerformer(): Removing consumer from Consumer set");
+                    registrationIdSet.remove(performerRegistration.getRegistrationId());
+                }
+                if(registrationIdSet.isEmpty()){
+                    getProducerTaskConsumerMap().remove(producerServiceName);
                 }
             }
         }
