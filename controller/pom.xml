@@ -336,6 +336,18 @@
         </dependency>
 
         <!--*******************************************************************************-->
+        <!-- Pegacorn (BuildingBlock) FHIR-Datagrid Libraries                              -->
+        <!--*******************************************************************************-->
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-buildingblocks-fhirim</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--*******************************************************************************-->
         <!-- Pegacorn (BuildingBlock) Archetypes                                           -->
         <!--*******************************************************************************-->
 
@@ -375,7 +387,7 @@
             <scope>compile</scope>
         </dependency>
         -->
-        
+
         <!--*******************************************************************************-->
         <!-- JGroups Manipulation Libraries                                                -->
         <!--*******************************************************************************-->

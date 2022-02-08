@@ -43,6 +43,7 @@ import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
 import net.fhirfactory.pegacorn.services.tasks.datatypes.PetasosActionableTaskRegistrationType;
 import org.apache.commons.lang3.SerializationUtils;
 import org.infinispan.Cache;
+import org.infinispan.CacheCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,8 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
     private static final String PONOS_TASK_PERSISTENCE_SERVICE = "Ponos-ActionableTask-Persistence-Service";
 
     private Cache<DatagridElementKeyInterface, PetasosActionableTask> taskCache;
+    private Object taskCacheLock;
+
     private Cache<DatagridElementKeyInterface, PetasosActionableTaskRegistrationType> taskRegistrationCache;
     private Cache<DataParcelTypeDescriptor, DatagridPersistenceServiceRegistrationType> taskPersistenceServiceCache;
 
@@ -84,6 +87,7 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
     public PonosTaskCacheServices(){
         super();
         this.initialised = false;
+        this.taskCacheLock = new Object();
     }
 
     //
@@ -281,6 +285,29 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
         return(true);
     }
 
+    public List<PetasosActionableTask> getLastInChainActionableEvents(){
+        getLogger().info(".getLastInChainActionableEvents(): Entry");
+
+        List<PetasosActionableTask> endedJourneyList = new ArrayList<>();
+        synchronized (getTaskCacheLock()) {
+            CacheCollection<PetasosActionableTask> values = getTaskCache().values();
+            for(PetasosActionableTask currentTask: values){
+                if(getLogger().isInfoEnabled()){
+                    getLogger().info(".getLastInChainActionableEvents(): Iterating, currentTask->{}", currentTask);
+                }
+                if(currentTask.hasTaskCompletionSummary()){
+                    if(currentTask.getTaskCompletionSummary().isLastInChain()){
+                        endedJourneyList.add(SerializationUtils.clone(currentTask));
+                    }
+                }
+            }
+        }
+        if(getLogger().isInfoEnabled()) {
+            getLogger().info(".getLastInChainActionableEvents(): Exit, number of entries->{}", endedJourneyList.size());
+        }
+        return(endedJourneyList);
+    }
+
     //
     // Getters and Setters (and Helpers)
     //
@@ -308,5 +335,9 @@ public class PonosTaskCacheServices extends PetasosActionableTaskDM {
 
     protected DatagridEntrySaveRequestInterface getDatagridEntrySaveRequestService() {
         return datagridEntrySaveRequestService;
+    }
+
+    private Object getTaskCacheLock(){
+        return(taskCacheLock);
     }
 }

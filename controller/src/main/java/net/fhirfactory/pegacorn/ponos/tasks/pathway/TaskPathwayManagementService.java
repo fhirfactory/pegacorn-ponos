@@ -46,21 +46,21 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
 
     @Override
     public boolean isPetasosParticipantRegistered(PetasosParticipant participant) {
-        getLogger().info(".isPetasosParticipantRegistered(): Entry, participant->{}", participant);
+        getLogger().debug(".isPetasosParticipantRegistered(): Entry, participant->{}", participant);
         boolean isRegistered = petasosParticipantCache.getPetasosParticipantRegistration(participant.getComponentID()) != null;
-        getLogger().info(".isPetasosParticipantRegistered(): Exit, isRegistered->{}", isRegistered);
+        getLogger().debug(".isPetasosParticipantRegistered(): Exit, isRegistered->{}", isRegistered);
         return(isRegistered);
     }
 
 
     @Override
     public Set<PetasosParticipant> getDownstreamTaskPerformersForTaskProducer(String producerServiceName) {
-        getLogger().info(".TaskPathwayManagementService(): Entry, producerServiceName->{}", producerServiceName);
+        getLogger().debug(".TaskPathwayManagementService(): Entry, producerServiceName->{}", producerServiceName);
         Set<PetasosParticipant> subscriberSet = petasosParticipantCache.getDownstreamTaskPerformersForTaskProducer(producerServiceName);
-        if(getLogger().isInfoEnabled()){
-            getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
+        if(getLogger().isDebugEnabled()){
+            getLogger().debug(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
         }
-        getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): Exit");
+        getLogger().debug(".getDownstreamTaskPerformersForTaskProducer(): Exit");
         return(subscriberSet);
     }
 
@@ -68,7 +68,7 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
     public PetasosParticipantRegistration registerPetasosParticipant(PetasosParticipant participant) {
         getLogger().debug(".registerPetasosParticipant(): Entry, participant->{}", participant);
         if(participant == null) {
-            getLogger().info(".registerPetasosParticipant(): Exit, participant is null, returning null");
+            getLogger().debug(".registerPetasosParticipant(): Exit, participant is null, returning null");
             return (null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.registerPetasosParticipant(participant);
