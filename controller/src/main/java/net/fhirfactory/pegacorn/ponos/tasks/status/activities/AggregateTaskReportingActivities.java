@@ -21,29 +21,81 @@
  */
 package net.fhirfactory.pegacorn.ponos.tasks.status.activities;
 
+import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityElementType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityType;
+import net.fhirfactory.pegacorn.internals.fhir.r4.internal.topics.HL7V2XTopicFactory;
+import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.GeneralTaskMetadataExtractor;
+import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.HL7v2xTaskMetadataExtractor;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import net.fhirfactory.pegacorn.ponos.datagrid.PonosTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.subsystem.workshops.oam.ProcessingPlantTaskReportProxy;
+import net.fhirfactory.pegacorn.ponos.tasks.factories.AggregateTaskReportFactory;
+import net.fhirfactory.pegacorn.ponos.tasks.status.activities.common.TaskActivityProcessorBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @ApplicationScoped
-public class AggregateTaskReportingActivities {
+public class AggregateTaskReportingActivities extends TaskActivityProcessorBase {
     private static final Logger LOG = LoggerFactory.getLogger(AggregateTaskReportingActivities.class);
 
     private boolean initialised;
 
+    private DateTimeFormatter timeFormatter;
+
+    private boolean stillRunning;
+
+    private Long CONTENT_FORWARDER_STARTUP_DELAY = 120000L;
+    private Long CONTENT_FORWARDER_REFRESH_PERIOD = 15000L;
+
+    private ArrayList<TaskIdType> alreadyProcessed;
+
     @Inject
     private PonosTaskCacheServices taskCacheServices;
+
+    @Inject
+    private HL7V2XTopicFactory hl7V2XTopicFactory;
+
+    @Inject
+    private HL7v2xTaskMetadataExtractor hl7V2XTaskMetadataExtractor;
+
+    @Inject
+    private GeneralTaskMetadataExtractor generalTaskMetadataExtractor;
+
+    @Inject
+    private ProcessingPlantMetricsAgentAccessor metricsAgentAccessor;
+
+    @Inject
+    private ProcessingPlantTaskReportProxy taskReportProxy;
+
+    @Inject
+    private AggregateTaskReportFactory aggregateTaskReportFactory;
 
     //
     // Constructor(s)
     //
 
-    public AggregateTaskReportingActivities(){
+    //
+    // Constructor(s)
+    //
+
+    public AggregateTaskReportingActivities() {
+        super();
         this.initialised = false;
+        this.stillRunning = false;
+        this.alreadyProcessed = new ArrayList<>();
+        timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss.SSS").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
+
     }
 
     //
@@ -51,13 +103,98 @@ public class AggregateTaskReportingActivities {
     //
 
     @PostConstruct
-    public void initialise(){
+    public void initialise() {
+        getLogger().debug(".initialise(): Entry");
+        if (initialised) {
+            getLogger().debug(".initialise(): Exit, already initialised, nothing to do");
+            return;
+        }
+        getLogger().info(".initialise(): Initialisation Start...");
 
+        scheduleAggregateTaskReportingDaemon();
+
+        this.initialised = true;
+
+        getLogger().info(".initialise(): Initialisation Finish...");
+    }
+
+    //
+    // Daemon Task Scheduler
+    //
+
+    private void scheduleAggregateTaskReportingDaemon() {
+        getLogger().debug(".scheduleAggregateTaskReportingDaemon(): Entry");
+        TimerTask aggregateTaskReportDaemonTask = new TimerTask() {
+            public void run() {
+                getLogger().debug(".aggregateTaskReportDaemonTask(): Entry");
+                if (!isStillRunning()) {
+                    aggregateTaskReportingDaemon();
+                }
+                getLogger().debug(".aggregateTaskReportDaemonTask(): Exit");
+            }
+        };
+        Timer timer = new Timer("AggregateTaskReportDaemonTaskTimer");
+        timer.schedule(aggregateTaskReportDaemonTask, CONTENT_FORWARDER_STARTUP_DELAY, CONTENT_FORWARDER_REFRESH_PERIOD);
+        getLogger().debug(".scheduleAggregateTaskReportingDaemon(): Exit");
     }
 
     //
     // Business Methods
     //
+
+    public void aggregateTaskReportingDaemon(){
+        getLogger().debug(".aggregateTaskReportingDaemon(): Entry");
+
+        setStillRunning(true);
+
+        List<PetasosActionableTask> lastInChainActionableEvents = getTaskCacheServices().getLastInChainActionableEvents();
+        for(PetasosActionableTask currentTask: lastInChainActionableEvents){
+            if(alreadyProcessed.contains(currentTask.getTaskId())) {
+                // do nothing
+            } else {
+                getLogger().info(".aggregateTaskReportingDaemon(): Iterating, currentTask->{}", currentTask.getTaskId());
+                publishEndOfChainFullTaskReport(currentTask);
+                alreadyProcessed.add(currentTask.getTaskId());
+            }
+        }
+
+        setStillRunning(false);
+
+        getLogger().debug(".aggregateTaskReportingDaemon(): Exit");
+    }
+
+    public void publishEndOfChainFullTaskReport(PetasosActionableTask lastTask) {
+        getLogger().debug(".publishEndOfChainTaskReport(): Entry, lastTask->{}", lastTask);
+
+        TaskTraceabilityType taskTraceability = lastTask.getTaskTraceability();
+
+        //
+        // Get the 1st
+        TaskTraceabilityElementType firstTaskTraceabilityElement = taskTraceability.getTaskJourney().get(0);
+        TaskIdType firstTaskId = firstTaskTraceabilityElement.getActionableTaskId();
+        PetasosActionableTask firstTask = getTaskCacheServices().getPetasosActionableTask(firstTaskId);
+
+        //
+        // Create the Report
+        String reportString = getAggregateTaskReportFactory().endOfChainReport(lastTask);
+
+        //
+        // Publish to Last Participant
+        String lastSubsystemName = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName();
+        ComponentIdType lastComponentId = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getComponentID();
+        taskReportProxy.sendITOpsTaskReport(lastSubsystemName,lastComponentId,reportString);
+
+        //
+        // Publish to First Participant
+        String firstSubsystemName = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName();
+        ComponentIdType firstComponentId = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getComponentID();
+        taskReportProxy.sendITOpsTaskReport(firstSubsystemName,firstComponentId, reportString);
+
+        //
+        // All done
+        getLogger().debug(".publishEndOfChainTaskReport(): Exit");
+    }
+
 
 
     //
@@ -71,4 +208,25 @@ public class AggregateTaskReportingActivities {
     protected PonosTaskCacheServices getTaskCacheServices(){
         return(taskCacheServices);
     }
+
+    public boolean isInitialised() {
+        return initialised;
+    }
+
+    public void setInitialised(boolean initialised) {
+        this.initialised = initialised;
+    }
+
+    public boolean isStillRunning() {
+        return stillRunning;
+    }
+
+    public void setStillRunning(boolean stillRunning) {
+        this.stillRunning = stillRunning;
+    }
+
+    protected AggregateTaskReportFactory getAggregateTaskReportFactory(){
+        return(aggregateTaskReportFactory);
+    }
+
 }

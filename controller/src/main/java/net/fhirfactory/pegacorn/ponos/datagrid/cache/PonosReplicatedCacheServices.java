@@ -21,30 +21,19 @@
  */
 package net.fhirfactory.pegacorn.ponos.datagrid.cache;
 
+import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.archetypes.PetasosEnabledSubsystemPropertyFile;
+import net.fhirfactory.pegacorn.fhirim.workshops.datagrid.cache.common.BaseResourceReplicatedCacheServices;
 import net.fhirfactory.pegacorn.ponos.subsystem.processingplant.configuration.PonosAcolyteConfigurationFile;
 import net.fhirfactory.pegacorn.ponos.subsystem.processingplant.configuration.PonosAcolyteTopologyFactory;
-import org.infinispan.configuration.cache.CacheMode;
-import org.infinispan.configuration.cache.Configuration;
-import org.infinispan.configuration.cache.ConfigurationBuilder;
-import org.infinispan.configuration.global.GlobalConfiguration;
-import org.infinispan.configuration.global.GlobalConfigurationBuilder;
-import org.infinispan.manager.DefaultCacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 @ApplicationScoped
-public class PonosReplicatedCacheServices {
+public class PonosReplicatedCacheServices extends BaseResourceReplicatedCacheServices {
     private static final Logger LOG = LoggerFactory.getLogger(PonosReplicatedCacheServices.class);
-
-    private boolean initialised;
-
-    private DefaultCacheManager cacheManager;
-    private ConfigurationBuilder cacheConfigurationBuilder;
-    private Configuration cacheConfigurationBuild;
 
     @Inject
     private PonosAcolyteTopologyFactory ponosAcolyteTopologyFactory;
@@ -54,59 +43,35 @@ public class PonosReplicatedCacheServices {
     //
 
     public PonosReplicatedCacheServices(){
-        this.initialised = false;
+        super();
     }
 
     //
-    // Post Construct
+    // Superclass Abstract Method Implementation
     //
 
-    @PostConstruct
-    public void initialise() {
-        getLogger().debug(".initialise(): Entry");
-        if (!initialised) {
-            getLogger().info(".initialise(): Initialisation Start");
-            //
-            // Get the Infinispan-Task-JGroups-Configuration-File
-            getLogger().info(".initialise(): [Retrieve JGroups Configuration File Name] Start");
-            PonosAcolyteConfigurationFile propertyFile = (PonosAcolyteConfigurationFile) ponosAcolyteTopologyFactory.getPropertyFile();
-            getLogger().trace(".initialise(): [Retrieve JGroups Configuration File Name] propertyFile->{}", propertyFile);
-            String configurationFileName = propertyFile.getDeploymentMode().getMultiuseInfinispanStackConfigFile();
-            getLogger().debug(".initialise(): [Retrieve JGroups Configuration File Name] configurationFileName->{}", configurationFileName);
-            getLogger().info(".initialise(): [Retrieve JGroups Configuration File Name] End");
 
-            getLogger().info(".initialise(): [Initialising Infinispan Cache Manager] Start");
-            GlobalConfiguration globalConfig = new GlobalConfigurationBuilder().transport()
-                    .defaultTransport()
-                    .clusterName("petasos-task-cache")
-                    //Uses a custom JGroups stack for cluster transport.
-                    .addProperty("configurationFile", configurationFileName)
-                    .build();
-            cacheManager = new DefaultCacheManager(globalConfig);
-            // Create a distributed cache with synchronous replication.
-            cacheConfigurationBuilder = new ConfigurationBuilder();
-            cacheConfigurationBuilder.clustering().cacheMode(CacheMode.REPL_SYNC);
-            cacheConfigurationBuild = cacheConfigurationBuilder.build();
-            getLogger().info(".initialise(): [Initialising Infinispan Cache Manager] End");
+    @Override
+    protected PetasosEnabledSubsystemPropertyFile getPropertyFile() {
+        getLogger().info(".getPropertyFile(): [Retrieve JGroups Configuration File Name] Start");
+        PonosAcolyteConfigurationFile propertyFile = (PonosAcolyteConfigurationFile) ponosAcolyteTopologyFactory.getPropertyFile();
+        return(propertyFile);
+    }
 
-            getLogger().info(".initialise(): Initialisation Finished...");
-            this.initialised = true;
-        }
+    @Override
+    protected String specifyInfinispanClusterName() {
+        return ("petasos-task-cache");
+    }
+
+    @Override
+    protected Logger getLogger(){
+        return(LOG);
     }
 
     //
     // Getters (and Setters)
     //
 
-    protected Logger getLogger(){
-        return(LOG);
-    }
 
-    public DefaultCacheManager getCacheManager(){
-        return(cacheManager);
-    }
 
-    public Configuration getCacheConfigurationBuild(){
-        return(cacheConfigurationBuild);
-    }
 }
