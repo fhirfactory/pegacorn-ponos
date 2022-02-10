@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Mark A. Hunter (ACT Health)
+ * Copyright (c) 2021 Mark A. Hunter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,45 +19,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.subsystem.processingplant;
+package net.fhirfactory.pegacorn.ponos.workshops.workflow.monitoring;
 
-import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
-import net.fhirfactory.pegacorn.ponos.interfaces.PonosSubsystemDetailsInterface;
-import net.fhirfactory.pegacorn.ponos.workshops.workflow.monitoring.TaskFulfillmentWatchdog;
-import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 
-public abstract class PonosAcolyte extends ProcessingPlant implements PonosSubsystemDetailsInterface {
+@ApplicationScoped
+public class TaskFulfillmentWatchdog {
+    private static Logger LOG = LoggerFactory.getLogger(TaskFulfillmentWatchdog.class);
 
-    @Inject
-    private TaskFulfillmentWatchdog taskWatchdog;
+    private boolean initialised;
 
     //
     // Constructor(s)
     //
 
-    public PonosAcolyte(){
-        super();
+    public TaskFulfillmentWatchdog(){
+        this.initialised = false;
     }
 
     //
     // Post Construct
     //
 
-    //
-    // Abstract Method Implementations
-    //
+    @PostConstruct
+    public void initialise(){
 
-    @Override
-    public ProcessingPlantRoleEnum getProcessingPlantCapability() {
-        return (ProcessingPlantRoleEnum.PETASOS_SERVICE_PROVIDER_TASK_MANAGEMENT);
-    }
-
-    @Override
-    public String getInfinispanJGroupsConfigFile() {
-        String multiuseInfinispanStackConfigFile = specifyPropertyFile().getDeploymentMode().getMultiuseInfinispanStackConfigFile();
-        return (multiuseInfinispanStackConfigFile);
     }
 
     //
@@ -66,8 +56,11 @@ public abstract class PonosAcolyte extends ProcessingPlant implements PonosSubsy
 
 
     //
-    // Getters (and Setters)
+    // Getters and Setters
     //
 
+    protected Logger getLogger(){
+        return(LOG);
+    }
 
 }

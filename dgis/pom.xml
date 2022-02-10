@@ -282,6 +282,30 @@
         </dependency>
 
         <!--*******************************************************************************-->
+        <!-- Pegacorn (BuildingBlock) FHIR-Datagrid Libraries                              -->
+        <!--*******************************************************************************-->
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-buildingblocks-fhirim</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--*******************************************************************************-->
+        <!-- Pegacorn (Ponos Metadata)Libraries                              -->
+        <!--*******************************************************************************-->
+
+        <dependency>
+            <groupId>net.fhirfactory.pegacorn</groupId>
+            <artifactId>pegacorn-ponos-metadata</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--*******************************************************************************-->
         <!-- Pegacorn BuildingBlocks OAM Service Libraries                                 -->
         <!--*******************************************************************************-->
 

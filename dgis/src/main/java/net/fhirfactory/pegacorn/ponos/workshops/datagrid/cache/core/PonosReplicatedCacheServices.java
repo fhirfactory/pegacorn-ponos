@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Mark A. Hunter (ACT Health)
+ * Copyright (c) 2021 Mark A. Hunter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,55 +19,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.subsystem.processingplant;
+package net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.core;
 
-import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
+import net.fhirfactory.pegacorn.fhirim.workshops.datagrid.cache.common.BaseResourceReplicatedCacheServices;
 import net.fhirfactory.pegacorn.ponos.interfaces.PonosSubsystemDetailsInterface;
-import net.fhirfactory.pegacorn.ponos.workshops.workflow.monitoring.TaskFulfillmentWatchdog;
-import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-public abstract class PonosAcolyte extends ProcessingPlant implements PonosSubsystemDetailsInterface {
+@ApplicationScoped
+public class PonosReplicatedCacheServices extends BaseResourceReplicatedCacheServices {
+    private static final Logger LOG = LoggerFactory.getLogger(PonosReplicatedCacheServices.class);
 
     @Inject
-    private TaskFulfillmentWatchdog taskWatchdog;
-
+    private PonosSubsystemDetailsInterface ponosSubsystemDetails;
     //
     // Constructor(s)
     //
 
-    public PonosAcolyte(){
+    public PonosReplicatedCacheServices(){
         super();
     }
 
     //
-    // Post Construct
+    // Superclass Abstract Method Implementation
     //
 
-    //
-    // Abstract Method Implementations
-    //
 
     @Override
-    public ProcessingPlantRoleEnum getProcessingPlantCapability() {
-        return (ProcessingPlantRoleEnum.PETASOS_SERVICE_PROVIDER_TASK_MANAGEMENT);
+    protected String specifyInfinispanConfigFileName() {
+        return ponosSubsystemDetails.getInfinispanJGroupsConfigFile();
     }
 
     @Override
-    public String getInfinispanJGroupsConfigFile() {
-        String multiuseInfinispanStackConfigFile = specifyPropertyFile().getDeploymentMode().getMultiuseInfinispanStackConfigFile();
-        return (multiuseInfinispanStackConfigFile);
+    protected String specifyInfinispanClusterName() {
+        return ("petasos-task-cache");
     }
 
-    //
-    // Business Methods
-    //
-
+    @Override
+    protected Logger getLogger(){
+        return(LOG);
+    }
 
     //
     // Getters (and Setters)
     //
+
 
 
 }

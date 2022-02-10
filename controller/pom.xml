@@ -379,14 +379,12 @@
         <!-- Pegacorn (Ponos - Task Resilience, Recovery and Management) Archetypes        -->
         <!--*******************************************************************************-->
 
-        <!--
         <dependency>
             <groupId>net.fhirfactory.pegacorn</groupId>
             <artifactId>pegacorn-ponos-dgis</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
-        -->
 
         <!--*******************************************************************************-->
         <!-- JGroups Manipulation Libraries                                                -->
