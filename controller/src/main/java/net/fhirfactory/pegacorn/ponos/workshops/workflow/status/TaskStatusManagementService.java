@@ -132,7 +132,7 @@ public class TaskStatusManagementService extends PetasosTaskServicesManagerHandl
     }
 
     @Override
-    protected PetasosActionableTaskDM specifyActionableTaskDM() {
+    protected PetasosActionableTaskDM specifyActionableTaskCache() {
         return (taskCacheServices);
     }
 

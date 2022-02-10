@@ -53,9 +53,9 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
 
 
     @Override
-    public Set<PetasosParticipant> getDownstreamTaskPerformersForTaskProducer(String producerServiceName) {
-        getLogger().debug(".TaskPathwayManagementService(): Entry, producerServiceName->{}", producerServiceName);
-        Set<PetasosParticipant> subscriberSet = petasosParticipantCache.getDownstreamTaskPerformersForTaskProducer(producerServiceName);
+    public Set<PetasosParticipant> getDownstreamTaskPerformersForTaskProducer(String producerParticipantName) {
+        getLogger().debug(".TaskPathwayManagementService(): Entry, producerParticipantName->{}", producerParticipantName);
+        Set<PetasosParticipant> subscriberSet = petasosParticipantCache.getDownstreamParticipantSet(producerParticipantName);
         if(getLogger().isDebugEnabled()){
             getLogger().debug(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
         }
@@ -112,14 +112,14 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
     }
 
     @Override
-    public Set<PetasosParticipantRegistration> getParticipantRegistrationSetForService(String participantName) {
-        getLogger().debug(".getParticipantRegistrationSetForService(): Entry, participantName->{}", participantName);
+    public Set<PetasosParticipantRegistration> getParticipantRegistrationSetForParticipantName(String participantName) {
+        getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Entry, participantName->{}", participantName);
         if(StringUtils.isEmpty(participantName)){
-            getLogger().debug(".getParticipantRegistrationSetForService(): Exit, participantName is null, returning empty set");
+            getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Exit, participantName is null, returning empty set");
             return(new HashSet<>());
         }
-        Set<PetasosParticipantRegistration> downstreamTaskPerformers = petasosParticipantCache.getParticipantRegistrationSetForService(participantName);
-        getLogger().debug(".getParticipantRegistrationSetForService(): Exit");
+        Set<PetasosParticipantRegistration> downstreamTaskPerformers = petasosParticipantCache.getParticipantRegistrationSetForParticipantName(participantName);
+        getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Exit");
         return (downstreamTaskPerformers);
     }
 
