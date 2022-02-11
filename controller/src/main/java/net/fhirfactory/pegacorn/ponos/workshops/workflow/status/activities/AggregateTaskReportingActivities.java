@@ -48,6 +48,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import net.fhirfactory.pegacorn.ponos.workshops.workflow.factories.EndpointInformationExtractor;
+import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
 public class AggregateTaskReportingActivities extends TaskActivityProcessorBase {
@@ -85,6 +87,9 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
 
     @Inject
     private SubsystemNames subsystemNames;
+    
+    @Inject
+    private EndpointInformationExtractor endpointInfoExtrator;
 
     //
     // Constructor(s)
@@ -159,6 +164,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
                 getLogger().info(".aggregateTaskReportingDaemon(): Iterating, currentTask->{}", currentTask.getTaskId());
                 if(!currentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName().contains(subsystemNames.getITOpsIMParticipantName())) {
                     publishEndOfChainFullTaskReport(currentTask);
+                    publishEndPointOnlyTaskReport(currentTask);
                 }
                 getTaskCacheServices().archivePetasosActionableTask(currentTask);
                 getTaskCacheServices().setReportStatus(currentTask.getTaskId(), true);
@@ -202,7 +208,40 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
         getLogger().debug(".publishEndOfChainTaskReport(): Exit");
     }
 
-
+    public void publishEndPointOnlyTaskReport(PetasosActionableTask lastTask){
+        getLogger().debug(".publishEndOfChainTaskReport(): Entry, lastTask->{}", lastTask);
+        
+        //
+        // Create the report
+        String reportString = getAggregateTaskReportFactory().newEndpointOnlyTaskReport(lastTask);
+        
+        //
+        // Get the 1st Task
+        TaskTraceabilityType taskTraceability = lastTask.getTaskTraceability();
+        TaskTraceabilityElementType firstTaskTraceabilityElement = taskTraceability.getTaskJourney().get(0);
+        TaskIdType firstTaskId = firstTaskTraceabilityElement.getActionableTaskId();
+        PetasosActionableTask firstTask = getTaskCacheServices().getPetasosActionableTask(firstTaskId);
+        
+        //
+        // Resolve Endpoint Participant Name(s)
+        String egressEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(lastTask, false);
+        String ingresEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(firstTask, false);
+        
+        //
+        // Resolve Endpoint Component ID(s)
+        ComponentIdType egressComponentId = getEndpointInfoExtrator().getEndpointComponentId(lastTask);
+        ComponentIdType ingresComponentId = getEndpointInfoExtrator().getEndpointComponentId(firstTask);
+        
+        if(StringUtils.isNoneEmpty(egressEndpointParticipantName) && egressComponentId != null ){
+            taskReportProxy.sendITOpsTaskReport(egressEndpointParticipantName,egressComponentId, reportString);
+        }
+        
+        if(StringUtils.isNoneEmpty(ingresEndpointParticipantName) && ingresComponentId != null ){
+            taskReportProxy.sendITOpsTaskReport(ingresEndpointParticipantName,ingresComponentId, reportString);
+        }
+        
+        getLogger().debug(".publishEndOfChainTaskReport(): Exit, report->{}", reportString);
+    }
 
     //
     // Getters (and Setters)
@@ -234,6 +273,10 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
 
     protected AggregateTaskReportFactory getAggregateTaskReportFactory(){
         return(aggregateTaskReportFactory);
+    }
+    
+    protected EndpointInformationExtractor getEndpointInfoExtrator(){
+        return(this.endpointInfoExtrator);
     }
 
 }
