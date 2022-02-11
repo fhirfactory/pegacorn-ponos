@@ -54,24 +54,24 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
 
     @Override
     public Set<PetasosParticipant> getDownstreamTaskPerformersForTaskProducer(String producerParticipantName) {
-        getLogger().debug(".TaskPathwayManagementService(): Entry, producerParticipantName->{}", producerParticipantName);
+        getLogger().info(".TaskPathwayManagementService(): Entry, producerParticipantName->{}", producerParticipantName);
         Set<PetasosParticipant> subscriberSet = petasosParticipantCache.getDownstreamParticipantSet(producerParticipantName);
         if(getLogger().isDebugEnabled()){
-            getLogger().debug(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
+            getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
         }
-        getLogger().debug(".getDownstreamTaskPerformersForTaskProducer(): Exit");
+        getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): Exit");
         return(subscriberSet);
     }
 
     @Override
     public PetasosParticipantRegistration registerPetasosParticipant(PetasosParticipant participant) {
-        getLogger().debug(".registerPetasosParticipant(): Entry, participant->{}", participant);
+        getLogger().info(".registerPetasosParticipant(): Entry, participant->{}", participant);
         if(participant == null) {
-            getLogger().debug(".registerPetasosParticipant(): Exit, participant is null, returning null");
+            getLogger().info(".registerPetasosParticipant(): Exit, participant is null, returning null");
             return (null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.registerPetasosParticipant(participant);
-        getLogger().debug(".registerPetasosParticipant(): Exit, registration->{}", registration);
+        getLogger().info(".registerPetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
     }
 

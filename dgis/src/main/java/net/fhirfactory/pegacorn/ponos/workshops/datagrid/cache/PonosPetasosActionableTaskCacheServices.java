@@ -294,14 +294,14 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
     }
 
     public List<PetasosActionableTask> getLastInChainActionableEvents(){
-        getLogger().info(".getLastInChainActionableEvents(): Entry");
+        getLogger().debug(".getLastInChainActionableEvents(): Entry");
 
         List<PetasosActionableTask> endedJourneyList = new ArrayList<>();
         synchronized (getTaskCacheLock()) {
             CacheCollection<PetasosActionableTask> values = getTaskCache().values();
             for(PetasosActionableTask currentTask: values){
                 if(getLogger().isInfoEnabled()){
-                    getLogger().info(".getLastInChainActionableEvents(): Iterating, currentTask->{}", currentTask);
+                    getLogger().trace(".getLastInChainActionableEvents(): Iterating, currentTask->{}", currentTask);
                 }
                 if(currentTask.hasTaskCompletionSummary()){
                     if(currentTask.getTaskCompletionSummary().isLastInChain()){
@@ -311,7 +311,7 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
             }
         }
         if(getLogger().isInfoEnabled()) {
-            getLogger().info(".getLastInChainActionableEvents(): Exit, number of entries->{}", endedJourneyList.size());
+            getLogger().debug(".getLastInChainActionableEvents(): Exit, number of entries->{}", endedJourneyList.size());
         }
         return(endedJourneyList);
     }
