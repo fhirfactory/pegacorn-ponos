@@ -54,9 +54,9 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
 
     @Override
     public Set<PetasosParticipant> getDownstreamTaskPerformersForTaskProducer(String producerParticipantName) {
-        getLogger().info(".TaskPathwayManagementService(): Entry, producerParticipantName->{}", producerParticipantName);
+        getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): Entry, producerParticipantName->{}", producerParticipantName);
         Set<PetasosParticipant> subscriberSet = petasosParticipantCache.getDownstreamParticipantSet(producerParticipantName);
-        if(getLogger().isDebugEnabled()){
+        if(getLogger().isInfoEnabled()){
             getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
         }
         getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): Exit");
