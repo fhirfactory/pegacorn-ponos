@@ -87,7 +87,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
 
     @Inject
     private SubsystemNames subsystemNames;
-    
+
     @Inject
     private EndpointInformationExtractor endpointInfoExtrator;
 
@@ -161,7 +161,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
             if(getTaskCacheServices().hasAlreadyBeenReportedOn(currentTask.getTaskId())) {
                 // do nothing
             } else {
-                getLogger().info(".aggregateTaskReportingDaemon(): Iterating, currentTask->{}", currentTask.getTaskId());
+                getLogger().debug(".aggregateTaskReportingDaemon(): Iterating, currentTask->{}", currentTask.getTaskId());
                 if(!currentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName().contains(subsystemNames.getITOpsIMParticipantName())) {
                     publishEndOfChainFullTaskReport(currentTask);
                     publishEndPointOnlyTaskReport(currentTask);
@@ -210,36 +210,36 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
 
     public void publishEndPointOnlyTaskReport(PetasosActionableTask lastTask){
         getLogger().debug(".publishEndOfChainTaskReport(): Entry, lastTask->{}", lastTask);
-        
+
         //
         // Create the report
         String reportString = getAggregateTaskReportFactory().newEndpointOnlyTaskReport(lastTask);
-        
+
         //
         // Get the 1st Task
         TaskTraceabilityType taskTraceability = lastTask.getTaskTraceability();
         TaskTraceabilityElementType firstTaskTraceabilityElement = taskTraceability.getTaskJourney().get(0);
         TaskIdType firstTaskId = firstTaskTraceabilityElement.getActionableTaskId();
         PetasosActionableTask firstTask = getTaskCacheServices().getPetasosActionableTask(firstTaskId);
-        
+
         //
         // Resolve Endpoint Participant Name(s)
         String egressEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(lastTask, false);
         String ingresEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(firstTask, false);
-        
+
         //
         // Resolve Endpoint Component ID(s)
         ComponentIdType egressComponentId = getEndpointInfoExtrator().getEndpointComponentId(lastTask);
         ComponentIdType ingresComponentId = getEndpointInfoExtrator().getEndpointComponentId(firstTask);
-        
+
         if(StringUtils.isNoneEmpty(egressEndpointParticipantName) && egressComponentId != null ){
             taskReportProxy.sendITOpsTaskReport(egressEndpointParticipantName,egressComponentId, reportString);
         }
-        
+
         if(StringUtils.isNoneEmpty(ingresEndpointParticipantName) && ingresComponentId != null ){
             taskReportProxy.sendITOpsTaskReport(ingresEndpointParticipantName,ingresComponentId, reportString);
         }
-        
+
         getLogger().debug(".publishEndOfChainTaskReport(): Exit, report->{}", reportString);
     }
 
@@ -274,7 +274,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
     protected AggregateTaskReportFactory getAggregateTaskReportFactory(){
         return(aggregateTaskReportFactory);
     }
-    
+
     protected EndpointInformationExtractor getEndpointInfoExtrator(){
         return(this.endpointInfoExtrator);
     }
