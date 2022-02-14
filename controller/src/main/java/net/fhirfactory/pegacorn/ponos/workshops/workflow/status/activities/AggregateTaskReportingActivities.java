@@ -209,7 +209,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
     }
 
     public void publishEndPointOnlyTaskReport(PetasosActionableTask lastTask){
-        getLogger().debug(".publishEndOfChainTaskReport(): Entry, lastTask->{}", lastTask);
+        getLogger().info(".publishEndPointOnlyTaskReport(): Entry, lastTask->{}", lastTask);
 
         //
         // Create the report
@@ -225,22 +225,22 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
         //
         // Resolve Endpoint Participant Name(s)
         String egressEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(lastTask, false);
-        String ingresEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(firstTask, false);
+        String ingresEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(firstTask, true);
 
         //
         // Resolve Endpoint Component ID(s)
         ComponentIdType egressComponentId = getEndpointInfoExtrator().getEndpointComponentId(lastTask);
         ComponentIdType ingresComponentId = getEndpointInfoExtrator().getEndpointComponentId(firstTask);
 
-        if(StringUtils.isNoneEmpty(egressEndpointParticipantName) && egressComponentId != null ){
-            taskReportProxy.sendITOpsTaskReport(egressEndpointParticipantName,egressComponentId, reportString);
+        if(StringUtils.isNotEmpty(egressEndpointParticipantName) && egressComponentId != null ){
+            taskReportProxy.sendITOpsEndpointOnlyTaskReport(egressEndpointParticipantName,egressComponentId, reportString);
         }
 
-        if(StringUtils.isNoneEmpty(ingresEndpointParticipantName) && ingresComponentId != null ){
-            taskReportProxy.sendITOpsTaskReport(ingresEndpointParticipantName,ingresComponentId, reportString);
+        if(StringUtils.isNotEmpty(ingresEndpointParticipantName) && ingresComponentId != null ){
+            taskReportProxy.sendITOpsEndpointOnlyTaskReport(ingresEndpointParticipantName,ingresComponentId, reportString);
         }
 
-        getLogger().debug(".publishEndOfChainTaskReport(): Exit, report->{}", reportString);
+        getLogger().info(".publishEndPointOnlyTaskReport(): Exit, report->{}", reportString);
     }
 
     //

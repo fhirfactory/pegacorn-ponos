@@ -63,7 +63,7 @@ public class AggregateTaskReportFactory {
 
     @Inject
     private SubsystemNames subsystemNames;
-    
+
     @Inject
     private EndpointInformationExtractor endpointInfoExtrator;
 
@@ -228,18 +228,18 @@ public class AggregateTaskReportFactory {
         reportBuilder.append("[" + step.toString() + "]:: --------------------------------------------------- :: \n");
         return(reportBuilder.toString());
     }
-    
+
     public String newEndpointOnlyTaskReport(PetasosActionableTask lastTask){
-        
+
         TaskTraceabilityType taskTraceability = lastTask.getTaskTraceability();
         //
         // Get the 1st
         TaskTraceabilityElementType firstTaskTraceabilityElement = taskTraceability.getTaskJourney().get(0);
         TaskIdType firstTaskId = firstTaskTraceabilityElement.getActionableTaskId();
         PetasosActionableTask firstTask = getTaskCacheServices().getPetasosActionableTask(firstTaskId);
-        
+
         StringBuilder reportBuilder = new StringBuilder();
-        
+
         String ingresEndpointParticipantName = null;
         if(firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor() instanceof WorkUnitProcessorSoftwareComponent){
             WorkUnitProcessorSoftwareComponent ingresWUP = (WorkUnitProcessorSoftwareComponent)firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
@@ -250,53 +250,60 @@ public class AggregateTaskReportFactory {
             WorkUnitProcessorSoftwareComponent egressWUP = (WorkUnitProcessorSoftwareComponent)lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
             egressEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(egressWUP, false);
         }
-        
+
         String ingresName = null;
         if(StringUtils.isEmpty(ingresEndpointParticipantName)){
             ingresName = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
         } else {
             ingresName = ingresEndpointParticipantName;
         }
-        
+
         String egressName = null;
         if(StringUtils.isEmpty(egressEndpointParticipantName)){
             egressName = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
         } else {
             egressName = egressEndpointParticipantName;
         }
-        
+
         reportBuilder.append("------------------------------------------------------------\n");
         reportBuilder.append("Ingres --> " + ingresName + "\n");
         reportBuilder.append("Egress --> " + egressName + "\n");
 
         List<String> metadataHeader = null;
-        List<String> metadataBody = null;
+        String msh= null;
+        String pid = null;
         if (getHL7v2MetadataFactory().isHL7V2Payload(firstTask.getTaskWorkItem().getIngresContent())) {
             metadataHeader = getHL7v2MetadataFactory().getHL7v2MetadataHeaderInfo(firstTask.getTaskWorkItem().getIngresContent());
-            if (!firstTask.getTaskWorkItem().getIngresContent().getPayloadManifest().hasContainerDescriptor()) {
-                metadataBody = getHL7v2MetadataFactory().extractMetadataFromHL7v2xMessage(firstTask.getTaskWorkItem().getIngresContent().getPayload());
-            } else {
-                metadataBody = new ArrayList<>();
-                metadataBody.add("Metadata Not Available");
+            try {
+                msh = getHL7v2MetadataFactory().getMSH(firstTask.getTaskWorkItem().getIngresContent().getPayload());
+                pid = getHL7v2MetadataFactory().getPID(firstTask.getTaskWorkItem().getIngresContent().getPayload());
+            } catch (Exception ex){
+                getLogger().warn(".newEndpointOnlyTaskReport(): Cannot decode message->{}", firstTask.getTaskId());
             }
         } else {
             metadataHeader = new ArrayList<>();
-            metadataBody = new ArrayList<>();
         }
-        
+
         for (String currentMetadataHeaderLine : metadataHeader) {
             reportBuilder.append(":: " + currentMetadataHeaderLine + "\n");
         }
-        
+
         ActionableTaskOutcomeStatusEnum outcomeStatus = lastTask.getTaskOutcomeStatus().getOutcomeStatus();
         if (outcomeStatus == null) {
             outcomeStatus = ActionableTaskOutcomeStatusEnum.ACTIONABLE_TASK_OUTCOME_STATUS_UNKNOWN;
         }
         String taskOutcomeStatus = outcomeStatus.getDisplayName();
-        
         reportBuilder.append("Outcome -->" + taskOutcomeStatus + "\n");
+
+        if(StringUtils.isNotEmpty(msh)){
+            reportBuilder.append(":: " + msh + "\n");
+        }
+        if(StringUtils.isNotEmpty(pid)){
+            reportBuilder.append(":: " + pid + "\n");
+        }
+
         reportBuilder.append("------------------------------------------------------------\n");
-        
+
         String report = reportBuilder.toString();
         getLogger().debug(".newEndpointOnlyTaskReport(): Exit, report->{}", report);
         return(report);
@@ -325,7 +332,7 @@ public class AggregateTaskReportFactory {
     protected GeneralTaskMetadataExtractor getGeneralTaskMetadataExtractor(){
         return(generalTaskMetadataExtractor);
     }
-    
+
     protected EndpointInformationExtractor getEndpointInfoExtrator(){
         return(this.endpointInfoExtrator);
     }

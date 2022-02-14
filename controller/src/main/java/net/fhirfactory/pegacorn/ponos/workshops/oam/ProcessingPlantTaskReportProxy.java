@@ -85,4 +85,20 @@ public class ProcessingPlantTaskReportProxy {
         }
         getLogger().info(".sendITOpsTaskReport(): Exit");
     }
+
+    public void sendITOpsEndpointOnlyTaskReport(String participantName, ComponentIdType participantComponentId, String content){
+        getLogger().debug(".sendITOpsTaskReport(): Entry");
+        try {
+            PetasosComponentITOpsNotification notification = new PetasosComponentITOpsNotification();
+            notification.setContent(content);
+            notification.setComponentType(PetasosMonitoredComponentTypeEnum.PETASOS_MONITORED_COMPONENT_ENDPOINT);
+            notification.setComponentId(participantComponentId);
+            notification.setParticipantName(participantName);
+
+            taskReportingAgent.sendTaskReport(notification);
+        } catch (Exception generalException) {
+            getLogger().warn(".sendITOpsTaskReport(): Problem Sending ITOps TaskReport, message->{}, stackTrace->{}", ExceptionUtils.getMessage(generalException), ExceptionUtils.getStackTrace(generalException));
+        }
+        getLogger().info(".sendITOpsTaskReport(): Exit");
+    }
 }

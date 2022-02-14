@@ -44,6 +44,7 @@ import net.fhirfactory.pegacorn.services.tasks.datatypes.PetasosActionableTaskRe
 import org.apache.commons.lang3.SerializationUtils;
 import org.infinispan.Cache;
 import org.infinispan.CacheCollection;
+import org.infinispan.CacheSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @ApplicationScoped
 public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTaskDM {
@@ -333,6 +336,56 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
         } else {
             getTaskJourneyReportedMap().put(entryKey, status);
         }
+    }
+
+    //
+    // Cache Cleanup
+    //
+
+    public Set<DatagridElementKeyInterface> getAgedCacheContent(Long thresholdAge){
+        CacheSet<DatagridElementKeyInterface> datagridElementKeys = getTaskRegistrationCache().keySet();
+        Set<DatagridElementKeyInterface> agedTaskSet = new HashSet<>();
+        Instant now = Instant.now();
+        for(DatagridElementKeyInterface currentKey: datagridElementKeys){
+            PetasosActionableTaskRegistrationType petasosActionableTaskRegistration = getTaskRegistrationCache().get(currentKey);
+            if(petasosActionableTaskRegistration.getRegistrationInstant() == null){
+                petasosActionableTaskRegistration.setRegistrationInstant(Instant.now());
+            }
+            Long age = now.getEpochSecond() - petasosActionableTaskRegistration.getRegistrationInstant().getEpochSecond();
+            if(age > thresholdAge){
+                if(!agedTaskSet.contains(currentKey)){
+                    agedTaskSet.add(currentKey);
+                }
+            }
+        }
+        return(agedTaskSet);
+    }
+
+    public void clearTaskFromCache(DatagridElementKeyInterface key){
+        if(key != null) {
+            synchronized (getTaskCacheLock()) {
+                getTaskCache().remove(key);
+                getTaskRegistrationCache().remove(key);
+                getTaskJourneyReportedMap().remove(key);
+            }
+        }
+    }
+
+    //
+    // Cache Size Information
+    public int getTaskCacheSize(){
+        int size = getTaskCache().size();
+        return(size);
+    }
+
+    public int getTaskPersistenceServiceCacheSize(){
+        int size = getTaskPersistenceServiceCache().size();
+        return(size);
+    }
+
+    public int getTaskRegistrationCacheSize(){
+        int size = getTaskRegistrationCache().size();
+        return(size);
     }
 
     //

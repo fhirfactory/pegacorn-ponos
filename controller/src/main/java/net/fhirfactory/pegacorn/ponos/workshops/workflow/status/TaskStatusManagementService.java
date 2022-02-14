@@ -21,6 +21,9 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.status;
 
+import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
 import net.fhirfactory.pegacorn.services.tasks.manager.PetasosTaskServicesManagerHandler;
@@ -31,6 +34,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -48,9 +52,13 @@ public class TaskStatusManagementService extends PetasosTaskServicesManagerHandl
     private static Long TASK_STATUS_MANAGEMENT_DAEMON_STARTUP_DELAY = 60000L;
     private static Long TASK_STATUS_MANAGEMENT_DAEMON_CHECK_PERIOD = 10000L;
     private static Long TASK_STATUS_MANAGEMENT_DAEMON_RESET_PERIOD = 180L;
+    private static Long TASK_AGE_BEFORE_FORCED_RETIREMENT = 120L;
 
     @Inject
     private PonosPetasosActionableTaskCacheServices taskCacheServices;
+
+    @Inject
+    private ProcessingPlantMetricsAgentAccessor metricsAgentAccessor;
 
     //
     // Constructor(s)
@@ -113,7 +121,15 @@ public class TaskStatusManagementService extends PetasosTaskServicesManagerHandl
     //
 
     public void taskStatusManagementDaemon(){
+        int cacheSize = taskCacheServices.getTaskCacheSize();
+        metricsAgentAccessor.getMetricsAgent().updateLocalCacheStatus("ActionableTaskCache", cacheSize);
+        int registrationCacheSize = taskCacheServices.getTaskRegistrationCacheSize();
+        metricsAgentAccessor.getMetricsAgent().updateLocalCacheStatus("ActionableTaskRegistrationCache", registrationCacheSize);
 
+        Set<DatagridElementKeyInterface> agedCacheContent = taskCacheServices.getAgedCacheContent(TASK_AGE_BEFORE_FORCED_RETIREMENT);
+        for(DatagridElementKeyInterface currentKey: agedCacheContent){
+            taskCacheServices.clearTaskFromCache(currentKey);
+        }
     }
 
     //
