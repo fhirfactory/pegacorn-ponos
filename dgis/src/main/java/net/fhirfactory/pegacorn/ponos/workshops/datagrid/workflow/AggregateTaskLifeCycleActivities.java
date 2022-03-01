@@ -25,6 +25,8 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosAggregateTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
+import org.apache.camel.LoggingLevel;
+import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +36,7 @@ import javax.inject.Inject;
 import java.time.Instant;
 
 @ApplicationScoped
-public class AggregateTaskLifeCycleActivities {
+public class AggregateTaskLifeCycleActivities extends RouteBuilder {
     private static final Logger LOG = LoggerFactory.getLogger(AggregateTaskLifeCycleActivities.class);
 
     private boolean initialised;
@@ -92,5 +94,18 @@ public class AggregateTaskLifeCycleActivities {
 
     protected PonosPetasosActionableTaskCacheServices getTaskCacheServices(){
         return(taskCacheServices);
+    }
+
+    //
+    // Mechanism to ensure Startup
+    //
+
+    @Override
+    public void configure() throws Exception {
+        String className = getClass().getSimpleName();
+
+        from("timer://" + className + "?delay=1000&repeatCount=1")
+                .routeId("DaemonTaskClass::" + className)
+                .log(LoggingLevel.DEBUG, "Starting....");
     }
 }

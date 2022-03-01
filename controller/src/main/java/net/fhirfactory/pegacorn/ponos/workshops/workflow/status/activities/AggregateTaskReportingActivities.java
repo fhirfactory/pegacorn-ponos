@@ -23,7 +23,9 @@ package net.fhirfactory.pegacorn.ponos.workshops.workflow.status.activities;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
+import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.PetasosComponentITOpsNotification;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.valuesets.FulfillmentExecutionStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityElementType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityType;
@@ -36,6 +38,7 @@ import net.fhirfactory.pegacorn.ponos.workshops.oam.ProcessingPlantTaskReportPro
 import net.fhirfactory.pegacorn.ponos.workshops.workflow.factories.AggregateTaskReportFactory;
 import net.fhirfactory.pegacorn.ponos.workshops.workflow.status.activities.common.TaskActivityProcessorBase;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -161,13 +164,17 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
             if(getTaskCacheServices().hasAlreadyBeenReportedOn(currentTask.getTaskId())) {
                 // do nothing
             } else {
-                getLogger().debug(".aggregateTaskReportingDaemon(): Iterating, currentTask->{}", currentTask.getTaskId());
-                if(!currentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName().contains(subsystemNames.getITOpsIMParticipantName())) {
-                    publishEndOfChainFullTaskReport(currentTask);
-                    publishEndPointOnlyTaskReport(currentTask);
+                try {
+                    getLogger().debug(".aggregateTaskReportingDaemon(): Iterating, currentTask->{}", currentTask.getTaskId());
+                    if (!currentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName().contains(subsystemNames.getITOpsIMParticipantName())) {
+                        publishEndOfChainFullTaskReport(currentTask);
+                        publishEndPointOnlyTaskReport(currentTask);
+                    }
+                    getTaskCacheServices().archivePetasosActionableTask(currentTask);
+                    getTaskCacheServices().setReportStatus(currentTask.getTaskId(), true);
+                } catch (Exception ex){
+                    getLogger().warn(".aggregateTaskReportingDaemon(): Could not generate/send task report, message->{}", ExceptionUtils.getMessage(ex));
                 }
-                getTaskCacheServices().archivePetasosActionableTask(currentTask);
-                getTaskCacheServices().setReportStatus(currentTask.getTaskId(), true);
             }
         }
 
@@ -213,7 +220,28 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
 
         //
         // Create the report
-        String reportString = getAggregateTaskReportFactory().newEndpointOnlyTaskReport(lastTask);
+        PetasosComponentITOpsNotification notificationBase = getAggregateTaskReportFactory().newEndpointOnlyTaskReport(lastTask);
+
+        //
+        // Resolve Egress Endpoint Participant Name(s)
+        String egressEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(lastTask, false);
+
+        //
+        // Check to see if it isn't an internal (+ve) report for message forwarding
+        if(StringUtils.isNotEmpty(egressEndpointParticipantName)) {
+            if (egressEndpointParticipantName.contains("PetasosTaskForwarderWUP")) {
+                // we don't want to send these if they are OK outcomes
+                try {
+                    if (lastTask.getTaskFulfillment().getStatus().equals(FulfillmentExecutionStatusEnum.FULFILLMENT_EXECUTION_STATUS_FINISHED) || lastTask.getTaskFulfillment().getStatus().equals(FulfillmentExecutionStatusEnum.FULFILLMENT_EXECUTION_STATUS_FINALISED)) {
+                        // exit out
+                        return;
+                    }
+                } catch (Exception ex) {
+                    getLogger().warn(".publishEndPointOnlyTaskReport(): Couldn't resolve task outcome status, message->{}", ExceptionUtils.getMessage(ex));
+                    return;
+                }
+            }
+        }
 
         //
         // Get the 1st Task
@@ -223,8 +251,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
         PetasosActionableTask firstTask = getTaskCacheServices().getPetasosActionableTask(firstTaskId);
 
         //
-        // Resolve Endpoint Participant Name(s)
-        String egressEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(lastTask, false);
+        // Resolve Ingres Endpoint Participant Name(s)
         String ingresEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(firstTask, true);
 
         //
@@ -233,14 +260,14 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
         ComponentIdType ingresComponentId = getEndpointInfoExtrator().getEndpointComponentId(firstTask);
 
         if(StringUtils.isNotEmpty(egressEndpointParticipantName) && egressComponentId != null ){
-            taskReportProxy.sendITOpsEndpointOnlyTaskReport(egressEndpointParticipantName,egressComponentId, reportString);
+            taskReportProxy.sendITOpsEndpointOnlyTaskReport(egressEndpointParticipantName,egressComponentId, notificationBase.getContent(), notificationBase.getFormattedContent());
         }
 
         if(StringUtils.isNotEmpty(ingresEndpointParticipantName) && ingresComponentId != null ){
-            taskReportProxy.sendITOpsEndpointOnlyTaskReport(ingresEndpointParticipantName,ingresComponentId, reportString);
+            taskReportProxy.sendITOpsEndpointOnlyTaskReport(ingresEndpointParticipantName,ingresComponentId, notificationBase.getContent(), notificationBase.getFormattedContent());
         }
 
-        getLogger().info(".publishEndPointOnlyTaskReport(): Exit, report->{}", reportString);
+        getLogger().info(".publishEndPointOnlyTaskReport(): Exit, report->{}", notificationBase);
     }
 
     //

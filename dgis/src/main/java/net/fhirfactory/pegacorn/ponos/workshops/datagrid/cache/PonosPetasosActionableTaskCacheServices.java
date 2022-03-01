@@ -169,7 +169,6 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
             actionableTaskRegistration.setRegistrationInstant(Instant.now());
             actionableTaskRegistration.setCheckInstant(Instant.now());
         }
-        actionableTaskRegistration.addFulfillmentServiceName(integrationPoint.getSubsystemParticipantName());
         actionableTaskRegistration.addFulfillmentProcessingPlant(integrationPoint.getProcessingPlantInstanceId());
         actionableTaskRegistration.addPerformerTypes(actionableTask.getTaskPerformerTypes());
         if(!taskAlreadyRegistered){
@@ -201,7 +200,6 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
             actionableTaskRegistration = SerializationUtils.clone(getTaskRegistrationCache().get(entryKey));
             getTaskCache().replace(entryKey, actionableTask);
             actionableTaskRegistration.setCheckInstant(Instant.now());
-            actionableTaskRegistration.addFulfillmentServiceName(integrationPoint.getSubsystemParticipantName());
             actionableTaskRegistration.addPerformerTypes(actionableTask.getTaskPerformerTypes());
             actionableTaskRegistration.addFulfillmentProcessingPlant(integrationPoint.getProcessingPlantInstanceId());
             getTaskRegistrationCache().replace(entryKey, actionableTaskRegistration);

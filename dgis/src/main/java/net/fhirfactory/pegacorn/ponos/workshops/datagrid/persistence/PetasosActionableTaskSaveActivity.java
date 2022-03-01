@@ -28,6 +28,7 @@ import net.fhirfactory.pegacorn.platform.edge.ask.EncounterFHIRClientService;
 import net.fhirfactory.pegacorn.platform.edge.ask.PatientFHIRClientService;
 import net.fhirfactory.pegacorn.platform.edge.ask.ProvenanceFHIRClientService;
 import net.fhirfactory.pegacorn.platform.edge.ask.TaskFHIRClientService;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.transforms.tofhir.FHIRResourceSetFromPetasosActionableTask;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
@@ -43,6 +44,9 @@ public class PetasosActionableTaskSaveActivity implements DatagridEntrySaveReque
     private final static Logger LOG = LoggerFactory.getLogger(PetasosActionableTaskSaveActivity.class);
 
     private boolean initialised;
+
+    @Inject
+    private PonosPetasosActionableTaskCacheServices taskCacheServices;
 
     @Inject
     private FHIRResourceSetFromPetasosActionableTask actionableTaskToFHIRTaskTransformer;

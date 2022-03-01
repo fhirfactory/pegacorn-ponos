@@ -27,6 +27,7 @@ import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetric
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
 import net.fhirfactory.pegacorn.services.tasks.manager.PetasosTaskServicesManagerHandler;
+import org.apache.camel.LoggingLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,4 +172,5 @@ public class TaskStatusManagementService extends PetasosTaskServicesManagerHandl
     public static Long getTaskStatusManagementDaemonResetPeriod() {
         return TASK_STATUS_MANAGEMENT_DAEMON_RESET_PERIOD;
     }
+
 }
