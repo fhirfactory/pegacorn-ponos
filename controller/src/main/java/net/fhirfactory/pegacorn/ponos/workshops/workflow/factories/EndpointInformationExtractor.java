@@ -102,6 +102,10 @@ public class EndpointInformationExtractor {
             if(ingresEndpoint != null){
                 if(ingresEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.MLLP_SERVER)){
                     participantName = ingresEndpoint.getParticipantName();
+                } else if(ingresEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.HTTP_API_SERVER)){
+                    participantName = ingresEndpoint.getParticipantName();
+                } else if(ingresEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.FILE_SHARE_SOURCE)){
+                    participantName = ingresEndpoint.getParticipantName();
                 }
             }
         } else {
@@ -109,7 +113,11 @@ public class EndpointInformationExtractor {
             if(egressEndpoint != null){
                 if(egressEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.MLLP_CLIENT)){
                     participantName= egressEndpoint.getParticipantName();
-                }
+                } else if(egressEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.HTTP_API_CLIENT)){
+                    participantName = egressEndpoint.getParticipantName();
+                } else if(egressEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.FILE_SHARE_SINK)){
+                    participantName = egressEndpoint.getParticipantName();
+                }                
             }
         }
         
