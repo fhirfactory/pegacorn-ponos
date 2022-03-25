@@ -29,6 +29,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.valuese
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityElementType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityType;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.deployment.names.subsystems.SubsystemNames;
 import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.GeneralTaskMetadataExtractor;
 import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.HL7v2xTaskMetadataExtractor;
@@ -171,7 +172,23 @@ public class AggregateTaskReportFactory {
         if (outcomeStatus == null) {
             outcomeStatus = ActionableTaskOutcomeStatusEnum.ACTIONABLE_TASK_OUTCOME_STATUS_UNKNOWN;
         }
-        String taskOutcomeStatus = outcomeStatus.getDisplayName();
+        String taskOutcomeStatus = null;
+        if(actionableTask.getTaskWorkItem() != null) {
+            UoWProcessingOutcomeEnum processingOutcome = actionableTask.getTaskWorkItem().getProcessingOutcome();
+            switch(processingOutcome){
+                case UOW_OUTCOME_FILTERED:
+                case UOW_OUTCOME_DISCARD: {
+                    taskOutcomeStatus = outcomeStatus.getDisplayName() + " (" + processingOutcome.getUoWProcessingOutcome() + ")";
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        if(StringUtils.isEmpty(taskOutcomeStatus)) {
+            taskOutcomeStatus = outcomeStatus.getDisplayName();
+        }
 
         List<String> metadataHeader = null;
         List<String> metadataBody = null;
