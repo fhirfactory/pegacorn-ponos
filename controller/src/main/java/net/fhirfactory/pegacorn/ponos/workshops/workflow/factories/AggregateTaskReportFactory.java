@@ -343,7 +343,26 @@ public class AggregateTaskReportFactory {
         if (outcomeStatus == null) {
             outcomeStatus = ActionableTaskOutcomeStatusEnum.ACTIONABLE_TASK_OUTCOME_STATUS_UNKNOWN;
         }
-        String taskOutcomeStatus = outcomeStatus.getDisplayName();
+
+        String taskOutcomeStatus = null;
+
+        if(lastTask.getTaskWorkItem() != null) {
+            UoWProcessingOutcomeEnum processingOutcome = lastTask.getTaskWorkItem().getProcessingOutcome();
+            switch(processingOutcome){
+                case UOW_OUTCOME_FILTERED:
+                case UOW_OUTCOME_DISCARD: {
+                    taskOutcomeStatus = outcomeStatus.getDisplayName() + " (" + processingOutcome.getUoWProcessingOutcome() + ")";
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        if(StringUtils.isEmpty(taskOutcomeStatus)) {
+            taskOutcomeStatus = outcomeStatus.getDisplayName();
+        }
+
         reportBuilder.append("Outcome -->" + taskOutcomeStatus + "\n");
 
         formattedReportBuilder.append("<tr>");
