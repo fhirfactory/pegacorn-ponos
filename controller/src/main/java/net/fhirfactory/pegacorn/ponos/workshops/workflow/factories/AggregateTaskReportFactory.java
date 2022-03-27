@@ -178,7 +178,7 @@ public class AggregateTaskReportFactory {
             switch(processingOutcome){
                 case UOW_OUTCOME_FILTERED:
                 case UOW_OUTCOME_DISCARD: {
-                    taskOutcomeStatus = outcomeStatus.getDisplayName() + " (" + processingOutcome.getUoWProcessingOutcome() + ")";
+                    taskOutcomeStatus = outcomeStatus.getDisplayName() + " (" + processingOutcome.getToken() + ")";
                     break;
                 }
                 default:
@@ -351,7 +351,7 @@ public class AggregateTaskReportFactory {
             switch(processingOutcome){
                 case UOW_OUTCOME_FILTERED:
                 case UOW_OUTCOME_DISCARD: {
-                    taskOutcomeStatus = outcomeStatus.getDisplayName() + " (" + processingOutcome.getUoWProcessingOutcome() + ")";
+                    taskOutcomeStatus = outcomeStatus.getDisplayName() + " (" + processingOutcome.getToken() + ")";
                     break;
                 }
                 default:
