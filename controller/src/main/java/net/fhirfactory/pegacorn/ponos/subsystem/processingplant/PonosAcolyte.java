@@ -21,7 +21,8 @@
  */
 package net.fhirfactory.pegacorn.ponos.subsystem.processingplant;
 
-import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
+import net.fhirfactory.pegacorn.core.model.topology.valuesets.ProcessingPlantProviderRoleEnum;
+import net.fhirfactory.pegacorn.core.model.topology.valuesets.ProcessingPlantTypeEnum;
 import net.fhirfactory.pegacorn.ponos.interfaces.PonosSubsystemDetailsInterface;
 import net.fhirfactory.pegacorn.ponos.workshops.workflow.monitoring.TaskFulfillmentWatchdog;
 import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
@@ -50,14 +51,18 @@ public abstract class PonosAcolyte extends ProcessingPlant implements PonosSubsy
     //
 
     @Override
-    public ProcessingPlantRoleEnum getProcessingPlantCapability() {
-        return (ProcessingPlantRoleEnum.PETASOS_SERVICE_PROVIDER_TASK_MANAGEMENT);
+    protected ProcessingPlantProviderRoleEnum specifyPlantProviderRole() {
+        return ProcessingPlantProviderRoleEnum.PETASOS_SERVICE_PROVIDER_TASK_MANAGEMENT;
     }
-
     @Override
     public String getInfinispanJGroupsConfigFile() {
         String multiuseInfinispanStackConfigFile = specifyPropertyFile().getDeploymentMode().getMultiuseInfinispanStackConfigFile();
         return (multiuseInfinispanStackConfigFile);
+    }
+
+    @Override
+    protected ProcessingPlantTypeEnum specifyProcessingPlantType() {
+        return (ProcessingPlantTypeEnum.PROCESSING_PLANT_TYPE_INFORMATION_MANAGER);
     }
 
     //

@@ -202,14 +202,14 @@ public class PonosPetasosParticipantCacheServices {
      * @return
      */
     public PetasosParticipantRegistration updatePetasosParticipant(PetasosParticipant participant){
-        getLogger().debug(".updatePetasosParticipant(): Entry, participant->{}", participant);
+        getLogger().info(".updatePetasosParticipant(): Entry, participant->{}", participant);
         if(participant == null){
             getLogger().debug(".updatePetasosParticipant(): Exit, participant is null, returning null");
             return(null);
         }
         deregisterPetasosParticipant(participant.getComponentID());
         PetasosParticipantRegistration registration = registerPetasosParticipant(participant);
-        getLogger().debug(".updatePetasosParticipant(): Exit, registration->{}", registration);
+        getLogger().info(".updatePetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
     }
 
