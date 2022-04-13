@@ -188,7 +188,7 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
 
     @Override
     public PetasosActionableTaskRegistrationType updatePetasosActionableTask(PetasosActionableTask actionableTask, JGroupsIntegrationPointSummary integrationPoint) {
-        getLogger().debug(".updatePetasosActionableTask(): Entry, actionableTask->{}, integrationPoint->{}", actionableTask,integrationPoint);
+        getLogger().warn(".updatePetasosActionableTask(): Entry, actionableTask->{}, integrationPoint->{}", actionableTask,integrationPoint);
         if(actionableTask == null) {
             getLogger().debug(".updatePetasosActionableTask(): Exit, actionableTask is null");
             return null;
