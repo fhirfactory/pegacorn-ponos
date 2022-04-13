@@ -33,7 +33,7 @@ import net.fhirfactory.pegacorn.core.model.datagrid.datatypes.PonosDatagridTaskK
 import net.fhirfactory.pegacorn.core.model.datagrid.valuesets.DatagridPersistenceResourceStatusEnum;
 import net.fhirfactory.pegacorn.core.model.datagrid.valuesets.DatagridPersistenceServiceDeploymentScopeEnum;
 import net.fhirfactory.pegacorn.core.model.datagrid.valuesets.DatagridPersistenceServiceResourceScopeEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.petasos.dataparcel.DataParcelTypeDescriptor;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.valuesets.FulfillmentExecutionStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
@@ -188,7 +188,7 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
 
     @Override
     public PetasosActionableTaskRegistrationType updatePetasosActionableTask(PetasosActionableTask actionableTask, JGroupsIntegrationPointSummary integrationPoint) {
-        getLogger().debug(".updatePetasosActionableTask(): Entry, actionableTask->{}, integrationPoint->{}", actionableTask,integrationPoint);
+        getLogger().warn(".updatePetasosActionableTask(): Entry, actionableTask->{}, integrationPoint->{}", actionableTask,integrationPoint);
         if(actionableTask == null) {
             getLogger().debug(".updatePetasosActionableTask(): Exit, actionableTask is null");
             return null;

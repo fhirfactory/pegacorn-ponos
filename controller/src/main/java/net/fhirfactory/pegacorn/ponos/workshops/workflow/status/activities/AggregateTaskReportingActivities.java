@@ -159,25 +159,33 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
 
         setStillRunning(true);
 
-        List<PetasosActionableTask> lastInChainActionableEvents = getTaskCacheServices().getLastInChainActionableEvents();
-        for(PetasosActionableTask currentTask: lastInChainActionableEvents){
-            if(getTaskCacheServices().hasAlreadyBeenReportedOn(currentTask.getTaskId())) {
-                // do nothing
-            } else {
-                try {
-                    getLogger().debug(".aggregateTaskReportingDaemon(): Iterating, currentTask->{}", currentTask.getTaskId());
-                    if (!currentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName().contains(subsystemNames.getITOpsIMParticipantName())) {
-                        publishEndOfChainFullTaskReport(currentTask);
-                        publishEndPointOnlyTaskReport(currentTask);
+        try {
+
+            List<PetasosActionableTask> lastInChainActionableEvents = getTaskCacheServices().getLastInChainActionableEvents();
+            for (PetasosActionableTask currentTask : lastInChainActionableEvents) {
+                if(currentTask.hasTaskId()) {
+                    if (getTaskCacheServices().hasAlreadyBeenReportedOn(currentTask.getTaskId())) {
+                        // do nothing
+                    } else {
+                        try {
+                            getLogger().debug(".aggregateTaskReportingDaemon(): Iterating, currentTask->{}", currentTask.getTaskId());
+                            if (!currentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName().contains(subsystemNames.getITOpsIMParticipantName())) {
+                                publishEndOfChainFullTaskReport(currentTask);
+                                publishEndPointOnlyTaskReport(currentTask);
+                            }
+                            getTaskCacheServices().archivePetasosActionableTask(currentTask);
+                            getTaskCacheServices().setReportStatus(currentTask.getTaskId(), true);
+                        } catch (Exception ex) {
+                            getLogger().warn(".aggregateTaskReportingDaemon(): Could not generate/send task report, message->{}, stackTrace->{}", ExceptionUtils.getMessage(ex), ExceptionUtils.getStackTrace(ex));
+                        }
                     }
-                    getTaskCacheServices().archivePetasosActionableTask(currentTask);
-                    getTaskCacheServices().setReportStatus(currentTask.getTaskId(), true);
-                } catch (Exception ex){
-                    getLogger().warn(".aggregateTaskReportingDaemon(): Could not generate/send task report, message->{}", ExceptionUtils.getMessage(ex));
+                } else {
+                    getLogger().warn(".aggregateTaskReportingDaemon(): Problem processing ActionableTask, TaskId is null, ActionableTask->{}", currentTask);
                 }
             }
+        } catch(Exception outerException){
+            getLogger().warn(".aggregateTaskReportingDaemon(): Problem processing ActionableTask, message->{}, stackTrace->{}", ExceptionUtils.getMessage(outerException), ExceptionUtils.getStackTrace(outerException));
         }
-
         setStillRunning(false);
 
         getLogger().debug(".aggregateTaskReportingDaemon(): Exit");
@@ -216,7 +224,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
     }
 
     public void publishEndPointOnlyTaskReport(PetasosActionableTask lastTask){
-        getLogger().info(".publishEndPointOnlyTaskReport(): Entry, lastTask->{}", lastTask);
+        getLogger().debug(".publishEndPointOnlyTaskReport(): Entry, lastTask->{}", lastTask);
 
         //
         // Create the report
@@ -267,7 +275,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
             taskReportProxy.sendITOpsEndpointOnlyTaskReport(ingresEndpointParticipantName,ingresComponentId, notificationBase.getContent(), notificationBase.getFormattedContent());
         }
 
-        getLogger().info(".publishEndPointOnlyTaskReport(): Exit, report->{}", notificationBase);
+        getLogger().debug(".publishEndPointOnlyTaskReport(): Exit, report->{}", notificationBase);
     }
 
     //

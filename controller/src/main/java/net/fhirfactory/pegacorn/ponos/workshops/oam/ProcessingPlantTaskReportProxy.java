@@ -81,13 +81,13 @@ public class ProcessingPlantTaskReportProxy {
 
             taskReportingAgent.sendTaskReport(notification);
         } catch (Exception generalException) {
-            getLogger().warn(".sendITOpsTaskReport(): Problem Sending ITOps TaskReport, message->{}, stackTrace->{}", ExceptionUtils.getMessage(generalException), ExceptionUtils.getStackTrace(generalException));
+            getLogger().warn(".sendITOpsTaskReport(): Problem Sending ITOps TaskReport, participantName->{}, participantComponentId->{}, content->{}, message->{}, stackTrace->{}", participantName, participantComponentId, content, ExceptionUtils.getMessage(generalException), ExceptionUtils.getStackTrace(generalException));
         }
-        getLogger().info(".sendITOpsTaskReport(): Exit");
+        getLogger().debug(".sendITOpsTaskReport(): Exit");
     }
 
     public void sendITOpsEndpointOnlyTaskReport(String participantName, ComponentIdType participantComponentId, String content){
-        getLogger().debug(".sendITOpsTaskReport(): Entry");
+        getLogger().debug(".sendITOpsEndpointOnlyTaskReport(): Entry");
         try {
             PetasosComponentITOpsNotification notification = new PetasosComponentITOpsNotification();
             notification.setContent(content);
@@ -97,13 +97,13 @@ public class ProcessingPlantTaskReportProxy {
 
             taskReportingAgent.sendTaskReport(notification);
         } catch (Exception generalException) {
-            getLogger().warn(".sendITOpsTaskReport(): Problem Sending ITOps TaskReport, message->{}, stackTrace->{}", ExceptionUtils.getMessage(generalException), ExceptionUtils.getStackTrace(generalException));
+            getLogger().warn(".sendITOpsEndpointOnlyTaskReport(): Problem Sending ITOps TaskReport, message->{}, stackTrace->{}", ExceptionUtils.getMessage(generalException), ExceptionUtils.getStackTrace(generalException));
         }
-        getLogger().info(".sendITOpsTaskReport(): Exit");
+        getLogger().debug(".sendITOpsEndpointOnlyTaskReport(): Exit");
     }
 
     public void sendITOpsEndpointOnlyTaskReport(String participantName, ComponentIdType participantComponentId, String content, String formattedContent){
-        getLogger().debug(".sendITOpsTaskReport(): Entry");
+        getLogger().debug(".sendITOpsEndpointOnlyTaskReport(): Entry");
         try {
             PetasosComponentITOpsNotification notification = new PetasosComponentITOpsNotification();
             notification.setContent(content);
@@ -114,8 +114,8 @@ public class ProcessingPlantTaskReportProxy {
 
             taskReportingAgent.sendTaskReport(notification);
         } catch (Exception generalException) {
-            getLogger().warn(".sendITOpsTaskReport(): Problem Sending ITOps TaskReport, message->{}, stackTrace->{}", ExceptionUtils.getMessage(generalException), ExceptionUtils.getStackTrace(generalException));
+            getLogger().warn(".sendITOpsEndpointOnlyTaskReport(): Problem Sending ITOps TaskReport, message->{}, stackTrace->{}", ExceptionUtils.getMessage(generalException), ExceptionUtils.getStackTrace(generalException));
         }
-        getLogger().info(".sendITOpsTaskReport(): Exit");
+        getLogger().debug(".sendITOpsEndpointOnlyTaskReport(): Exit");
     }
 }

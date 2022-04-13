@@ -26,7 +26,7 @@ import net.fhirfactory.pegacorn.core.model.componentid.PegacornSystemComponentTy
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistrationStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
+import net.fhirfactory.pegacorn.core.model.petasos.subscription.datatypes.DataParcelManifestSubscriptionMaskType;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.core.PonosReplicatedCacheServices;
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.Cache;
@@ -137,7 +137,7 @@ public class PonosPetasosParticipantCacheServices {
                 getPetasosParticipantComponentIdMap().put(participant.getComponentID(), registration.getRegistrationId());
             }
             if(participant.getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)) {
-                for (TaskWorkItemSubscriptionType currentTaskWorkItem : participant.getSubscriptions()) {
+                for (DataParcelManifestSubscriptionMaskType currentTaskWorkItem : participant.getSubscriptions()) {
                     addDownstreamSubscriberParticipant(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
                 }
                 addPetasosParticipantInstanceForParticipantName(participant.getSubsystemParticipantName(), registration);
@@ -185,7 +185,7 @@ public class PonosPetasosParticipantCacheServices {
                 getPetasosParticipantComponentIdMap().remove(participantId);
             }
             if(registration.getParticipant().getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)) {
-                for (TaskWorkItemSubscriptionType currentTaskWorkItem : registration.getParticipant().getSubscriptions()) {
+                for (DataParcelManifestSubscriptionMaskType currentTaskWorkItem : registration.getParticipant().getSubscriptions()) {
                     removeDownstreamSubscriberParticipant(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
                 }
                 removePetasosParticipantInstanceForParticipantName(registration.getParticipant().getSubsystemParticipantName(), registration);
