@@ -77,13 +77,13 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
 
     @Override
     public PetasosParticipantRegistration updatePetasosParticipant(PetasosParticipant participant) {
-        getLogger().info(".updatePetasosParticipant(): Entry, participant->{}", participant);
+        getLogger().debug(".updatePetasosParticipant(): Entry, participant->{}", participant);
         if(participant == null){
-            getLogger().info(".updatePetasosParticipant(): Exit, participant is null, returning null");
+            getLogger().debug(".updatePetasosParticipant(): Exit, participant is null, returning null");
             return(null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.updatePetasosParticipant(participant);
-        getLogger().info(".updatePetasosParticipant(): Exit, registration->{}", registration);
+        getLogger().debug(".updatePetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
     }
 

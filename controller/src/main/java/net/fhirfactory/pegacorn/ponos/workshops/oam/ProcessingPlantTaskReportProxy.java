@@ -24,9 +24,8 @@ package net.fhirfactory.pegacorn.ponos.workshops.oam;
 import net.fhirfactory.pegacorn.core.interfaces.oam.tasks.PetasosITOpsTaskReportingAgentInterface;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantRoleSupportInterface;
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
-import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.ITOpsNotification;
+import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.PetasosComponentITOpsNotification;
 import net.fhirfactory.pegacorn.core.model.petasos.oam.topology.valuesets.PetasosMonitoredComponentTypeEnum;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,20 +71,14 @@ public class ProcessingPlantTaskReportProxy {
     //
 
     public void sendITOpsTaskReport(String participantName, ComponentIdType participantComponentId, String content){
-        sendITOpsTaskReport(participantName, participantComponentId, content, null);
-    }
-
-    public void sendITOpsTaskReport(String participantName, ComponentIdType participantComponentId, String content, String formattedString){
         getLogger().debug(".sendITOpsTaskReport(): Entry");
         try {
-            ITOpsNotification notification = new ITOpsNotification();
+            PetasosComponentITOpsNotification notification = new PetasosComponentITOpsNotification();
             notification.setContent(content);
             notification.setComponentType(PetasosMonitoredComponentTypeEnum.PETASOS_MONITORED_COMPONENT_PROCESSING_PLANT);
             notification.setComponentId(participantComponentId);
             notification.setParticipantName(participantName);
-            if(StringUtils.isNotEmpty(formattedString)) {
-                notification.setFormattedContent(formattedString);
-            }
+
             taskReportingAgent.sendTaskReport(notification);
         } catch (Exception generalException) {
             getLogger().warn(".sendITOpsTaskReport(): Problem Sending ITOps TaskReport, participantName->{}, participantComponentId->{}, content->{}, message->{}, stackTrace->{}", participantName, participantComponentId, content, ExceptionUtils.getMessage(generalException), ExceptionUtils.getStackTrace(generalException));
@@ -96,7 +89,7 @@ public class ProcessingPlantTaskReportProxy {
     public void sendITOpsEndpointOnlyTaskReport(String participantName, ComponentIdType participantComponentId, String content){
         getLogger().debug(".sendITOpsEndpointOnlyTaskReport(): Entry");
         try {
-            ITOpsNotification notification = new ITOpsNotification();
+            PetasosComponentITOpsNotification notification = new PetasosComponentITOpsNotification();
             notification.setContent(content);
             notification.setComponentType(PetasosMonitoredComponentTypeEnum.PETASOS_MONITORED_COMPONENT_ENDPOINT);
             notification.setComponentId(participantComponentId);
@@ -112,7 +105,7 @@ public class ProcessingPlantTaskReportProxy {
     public void sendITOpsEndpointOnlyTaskReport(String participantName, ComponentIdType participantComponentId, String content, String formattedContent){
         getLogger().debug(".sendITOpsEndpointOnlyTaskReport(): Entry");
         try {
-            ITOpsNotification notification = new ITOpsNotification();
+            PetasosComponentITOpsNotification notification = new PetasosComponentITOpsNotification();
             notification.setContent(content);
             notification.setComponentType(PetasosMonitoredComponentTypeEnum.PETASOS_MONITORED_COMPONENT_ENDPOINT);
             notification.setComponentId(participantComponentId);
