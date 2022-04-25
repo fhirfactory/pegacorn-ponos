@@ -23,6 +23,7 @@ package net.fhirfactory.pegacorn.ponos.workshops.workflow.status.activities;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
+import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.ITOpsNotificationContent;
 import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.PetasosComponentITOpsNotification;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.valuesets.FulfillmentExecutionStatusEnum;
@@ -204,19 +205,19 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
 
         //
         // Create the Report
-        String reportString = getAggregateTaskReportFactory().endOfChainReport(lastTask);
+        ITOpsNotificationContent report = getAggregateTaskReportFactory().endOfChainReport(lastTask);
 
         //
         // Publish to Last Participant
         String lastSubsystemName = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName();
         ComponentIdType lastComponentId = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getComponentID();
-        taskReportProxy.sendITOpsTaskReport(lastSubsystemName,lastComponentId,reportString);
+        taskReportProxy.sendITOpsTaskReport(lastSubsystemName,lastComponentId,report.getContent(),report.getFormattedContent());
 
         //
         // Publish to First Participant
         String firstSubsystemName = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName();
         ComponentIdType firstComponentId = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getComponentID();
-        taskReportProxy.sendITOpsTaskReport(firstSubsystemName,firstComponentId, reportString);
+        taskReportProxy.sendITOpsTaskReport(firstSubsystemName,firstComponentId, report.getContent(), report.getFormattedContent());
 
         //
         // All done

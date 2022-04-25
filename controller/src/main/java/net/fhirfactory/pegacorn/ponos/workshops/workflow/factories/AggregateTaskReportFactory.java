@@ -22,6 +22,7 @@
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.factories;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.ITOpsNotificationContent;
 import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.PetasosComponentITOpsNotification;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
@@ -82,7 +83,7 @@ public class AggregateTaskReportFactory {
     // Business Methods
     //
 
-    public String endOfChainReport(PetasosActionableTask lastTask){
+    public ITOpsNotificationContent endOfChainReport(PetasosActionableTask lastTask){
         getLogger().debug(".endOfChainReport(): Entry, lastTask->{}", lastTask);
 
         TaskTraceabilityType taskTraceability = lastTask.getTaskTraceability();
@@ -92,26 +93,53 @@ public class AggregateTaskReportFactory {
         TaskIdType firstTaskId = firstTaskTraceabilityElement.getActionableTaskId();
         PetasosActionableTask firstTask = getTaskCacheServices().getPetasosActionableTask(firstTaskId);
 
+        String ingresEndpointParticipantName = null;
+        if(firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor() instanceof WorkUnitProcessorSoftwareComponent){
+            WorkUnitProcessorSoftwareComponent ingresWUP = (WorkUnitProcessorSoftwareComponent)firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+            ingresEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(ingresWUP, true);
+        }
+        String egressEndpointParticipantName = null;
+        if(lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor() instanceof WorkUnitProcessorSoftwareComponent){
+            WorkUnitProcessorSoftwareComponent egressWUP = (WorkUnitProcessorSoftwareComponent)lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+            egressEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(egressWUP, false);
+        }
+
+        String ingresName = null;
+        if(StringUtils.isEmpty(ingresEndpointParticipantName)){
+            ingresName = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
+        } else {
+            ingresName = ingresEndpointParticipantName;
+        }
+
+        String egressName = null;
+        if(StringUtils.isEmpty(egressEndpointParticipantName)){
+            egressName = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
+        } else {
+            egressName = egressEndpointParticipantName;
+        }
+
         StringBuilder reportBuilder = new StringBuilder();
         StringBuilder formattedReportBuilder = new StringBuilder();
 
         reportBuilder.append("--------------------\n");
         reportBuilder.append("---(FTJ) Task Journey ---\n");
         reportBuilder.append("TriggerTask: Task Id --> " + firstTask.getTaskId().getLocalId() +"\n");
-        reportBuilder.append("TriggerTask: Participant --> " + firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName() + "\n");
+        reportBuilder.append("Ingres --> " +ingresName + "\n");
         reportBuilder.append("EndTask: Task Id --> " + lastTask.getTaskId().getLocalId() + "\n");
-        reportBuilder.append("EndTask: Participant --> " + lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName() + "\n");
+        reportBuilder.append("Egress --> " + egressName + "\n");
 
+        formattedReportBuilder.append("<b>Full Task Journey Report: " + getTimeFormatter().format(Instant.now())+"</b>");
         formattedReportBuilder.append("<table>");
-        formattedReportBuilder.append("<tr>");
-        formattedReportBuilder.append("<th> FTJ </th><th>"+getTimeFormatter().format(Instant.now())+"</th>");
+        formattedReportBuilder.append("<th>Ingres </th>");
+        formattedReportBuilder.append("<th>"+ingresName+"</th>");
+        formattedReportBuilder.append("<th></th>");
+        formattedReportBuilder.append("<th>"+getTimeFormatter().format(firstTask.getTaskFulfillment().getStartInstant())+"</th>");
         formattedReportBuilder.append("</tr>");
-        formattedReportBuilder.append("<tr>");
-        formattedReportBuilder.append("<td> Ingres </td><td>"+firstTask.getTaskId().getLocalId()+"</td>");
-        formattedReportBuilder.append("</tr>");
+
 
         Integer journeySize = taskTraceability.getTaskJourney().size();
         TaskIdType previousTaskId = null;
+        Integer stepCount = 0 ;
         for(Integer counter = 0; counter < journeySize; counter += 1 ){
             TaskIdType currentTaskId = taskTraceability.getTaskJourney().get(counter).getActionableTaskId();
             PetasosActionableTask currentTask = getTaskCacheServices().getPetasosActionableTask(currentTaskId);
@@ -127,23 +155,40 @@ public class AggregateTaskReportFactory {
                 addToReport = false;
             }
             if(addToReport) {
-                String currentSummary = newIndividualTaskSummaryReport(counter, currentTask);
-                reportBuilder.append(currentSummary);
+                getLogger().debug(".endOfChainReport(): Adding Individual Task Summary Report, stepCount->{}", stepCount);
+                ITOpsNotificationContent currentSummary = newIndividualTaskSummaryReport(stepCount, currentTask);
+                reportBuilder.append(currentSummary.getContent());
+                formattedReportBuilder.append(currentSummary.getFormattedContent());
+                stepCount += 1;
             }
             previousTaskId = currentTask.getTaskId();
         }
-        String finalSummary = newIndividualTaskSummaryReport(journeySize, lastTask);
-        reportBuilder.append(finalSummary);
+        //ITOpsNotificationContent finalSummary = newIndividualTaskSummaryReport(journeySize, lastTask);
+        //reportBuilder.append(finalSummary.getContent());
+        //formattedReportBuilder.append(finalSummary.getFormattedContent());
 
-        String reportString = reportBuilder.toString();
+        formattedReportBuilder.append("<tr>");
+        formattedReportBuilder.append("<th>Egress </th>");
+        formattedReportBuilder.append("<th>"+egressName+"</th>");
+        formattedReportBuilder.append("<th></th>");
+        formattedReportBuilder.append("<th>"+getTimeFormatter().format(lastTask.getTaskFulfillment().getFinishInstant())+"</th>");
+        formattedReportBuilder.append("</tr>");
 
-        getLogger().debug(".endOfChainReport(): Exit, reportString->{}", reportString);
+        formattedReportBuilder.append("</table>");
 
-        return(reportString);
+        ITOpsNotificationContent report = new ITOpsNotificationContent();
+        report.setContent(reportBuilder.toString());
+        report.setFormattedContent(formattedReportBuilder.toString());
+
+
+
+        getLogger().debug(".endOfChainReport(): Exit, report->{}", report);
+
+        return(report);
     }
 
-    public String newIndividualTaskSummaryReport(Integer step, PetasosActionableTask actionableTask) {
-        getLogger().debug(".newTaskSummaryReport(): Entry");
+    public ITOpsNotificationContent newIndividualTaskSummaryReport(Integer step, PetasosActionableTask actionableTask) {
+        getLogger().debug(".newTaskSummaryReport(): Entry, step->{}, actionableTask->{}", step, actionableTask);
 
         //
         // Derive the Key Information
@@ -163,10 +208,10 @@ public class AggregateTaskReportFactory {
         String fulfillerComponentName = "Not Available";
         String fulfillerComponentId = "Not Available";
         if (actionableTask.getTaskFulfillment().hasFulfillerWorkUnitProcessor()) {
-            fulfillerComponentName = actionableTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantDisplayName();
+            fulfillerComponentName = actionableTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
             fulfillerComponentId = actionableTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getComponentID().getId();
         } else {
-            getLogger().warn(".newTaskSummaryReport(): No Task Fulfiller Component Defined on Task->{}", actionableTask.getTaskId());
+            getLogger().debug(".newTaskSummaryReport(): No Task Fulfiller Component Defined on Task->{}", actionableTask.getTaskId());
         }
         ActionableTaskOutcomeStatusEnum outcomeStatus = actionableTask.getTaskOutcomeStatus().getOutcomeStatus();
         if (outcomeStatus == null) {
@@ -246,17 +291,24 @@ public class AggregateTaskReportFactory {
         for (String currentMetadataBodyLine : metadataBody) {
             reportBuilder.append(currentMetadataBodyLine + "\n");
         }
-/*        for (int outputCounter = 0; outputCounter < outputPayloadCounter; outputCounter += 1) {
-            reportBuilder.append(":: --- Output[" + outputCounter + "] ---\n");
-            for (String currentMetadataHeaderLine : outputHeaders.get(outputCounter)) {
-                reportBuilder.append(":: " + currentMetadataHeaderLine + "\n");
-            }
-            for (String currentMetadataBodyLine : outputMetadata.get(outputCounter)) {
-                reportBuilder.append(currentMetadataBodyLine + "\n");
-            }
-        } */
         reportBuilder.append("[" + step.toString() + "]:: --------------------------------------------------- :: \n");
-        return(reportBuilder.toString());
+
+        //
+        // Build the Formatted Text Body
+        StringBuilder formattedReportBuilder = new StringBuilder();
+        formattedReportBuilder.append("<tr>");
+        formattedReportBuilder.append("<td>"+step+"</td>");
+        formattedReportBuilder.append("<td>"+fulfillerComponentName+"</td>");
+        formattedReportBuilder.append("<td>"+taskOutcomeStatus+"</td>");
+        formattedReportBuilder.append("<td>"+finishTime+"</td>");
+        formattedReportBuilder.append("</tr>");
+
+        ITOpsNotificationContent notificationContent = new ITOpsNotificationContent();
+        notificationContent.setContent(reportBuilder.toString());
+        notificationContent.setFormattedContent(formattedReportBuilder.toString());
+
+        getLogger().debug(".newIndividualTaskSummaryReport(): Exit, notificationContent->{}", notificationContent);
+        return(notificationContent);
     }
 
     public PetasosComponentITOpsNotification newEndpointOnlyTaskReport(PetasosActionableTask lastTask){
@@ -321,7 +373,7 @@ public class AggregateTaskReportFactory {
                 msh = getHL7v2MetadataFactory().getMSH(firstTask.getTaskWorkItem().getIngresContent().getPayload());
                 pid = getHL7v2MetadataFactory().getPID(firstTask.getTaskWorkItem().getIngresContent().getPayload());
             } catch (Exception ex){
-                getLogger().warn(".newEndpointOnlyTaskReport(): Cannot decode message->{}", firstTask.getTaskId());
+                getLogger().debug(".newEndpointOnlyTaskReport(): Cannot decode message->{}", firstTask.getTaskId());
             }
         } else {
             metadataHeader = new ArrayList<>();
