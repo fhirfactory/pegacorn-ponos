@@ -32,6 +32,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.d
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.deployment.names.subsystems.SubsystemNames;
+import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
 import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.GeneralTaskMetadataExtractor;
 import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.HL7v2xTaskMetadataExtractor;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
@@ -70,6 +71,9 @@ public class AggregateTaskReportFactory {
 
     @Inject
     private EndpointInformationExtractor endpointInfoExtrator;
+
+    @Inject
+    private UltraDefensivePipeParser defensivePipeParser;
 
     //
     // Constructor(s)
@@ -275,6 +279,27 @@ public class AggregateTaskReportFactory {
             outputPayloadCounter += 1;
         }
 
+        boolean badOutcome = false;
+        if(outcomeStatus.equals(ActionableTaskOutcomeStatusEnum.ACTIONABLE_TASK_OUTCOME_STATUS_FINALISED) || outcomeStatus.equals(ActionableTaskOutcomeStatusEnum.ACTIONABLE_TASK_OUTCOME_STATUS_FINISHED)){
+            badOutcome = false;
+        } else {
+            badOutcome = true;
+        }
+        String badOutcomeReason = null;
+        if(badOutcome){
+            if(actionableTask.hasTaskWorkItem()){
+                if(actionableTask.getTaskWorkItem().hasFailureDescription()){
+                    String failureDescription = actionableTask.getTaskWorkItem().getFailureDescription();
+                    if(failureDescription.length()> 64){
+                        badOutcomeReason = failureDescription.substring(0, 80) + "...";
+                    } else {
+                        badOutcomeReason = failureDescription;
+                    }
+                }
+            }
+        }
+
+
         //
         // Build the Standard Text Body
         StringBuilder reportBuilder = new StringBuilder();
@@ -296,12 +321,30 @@ public class AggregateTaskReportFactory {
         //
         // Build the Formatted Text Body
         StringBuilder formattedReportBuilder = new StringBuilder();
-        formattedReportBuilder.append("<tr>");
-        formattedReportBuilder.append("<td>"+step+"</td>");
-        formattedReportBuilder.append("<td>"+fulfillerComponentName+"</td>");
-        formattedReportBuilder.append("<td>"+taskOutcomeStatus+"</td>");
-        formattedReportBuilder.append("<td>"+finishTime+"</td>");
-        formattedReportBuilder.append("</tr>");
+        if(!badOutcome){
+            formattedReportBuilder.append("<tr>");
+            formattedReportBuilder.append("<td>"+step+"</td>");
+            formattedReportBuilder.append("<td>"+fulfillerComponentName+"</td>");
+            formattedReportBuilder.append("<td><font color=green>"+taskOutcomeStatus+"</font></td>");
+            formattedReportBuilder.append("<td>"+finishTime+"</td>");
+            formattedReportBuilder.append("</tr>");
+        }
+        if(badOutcome){
+            formattedReportBuilder.append("<tr>");
+            formattedReportBuilder.append("<td>"+step+"</td>");
+            formattedReportBuilder.append("<td>"+fulfillerComponentName+"</td>");
+            formattedReportBuilder.append("<td><font color=red>"+taskOutcomeStatus+"</font></td>");
+            formattedReportBuilder.append("<td>"+finishTime+"</td>");
+            formattedReportBuilder.append("</tr>");
+            if(StringUtils.isNotEmpty(badOutcomeReason)){
+                formattedReportBuilder.append("<tr>");
+                formattedReportBuilder.append("<td></td>");
+                formattedReportBuilder.append("<td><font color=red>"+badOutcomeReason+"</font></td>");
+                formattedReportBuilder.append("<td></td>");
+                formattedReportBuilder.append("<td></td>");
+                formattedReportBuilder.append("</tr>");
+            }
+        }
 
         ITOpsNotificationContent notificationContent = new ITOpsNotificationContent();
         notificationContent.setContent(reportBuilder.toString());
@@ -415,11 +458,29 @@ public class AggregateTaskReportFactory {
             taskOutcomeStatus = outcomeStatus.getDisplayName();
         }
 
+        String badOutcomeReason = null;
+        String failureDescription = null;
+        if(badOutcome){
+            if(lastTask.hasTaskWorkItem()){
+                if(lastTask.getTaskWorkItem().hasFailureDescription()){
+                    failureDescription = lastTask.getTaskWorkItem().getFailureDescription();
+                    if(failureDescription.length()> 64){
+                        badOutcomeReason = failureDescription.substring(0, 80) + "...";
+                    } else {
+                        badOutcomeReason = failureDescription;
+                    }
+                }
+            }
+        }
+
         reportBuilder.append("Outcome -->" + taskOutcomeStatus + "\n");
 
         formattedReportBuilder.append("<tr>");
         if(badOutcome) {
             formattedReportBuilder.append("<td> Outcome </td><td><font color=red>" + taskOutcomeStatus + "</font></td>");
+            if(StringUtils.isNotEmpty(badOutcomeReason)) {
+                formattedReportBuilder.append("</tr><tr><td> Reason </td><td><font color=red>" + badOutcomeReason + "</font></td>");
+            }
         } else {
             formattedReportBuilder.append("<td> Outcome </td><td><font color=green>" + taskOutcomeStatus + "</font></td>");
         }
@@ -437,6 +498,13 @@ public class AggregateTaskReportFactory {
         }
         formattedReportBuilder.append("</td>");
         formattedReportBuilder.append("</tr>");
+
+        if(badOutcome){
+            if(StringUtils.isNotEmpty(failureDescription)){
+                reportBuilder.append("---Error--------------------------------------------------------\n");
+                reportBuilder.append(failureDescription);
+            }
+        }
 
         reportBuilder.append("----------------------------------------------------------------\n");
         formattedReportBuilder.append("</table>");
