@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>net.fhirfactory.pegacorn</groupId>
-        <artifactId>pegacorn</artifactId>
+        <groupId>net.fhirfactory.dricats</groupId>
+        <artifactId>dricats</artifactId>
         <version>1.6.0-SNAPSHOT</version>
         <relativePath>../pegacorn</relativePath>
     </parent>
 
-    <artifactId>pegacorn-ponos</artifactId>
+    <artifactId>dricats-ponos</artifactId>
     <packaging>pom</packaging>
 
     <properties>
@@ -23,7 +23,7 @@
         <module>metadata</module>
     </modules>
 
-    <name>Pegacorn :: Ponos</name>
+    <name>DRICATS :: Ponos</name>
     <description>The Tasking and Work-Distribution Controller</description>
     <dependencies>
         <dependency>

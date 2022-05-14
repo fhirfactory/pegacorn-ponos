@@ -10,15 +10,15 @@
     <!--***********************************************************************************-->
 
     <parent>
-        <groupId>net.fhirfactory.pegacorn</groupId>
-        <artifactId>pegacorn-ponos</artifactId>
+        <groupId>net.fhirfactory.dricats</groupId>
+        <artifactId>dricats-ponos</artifactId>
         <version>1.6.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>pegacorn-ponos-metadata</artifactId>
+    <artifactId>dricats-ponos-metadata</artifactId>
     <packaging>jar</packaging>
 
-    <name>Pegacorn :: Ponos :: Metadata</name>
+    <name>DRICATS :: Ponos :: Metadata</name>
     <description>Service to extract a HL7 Trigger Event into a list of FHIR resources</description>
 
     <!--***********************************************************************************-->
@@ -146,8 +146,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-datamodels-fhir</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-datamodels-fhir</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -184,8 +184,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-hl7v2-fhir-converter</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-hl7v2-fhir-converter</artifactId>
             <version>1.0.1-SNAPSHOT</version>
         </dependency>
 

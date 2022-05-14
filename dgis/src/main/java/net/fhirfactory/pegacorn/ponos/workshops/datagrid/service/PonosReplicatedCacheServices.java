@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.core;
+package net.fhirfactory.pegacorn.ponos.workshops.datagrid.service;
 
 import net.fhirfactory.pegacorn.fhirim.workshops.datagrid.cache.common.BaseResourceReplicatedCacheServices;
 import net.fhirfactory.pegacorn.ponos.interfaces.PonosSubsystemDetailsInterface;

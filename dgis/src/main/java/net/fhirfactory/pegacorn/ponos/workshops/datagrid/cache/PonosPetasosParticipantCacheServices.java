@@ -27,7 +27,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipan
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistrationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.subscription.datatypes.DataParcelManifestSubscriptionMaskType;
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.core.PonosReplicatedCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.service.PonosReplicatedCacheServices;
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.Cache;
 import org.slf4j.Logger;

@@ -1,2 +1,8 @@
-net/fhirfactory/pegacorn/ponos/dgis/workshops/datagrid/load/PetasosActionableTaskLoadActivity.class
-net/fhirfactory/pegacorn/ponos/dgis/workshops/datagrid/save/PetasosActionableTaskSaveActivity.class
+net/fhirfactory/pegacorn/ponos/workshops/datagrid/workflow/AggregateTaskLifeCycleActivities.class
+net/fhirfactory/pegacorn/ponos/workshops/datagrid/cache/PonosPetasosActionableTaskCacheServices.class
+net/fhirfactory/pegacorn/ponos/workshops/datagrid/workflow/ActionableTaskLifeCycleActivities$1.class
+net/fhirfactory/pegacorn/ponos/workshops/datagrid/cache/PonosPetasosParticipantCacheServices.class
+net/fhirfactory/pegacorn/ponos/workshops/datagrid/cache/core/PonosReplicatedCacheServices.class
+net/fhirfactory/pegacorn/ponos/workshops/datagrid/workflow/ActionableTaskLifeCycleActivities.class
+net/fhirfactory/pegacorn/ponos/workshops/datagrid/persistence/PetasosActionableTaskLoadActivity.class
+net/fhirfactory/pegacorn/ponos/workshops/datagrid/persistence/PetasosActionableTaskSaveActivity.class

@@ -10,15 +10,15 @@
     <!--***********************************************************************************-->
 
     <parent>
-        <groupId>net.fhirfactory.pegacorn</groupId>
-        <artifactId>pegacorn-ponos</artifactId>
+        <groupId>net.fhirfactory.dricats</groupId>
+        <artifactId>dricats-ponos</artifactId>
         <version>1.6.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>pegacorn-ponos-dgis</artifactId>
+    <artifactId>dricats-ponos-dgis</artifactId>
     <packaging>jar</packaging>
 
-    <name>Pegacorn :: Ponos :: DataGrid Integration Services</name>
+    <name>DRICATS :: Ponos :: DataGrid Integration Services</name>
     <description>The FHIR Mapping and Persistence Services for the (Real-Time) Distribution and Monitoring of Tasks</description>
 
     <!--***********************************************************************************-->
@@ -192,8 +192,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-commoncode</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-commoncode</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -204,8 +204,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-datamodels-core</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-datamodels-core</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -215,23 +215,23 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-deployment-properties</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-deployment-properties</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-deployment-datasets</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-deployment-datasets</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-deployment-topology</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-deployment-topology</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -242,8 +242,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-petasos-core</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-petasos-core</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -254,8 +254,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-petasos-audit</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-petasos-audit</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -266,16 +266,16 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-taskservices-common</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-taskservices-common</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-taskservices-manager</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-taskservices-manager</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -286,8 +286,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-fhirim</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-fhirim</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -298,8 +298,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-ponos-metadata</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-ponos-metadata</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -310,15 +310,15 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-oam-common</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-oam-common</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-oam-agent</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-oam-agent</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -328,8 +328,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-datamodels-fhir</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-datamodels-fhir</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -340,24 +340,24 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-edge-restful</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-edge-restful</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-edge-messaging</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-edge-messaging</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-edge-model</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-edge-model</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -368,8 +368,8 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-endpoints</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-endpoints</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
             <scope>compile</scope>
@@ -380,22 +380,22 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-processingplant</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-processingplant</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-workshop</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-workshop</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-workunitprocessors</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-workunitprocessors</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -405,15 +405,15 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-interception-common</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-interception-common</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-interception-agent</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-interception-agent</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -423,15 +423,15 @@
         <!--*******************************************************************************-->
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-auditservices-common</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-auditservices-common</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.fhirfactory.pegacorn</groupId>
-            <artifactId>pegacorn-buildingblocks-auditservices-agent</artifactId>
+            <groupId>net.fhirfactory.dricats</groupId>
+            <artifactId>dricats-buildingblocks-auditservices-agent</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
