@@ -21,9 +21,9 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence;
 
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridEntrySaveRequestInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.dricats.interfaces.datagrid.DatagridElementKeyInterface;
+import net.fhirfactory.dricats.interfaces.datagrid.DatagridEntrySaveRequestInterface;
+import net.fhirfactory.dricats.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.platform.edge.ask.EncounterFHIRClientService;
 import net.fhirfactory.pegacorn.platform.edge.ask.PatientFHIRClientService;
 import net.fhirfactory.pegacorn.platform.edge.ask.ProvenanceFHIRClientService;

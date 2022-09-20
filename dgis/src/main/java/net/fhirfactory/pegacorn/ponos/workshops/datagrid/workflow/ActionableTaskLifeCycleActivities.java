@@ -21,12 +21,11 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.workflow;
 
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
+import net.fhirfactory.dricats.interfaces.datagrid.DatagridElementKeyInterface;
+import net.fhirfactory.dricats.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
+import net.fhirfactory.pegacorn.petasos.tasking.observations.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
-import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
 import net.fhirfactory.pegacorn.services.tasks.datatypes.PetasosActionableTaskRegistrationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

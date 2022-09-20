@@ -22,8 +22,8 @@
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.pathway;
 
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
+import net.fhirfactory.dricats.model.petasos.participant.PetasosParticipant;
+import net.fhirfactory.dricats.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosParticipantCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.endpoint.PetasosTaskPerformerServicesManagerEndpoint;
 import org.apache.commons.lang3.StringUtils;

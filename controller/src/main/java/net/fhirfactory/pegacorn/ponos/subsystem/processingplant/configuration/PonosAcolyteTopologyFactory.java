@@ -1,7 +1,6 @@
 package net.fhirfactory.pegacorn.ponos.subsystem.processingplant.configuration;
 
-import net.fhirfactory.pegacorn.core.model.topology.nodes.*;
-import net.fhirfactory.pegacorn.deployment.topology.factories.archetypes.fhirpersistence.im.FHIRIMSubsystemTopologyFactory;
+import net.fhirfactory.pegacorn.deployment.topology.factories.fhirpersistence.im.FHIRIMSubsystemTopologyFactory;
 import net.fhirfactory.pegacorn.ponos.subsystem.common.PonosAcolyteNames;
 import net.fhirfactory.pegacorn.util.PegacornEnvironmentProperties;
 import org.slf4j.Logger;
@@ -32,7 +31,7 @@ public class PonosAcolyteTopologyFactory extends FHIRIMSubsystemTopologyFactory 
 
     @Override
     protected ProcessingPlantSoftwareComponent buildSubsystemTopology() {
-        SubsystemTopologyNode subsystemTopologyNode = addSubsystemNode(getTopologyIM().getSolutionTopology());
+        SubsystemTopologyNode subsystemTopologyNode = addSubsystemNode(getLocalSolution().getSolutionTopology());
         BusinessServiceTopologyNode businessServiceTopologyNode = addBusinessServiceNode(subsystemTopologyNode);
         DeploymentSiteTopologyNode deploymentSiteTopologyNode = addDeploymentSiteNode(businessServiceTopologyNode);
         ClusterServiceTopologyNode clusterServiceTopologyNode = addClusterServiceNode(deploymentSiteTopologyNode);

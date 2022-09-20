@@ -21,20 +21,20 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.factories;
 
-import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.ITOpsNotificationContent;
-import net.fhirfactory.pegacorn.core.model.petasos.oam.notifications.PetasosComponentITOpsNotification;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.valuesets.ActionableTaskOutcomeStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityElementType;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityType;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
-import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.dricats.constants.petasos.PetasosPropertyConstants;
+import net.fhirfactory.dricats.model.petasos.oam.notifications.ITOpsNotificationContent;
+import net.fhirfactory.dricats.model.petasos.oam.notifications.PetasosComponentITOpsNotification;
+import net.fhirfactory.dricats.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.status.valuesets.ActionableTaskOutcomeStatusEnum;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityElementType;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityType;
+import net.fhirfactory.dricats.model.petasos.uow.UoWPayload;
+import net.fhirfactory.dricats.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.deployment.names.subsystems.SubsystemNames;
 import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
-import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.GeneralTaskMetadataExtractor;
-import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.HL7v2xTaskMetadataExtractor;
+import net.fhirfactory.pegacorn.petasos.tasking.factories.metadata.GeneralTaskMetadataExtractor;
+import net.fhirfactory.pegacorn.petasos.tasking.factories.metadata.HL7v2xTaskMetadataExtractor;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

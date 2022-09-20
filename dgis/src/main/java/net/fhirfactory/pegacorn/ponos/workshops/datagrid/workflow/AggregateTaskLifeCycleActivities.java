@@ -21,9 +21,9 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.workflow;
 
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosAggregateTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
+import net.fhirfactory.dricats.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.dricats.model.petasos.task.PetasosAggregateTask;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;

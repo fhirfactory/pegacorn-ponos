@@ -21,22 +21,22 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache;
 
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridEntryLoadRequestInterface;
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridEntrySaveRequestInterface;
-import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
+import net.fhirfactory.dricats.interfaces.datagrid.DatagridElementKeyInterface;
+import net.fhirfactory.dricats.interfaces.datagrid.DatagridEntryLoadRequestInterface;
+import net.fhirfactory.dricats.interfaces.datagrid.DatagridEntrySaveRequestInterface;
+import net.fhirfactory.dricats.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
-import net.fhirfactory.pegacorn.core.model.datagrid.datatypes.DatagridPersistenceResourceCapabilityType;
-import net.fhirfactory.pegacorn.core.model.datagrid.datatypes.DatagridPersistenceServiceRegistrationType;
-import net.fhirfactory.pegacorn.core.model.datagrid.datatypes.DatagridPersistenceServiceType;
-import net.fhirfactory.pegacorn.core.model.datagrid.datatypes.PonosDatagridTaskKey;
-import net.fhirfactory.pegacorn.core.model.datagrid.valuesets.DatagridPersistenceResourceStatusEnum;
-import net.fhirfactory.pegacorn.core.model.datagrid.valuesets.DatagridPersistenceServiceDeploymentScopeEnum;
-import net.fhirfactory.pegacorn.core.model.datagrid.valuesets.DatagridPersistenceServiceResourceScopeEnum;
-import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.valuesets.FulfillmentExecutionStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
+import net.fhirfactory.dricats.model.datagrid.datatypes.DatagridPersistenceResourceCapabilityType;
+import net.fhirfactory.dricats.model.datagrid.datatypes.DatagridPersistenceServiceRegistrationType;
+import net.fhirfactory.dricats.model.datagrid.datatypes.DatagridPersistenceServiceType;
+import net.fhirfactory.dricats.model.datagrid.datatypes.PonosDatagridTaskKey;
+import net.fhirfactory.dricats.model.datagrid.valuesets.DatagridPersistenceResourceStatusEnum;
+import net.fhirfactory.dricats.model.datagrid.valuesets.DatagridPersistenceServiceDeploymentScopeEnum;
+import net.fhirfactory.dricats.model.datagrid.valuesets.DatagridPersistenceServiceResourceScopeEnum;
+import net.fhirfactory.dricats.model.petasos.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.dricats.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.fulfillment.valuesets.FulfillmentExecutionStatusEnum;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.edge.jgroups.JGroupsIntegrationPointSummary;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.service.PonosReplicatedCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
@@ -151,7 +151,7 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
     //
 
     @Override
-    public PetasosActionableTaskRegistrationType registerPetasosActionableTask(PetasosActionableTask actionableTask, JGroupsIntegrationPointSummary integrationPoint) {
+    public PetasosActionableTaskRegistrationType registerPetasosActionableTask(PetasosActionableTask actionableTask, JGroupsChannelConnectorSummary integrationPoint) {
         getLogger().debug(".registerPetasosActionableTask(): Entry, actionableTask->{}, integrationPoint->{}", actionableTask,integrationPoint);
         if(actionableTask == null) {
             getLogger().debug(".registerPetasosActionableTask(): Exit, actionableTask is null");
@@ -187,7 +187,7 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
     }
 
     @Override
-    public PetasosActionableTaskRegistrationType updatePetasosActionableTask(PetasosActionableTask actionableTask, JGroupsIntegrationPointSummary integrationPoint) {
+    public PetasosActionableTaskRegistrationType updatePetasosActionableTask(PetasosActionableTask actionableTask, JGroupsChannelConnectorSummary integrationPoint) {
         getLogger().warn(".updatePetasosActionableTask(): Entry, actionableTask->{}, integrationPoint->{}", actionableTask,integrationPoint);
         if(actionableTask == null) {
             getLogger().debug(".updatePetasosActionableTask(): Exit, actionableTask is null");

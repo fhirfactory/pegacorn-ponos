@@ -24,11 +24,11 @@ package net.fhirfactory.pegacorn.ponos.subsystem.processingplant;
 import net.fhirfactory.pegacorn.core.model.topology.role.ProcessingPlantRoleEnum;
 import net.fhirfactory.pegacorn.ponos.interfaces.PonosSubsystemDetailsInterface;
 import net.fhirfactory.pegacorn.ponos.workshops.workflow.monitoring.TaskFulfillmentWatchdog;
-import net.fhirfactory.pegacorn.processingplant.ProcessingPlant;
+import net.fhirfactory.dricats.petasos.participant.processingplant.PetasosEnabledProcessingPlant;
 
 import javax.inject.Inject;
 
-public abstract class PonosAcolyte extends ProcessingPlant implements PonosSubsystemDetailsInterface {
+public abstract class PonosAcolyte extends PetasosEnabledProcessingPlant implements PonosSubsystemDetailsInterface {
 
     @Inject
     private TaskFulfillmentWatchdog taskWatchdog;

@@ -21,11 +21,11 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence;
 
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridEntryLoadRequestInterface;
-import net.fhirfactory.pegacorn.core.model.datagrid.datatypes.DatagridElementSourceResourceIdType;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
+import net.fhirfactory.dricats.interfaces.datagrid.DatagridElementKeyInterface;
+import net.fhirfactory.dricats.interfaces.datagrid.DatagridEntryLoadRequestInterface;
+import net.fhirfactory.dricats.model.datagrid.datatypes.DatagridElementSourceResourceIdType;
+import net.fhirfactory.dricats.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.dricats.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.platform.edge.ask.ProvenanceFHIRClientService;
 import net.fhirfactory.pegacorn.platform.edge.ask.TaskFHIRClientService;
 import org.hl7.fhir.r4.model.*;

@@ -21,7 +21,7 @@
  */
 package net.fhirfactory.pegacorn.ponos.subsystem.processingplant.configuration;
 
-import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.archetypes.PetasosEnabledSubsystemPropertyFile;
+import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.archetypes.PetasosEnabledSubsystemPropertyFile;
 
 public class PonosAcolyteConfigurationFile extends PetasosEnabledSubsystemPropertyFile {
 
