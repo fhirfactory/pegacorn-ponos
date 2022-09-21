@@ -70,14 +70,18 @@ public class ProcessingPlantPathwayReportProxy {
     // Business Methods
     //
 
-    public void reportParticipantRegistration(PetasosParticipant participant){
+    public void reportParticipantRegistration(PetasosParticipant participant, boolean isUpdate){
         StringBuilder reportBuilder = new StringBuilder();
         StringBuilder formattedReportBuilder = new StringBuilder();
 
         String nowAsString = getTimeFormatter().format(Instant.now());
+        String isUpdateString = "Create";
+        if(isUpdate){
+            isUpdateString = "Update";
+        }
 
         reportBuilder.append("--------------------\n");
-        reportBuilder.append("---Participant Registration ("+ nowAsString + ")---\n");
+        reportBuilder.append("---Participant Registration (" + isUpdateString + " @ " + nowAsString + ")---\n");
         reportBuilder.append("Participant.Name --> " + participant.getParticipantName() +"\n");
         reportBuilder.append("Participant.Id --> " + participant.getComponentID().getDisplayName() + "\n");
         int counter = 0;
@@ -143,5 +147,9 @@ public class ProcessingPlantPathwayReportProxy {
         }
         condensedSummaryBuilder.append("InternallyDistributable: " + subscription.isInterSubsystemDistributable());
         return(condensedSummaryBuilder.toString());
+    }
+
+    public void touchProcessingPlantSubscriptionSynchronisationInstant(String processingPlant){
+        metricsAgentAccessor.getMetricsAgent().touchPathwaySynchronisationIndicator(processingPlant);
     }
 }

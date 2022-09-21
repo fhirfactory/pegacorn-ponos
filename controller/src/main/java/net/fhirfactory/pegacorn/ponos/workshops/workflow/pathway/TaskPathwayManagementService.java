@@ -25,6 +25,7 @@ import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosParticipantCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.oam.ProcessingPlantPathwayReportProxy;
 import net.fhirfactory.pegacorn.services.tasks.endpoint.PetasosTaskPerformerServicesManagerEndpoint;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -42,6 +43,8 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
     @Inject
     private PonosPetasosParticipantCacheServices petasosParticipantCache;
 
+    @Inject
+    private ProcessingPlantPathwayReportProxy processingPlantPathwayReportProxy;
 
     @Override
     public boolean isPetasosParticipantRegistered(PetasosParticipant participant) {
@@ -59,6 +62,7 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
         if(getLogger().isInfoEnabled()){
             getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
         }
+        processingPlantPathwayReportProxy.touchProcessingPlantSubscriptionSynchronisationInstant(producerParticipantName);
         getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): Exit");
         return(subscriberSet);
     }
@@ -71,6 +75,7 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
             return (null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.registerPetasosParticipant(participant);
+        processingPlantPathwayReportProxy.reportParticipantRegistration(participant, false);
         getLogger().info(".registerPetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
     }
@@ -83,6 +88,7 @@ public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesM
             return(null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.updatePetasosParticipant(participant);
+        processingPlantPathwayReportProxy.reportParticipantRegistration(participant, true);
         getLogger().debug(".updatePetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
     }
