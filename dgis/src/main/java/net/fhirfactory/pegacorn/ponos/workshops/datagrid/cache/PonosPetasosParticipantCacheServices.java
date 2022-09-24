@@ -22,7 +22,7 @@
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache;
 
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
-import net.fhirfactory.pegacorn.core.model.componentid.PegacornSystemComponentTypeTypeEnum;
+import net.fhirfactory.pegacorn.core.model.componentid.SoftwareComponentTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistrationStatusEnum;
@@ -136,7 +136,7 @@ public class PonosPetasosParticipantCacheServices {
             synchronized(this.getPetasosParticipantComponentIdMapLock()){
                 getPetasosParticipantComponentIdMap().put(participant.getComponentID(), registration.getRegistrationId());
             }
-            if(participant.getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)) {
+            if(participant.getComponentType().equals(SoftwareComponentTypeEnum.PROCESSING_PLANT)) {
                 for (TaskWorkItemSubscriptionType currentTaskWorkItem : participant.getSubscriptions()) {
                     addDownstreamSubscriberParticipant(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
                 }
@@ -184,7 +184,7 @@ public class PonosPetasosParticipantCacheServices {
             synchronized (this.getPetasosParticipantComponentIdMapLock()) {
                 getPetasosParticipantComponentIdMap().remove(participantId);
             }
-            if(registration.getParticipant().getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)) {
+            if(registration.getParticipant().getComponentType().equals(SoftwareComponentTypeEnum.PROCESSING_PLANT)) {
                 for (TaskWorkItemSubscriptionType currentTaskWorkItem : registration.getParticipant().getSubscriptions()) {
                     removeDownstreamSubscriberParticipant(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
                 }
@@ -345,7 +345,7 @@ public class PonosPetasosParticipantCacheServices {
             getLogger().debug(".addPetasosParticipantInstanceForParticipantName(): Exit, registration is null");
             return;
         }
-        if(registration.getParticipant().getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)){
+        if(registration.getParticipant().getComponentType().equals(SoftwareComponentTypeEnum.PROCESSING_PLANT)){
             if(StringUtils.isEmpty(participantName)){
                 getLogger().debug(".addPetasosParticipantInstanceForParticipantName(): Exit, participantName is empty");
                 return;
@@ -381,7 +381,7 @@ public class PonosPetasosParticipantCacheServices {
             getLogger().debug(".removePetasosParticipantInstanceForParticipantName(): Exit, registration is null");
             return;
         }
-        if(registration.getParticipant().getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)){
+        if(registration.getParticipant().getComponentType().equals(SoftwareComponentTypeEnum.PROCESSING_PLANT)){
             if(StringUtils.isEmpty(participantName)){
                 getLogger().debug(".removePetasosParticipantInstanceForParticipantName(): Exit, participantName is empty");
                 return;

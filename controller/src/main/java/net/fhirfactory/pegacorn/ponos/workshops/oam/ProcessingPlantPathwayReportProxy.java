@@ -22,8 +22,6 @@
 package net.fhirfactory.pegacorn.ponos.workshops.oam;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.interfaces.oam.tasks.PetasosITOpsTaskReportingAgentInterface;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
@@ -35,7 +33,6 @@ import javax.inject.Inject;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Set;
 
 @ApplicationScoped
 public class ProcessingPlantPathwayReportProxy {
@@ -82,7 +79,7 @@ public class ProcessingPlantPathwayReportProxy {
 
         reportBuilder.append("--------------------\n");
         reportBuilder.append("---Participant Registration (" + isUpdateString + " @ " + nowAsString + ")---\n");
-        reportBuilder.append("Participant.Name --> " + participant.getParticipantName() +"\n");
+        reportBuilder.append("Participant.Name --> " + participant.getParticipantId() +"\n");
         reportBuilder.append("Participant.Id --> " + participant.getComponentID().getDisplayName() + "\n");
         int counter = 0;
         for(TaskWorkItemSubscriptionType currentSubscription: participant.getSubscriptions()) {
@@ -94,7 +91,7 @@ public class ProcessingPlantPathwayReportProxy {
         formattedReportBuilder.append("<b>Participant Registration: " +  nowAsString +"</b>");
         formattedReportBuilder.append("<table>");
         formattedReportBuilder.append("<th>Participant.Name </th>");
-        formattedReportBuilder.append("<th>"+participant.getParticipantName()+"</th>");
+        formattedReportBuilder.append("<th>"+participant.getParticipantId()+"</th>");
         formattedReportBuilder.append("</tr>");
         formattedReportBuilder.append("<tr>");
         formattedReportBuilder.append("<td>Participant.Id</td>");

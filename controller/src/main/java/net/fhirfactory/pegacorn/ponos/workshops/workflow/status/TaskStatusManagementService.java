@@ -22,12 +22,10 @@
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.status;
 
 import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
-import net.fhirfactory.pegacorn.services.tasks.manager.PetasosTaskServicesManagerHandler;
-import org.apache.camel.LoggingLevel;
+import net.fhirfactory.pegacorn.services.tasks.manager.PetasosDistributedTaskServicesManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +38,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 @ApplicationScoped
-public class TaskStatusManagementService extends PetasosTaskServicesManagerHandler {
+public class TaskStatusManagementService extends PetasosDistributedTaskServicesManager {
     private static final Logger LOG = LoggerFactory.getLogger(TaskStatusManagementService.class);
 
     private boolean initialised;

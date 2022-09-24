@@ -48,7 +48,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -170,7 +169,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
                     } else {
                         try {
                             getLogger().debug(".aggregateTaskReportingDaemon(): Iterating, currentTask->{}", currentTask.getTaskId());
-                            if (!currentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName().contains(subsystemNames.getITOpsIMParticipantName())) {
+                            if (!currentTask.getTaskFulfillment().getFulfiller().getSubsystemParticipantName().contains(subsystemNames.getITOpsIMParticipantName())) {
                                 publishEndOfChainFullTaskReport(currentTask);
                                 publishEndPointOnlyTaskReport(currentTask);
                             }
@@ -209,14 +208,14 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
 
         //
         // Publish to Last Participant
-        String lastSubsystemName = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName();
-        ComponentIdType lastComponentId = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getComponentID();
+        String lastSubsystemName = lastTask.getTaskFulfillment().getFulfiller().getSubsystemParticipantName();
+        ComponentIdType lastComponentId = lastTask.getTaskFulfillment().getFulfiller().getComponentID();
         taskReportProxy.sendITOpsTaskReport(lastSubsystemName,lastComponentId,report.getContent(),report.getFormattedContent());
 
         //
         // Publish to First Participant
-        String firstSubsystemName = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName();
-        ComponentIdType firstComponentId = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getComponentID();
+        String firstSubsystemName = firstTask.getTaskFulfillment().getFulfiller().getSubsystemParticipantName();
+        ComponentIdType firstComponentId = firstTask.getTaskFulfillment().getFulfiller().getComponentID();
         taskReportProxy.sendITOpsTaskReport(firstSubsystemName,firstComponentId, report.getContent(), report.getFormattedContent());
 
         //

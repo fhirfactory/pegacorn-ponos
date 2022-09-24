@@ -23,16 +23,15 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.factories;
 
-import javax.enterprise.context.ApplicationScoped;
-import net.fhirfactory.pegacorn.core.model.component.SoftwareComponent;
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
 import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointTopologyTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.base.IPCTopologyEndpoint;
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.mllp.MLLPServerEndpoint;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftwareComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
 
 /**
  *
@@ -66,8 +65,8 @@ public class EndpointInformationExtractor {
         
         if(actionableTask != null){
             if(actionableTask.hasTaskFulfillment()){
-                if(actionableTask.getTaskFulfillment().hasFulfillerWorkUnitProcessor()){
-                    componentId = actionableTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getComponentID();
+                if(actionableTask.getTaskFulfillment().hasFulfiller()){
+                    componentId = actionableTask.getTaskFulfillment().getFulfiller().getComponentID();
                 }
             }
         }
@@ -82,8 +81,8 @@ public class EndpointInformationExtractor {
         String participantName = null;
         if(actionableTask != null){
             if(actionableTask.hasTaskFulfillment()){
-                if(actionableTask.getTaskFulfillment().hasFulfillerWorkUnitProcessor()){
-                    WorkUnitProcessorSoftwareComponent wupSoftwareComponent = (WorkUnitProcessorSoftwareComponent)actionableTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+                if(actionableTask.getTaskFulfillment().hasFulfiller()){
+                    WorkUnitProcessorSoftwareComponent wupSoftwareComponent = (WorkUnitProcessorSoftwareComponent)actionableTask.getTaskFulfillment().getFulfiller();
                     participantName = getEndpointParticipantName(wupSoftwareComponent, isIngres);
                 }
             }
@@ -101,22 +100,22 @@ public class EndpointInformationExtractor {
             IPCTopologyEndpoint ingresEndpoint = endpointWUP.getIngresEndpoint();
             if(ingresEndpoint != null){
                 if(ingresEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.MLLP_SERVER)){
-                    participantName = ingresEndpoint.getParticipantName();
+                    participantName = ingresEndpoint.getParticipantId().getName();
                 } else if(ingresEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.HTTP_API_SERVER)){
-                    participantName = ingresEndpoint.getParticipantName();
+                    participantName = ingresEndpoint.getParticipantId().getName();
                 } else if(ingresEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.FILE_SHARE_SOURCE)){
-                    participantName = ingresEndpoint.getParticipantName();
+                    participantName = ingresEndpoint.getParticipantId().getName();
                 }
             }
         } else {
             IPCTopologyEndpoint egressEndpoint = endpointWUP.getEgressEndpoint();
             if(egressEndpoint != null){
                 if(egressEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.MLLP_CLIENT)){
-                    participantName= egressEndpoint.getParticipantName();
+                    participantName= egressEndpoint.getParticipantId().getName();
                 } else if(egressEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.HTTP_API_CLIENT)){
-                    participantName = egressEndpoint.getParticipantName();
+                    participantName = egressEndpoint.getParticipantId().getName();
                 } else if(egressEndpoint.getEndpointType().equals(PetasosEndpointTopologyTypeEnum.FILE_SHARE_SINK)){
-                    participantName = egressEndpoint.getParticipantName();
+                    participantName = egressEndpoint.getParticipantId().getName();
                 }                
             }
         }

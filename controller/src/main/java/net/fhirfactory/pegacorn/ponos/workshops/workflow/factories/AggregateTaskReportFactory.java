@@ -31,11 +31,13 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.d
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskTraceabilityType;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayload;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
+import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftwareComponent;
 import net.fhirfactory.pegacorn.deployment.names.subsystems.SubsystemNames;
 import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
 import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.GeneralTaskMetadataExtractor;
 import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.HL7v2xTaskMetadataExtractor;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +50,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import net.fhirfactory.pegacorn.core.model.topology.nodes.WorkUnitProcessorSoftwareComponent;
-import org.apache.commons.lang3.StringUtils;
 
 @ApplicationScoped
 public class AggregateTaskReportFactory {
@@ -98,26 +98,26 @@ public class AggregateTaskReportFactory {
         PetasosActionableTask firstTask = getTaskCacheServices().getPetasosActionableTask(firstTaskId);
 
         String ingresEndpointParticipantName = null;
-        if(firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor() instanceof WorkUnitProcessorSoftwareComponent){
-            WorkUnitProcessorSoftwareComponent ingresWUP = (WorkUnitProcessorSoftwareComponent)firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+        if(firstTask.getTaskFulfillment().getFulfiller() instanceof WorkUnitProcessorSoftwareComponent){
+            WorkUnitProcessorSoftwareComponent ingresWUP = (WorkUnitProcessorSoftwareComponent)firstTask.getTaskFulfillment().getFulfiller();
             ingresEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(ingresWUP, true);
         }
         String egressEndpointParticipantName = null;
-        if(lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor() instanceof WorkUnitProcessorSoftwareComponent){
-            WorkUnitProcessorSoftwareComponent egressWUP = (WorkUnitProcessorSoftwareComponent)lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+        if(lastTask.getTaskFulfillment().getFulfiller() instanceof WorkUnitProcessorSoftwareComponent){
+            WorkUnitProcessorSoftwareComponent egressWUP = (WorkUnitProcessorSoftwareComponent)lastTask.getTaskFulfillment().getFulfiller();
             egressEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(egressWUP, false);
         }
 
         String ingresName = null;
         if(StringUtils.isEmpty(ingresEndpointParticipantName)){
-            ingresName = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
+            ingresName = firstTask.getTaskFulfillment().getFulfiller().getParticipantId().getName();
         } else {
             ingresName = ingresEndpointParticipantName;
         }
 
         String egressName = null;
         if(StringUtils.isEmpty(egressEndpointParticipantName)){
-            egressName = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
+            egressName = lastTask.getTaskFulfillment().getFulfiller().getParticipantId().getName();
         } else {
             egressName = egressEndpointParticipantName;
         }
@@ -155,7 +155,7 @@ public class AggregateTaskReportFactory {
                     addToReport = true;
                 }
             }
-            if(currentTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getSubsystemParticipantName().equals(subsystemNames.getITOpsIMParticipantName())){
+            if(currentTask.getTaskFulfillment().getFulfiller().getSubsystemParticipantName().equals(subsystemNames.getITOpsIMParticipantName())){
                 addToReport = false;
             }
             if(addToReport) {
@@ -211,9 +211,9 @@ public class AggregateTaskReportFactory {
         }
         String fulfillerComponentName = "Not Available";
         String fulfillerComponentId = "Not Available";
-        if (actionableTask.getTaskFulfillment().hasFulfillerWorkUnitProcessor()) {
-            fulfillerComponentName = actionableTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
-            fulfillerComponentId = actionableTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getComponentID().getId();
+        if (actionableTask.getTaskFulfillment().hasFulfiller()) {
+            fulfillerComponentName = actionableTask.getTaskFulfillment().getFulfiller().getParticipantId().getName();
+            fulfillerComponentId = actionableTask.getTaskFulfillment().getFulfiller().getComponentID().getId();
         } else {
             getLogger().debug(".newTaskSummaryReport(): No Task Fulfiller Component Defined on Task->{}", actionableTask.getTaskId());
         }
@@ -367,26 +367,26 @@ public class AggregateTaskReportFactory {
         StringBuilder formattedReportBuilder = new StringBuilder();
 
         String ingresEndpointParticipantName = null;
-        if(firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor() instanceof WorkUnitProcessorSoftwareComponent){
-            WorkUnitProcessorSoftwareComponent ingresWUP = (WorkUnitProcessorSoftwareComponent)firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+        if(firstTask.getTaskFulfillment().getFulfiller() instanceof WorkUnitProcessorSoftwareComponent){
+            WorkUnitProcessorSoftwareComponent ingresWUP = (WorkUnitProcessorSoftwareComponent)firstTask.getTaskFulfillment().getFulfiller();
             ingresEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(ingresWUP, true);
         }
         String egressEndpointParticipantName = null;
-        if(lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor() instanceof WorkUnitProcessorSoftwareComponent){
-            WorkUnitProcessorSoftwareComponent egressWUP = (WorkUnitProcessorSoftwareComponent)lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor();
+        if(lastTask.getTaskFulfillment().getFulfiller() instanceof WorkUnitProcessorSoftwareComponent){
+            WorkUnitProcessorSoftwareComponent egressWUP = (WorkUnitProcessorSoftwareComponent)lastTask.getTaskFulfillment().getFulfiller();
             egressEndpointParticipantName = getEndpointInfoExtrator().getEndpointParticipantName(egressWUP, false);
         }
 
         String ingresName = null;
         if(StringUtils.isEmpty(ingresEndpointParticipantName)){
-            ingresName = firstTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
+            ingresName = firstTask.getTaskFulfillment().getFulfiller().getParticipantId().getName();
         } else {
             ingresName = ingresEndpointParticipantName;
         }
 
         String egressName = null;
         if(StringUtils.isEmpty(egressEndpointParticipantName)){
-            egressName = lastTask.getTaskFulfillment().getFulfillerWorkUnitProcessor().getParticipantName();
+            egressName = lastTask.getTaskFulfillment().getFulfiller().getParticipantId().getName();
         } else {
             egressName = egressEndpointParticipantName;
         }

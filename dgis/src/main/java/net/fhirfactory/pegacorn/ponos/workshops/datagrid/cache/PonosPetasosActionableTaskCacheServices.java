@@ -34,10 +34,11 @@ import net.fhirfactory.pegacorn.core.model.datagrid.valuesets.DatagridPersistenc
 import net.fhirfactory.pegacorn.core.model.datagrid.valuesets.DatagridPersistenceServiceDeploymentScopeEnum;
 import net.fhirfactory.pegacorn.core.model.datagrid.valuesets.DatagridPersistenceServiceResourceScopeEnum;
 import net.fhirfactory.pegacorn.core.model.dataparcel.DataParcelTypeDescriptor;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantId;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTaskSet;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.valuesets.FulfillmentExecutionStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
-import net.fhirfactory.pegacorn.core.model.topology.endpoints.edge.jgroups.JGroupsIntegrationPointSummary;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.core.PonosReplicatedCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
 import net.fhirfactory.pegacorn.services.tasks.datatypes.PetasosActionableTaskRegistrationType;
@@ -151,8 +152,8 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
     //
 
     @Override
-    public PetasosActionableTaskRegistrationType registerPetasosActionableTask(PetasosActionableTask actionableTask, JGroupsIntegrationPointSummary integrationPoint) {
-        getLogger().debug(".registerPetasosActionableTask(): Entry, actionableTask->{}, integrationPoint->{}", actionableTask,integrationPoint);
+    public PetasosActionableTaskRegistrationType registerPetasosActionableTask(PetasosActionableTask actionableTask) {
+        getLogger().debug(".registerPetasosActionableTask(): Entry, actionableTask->{}", actionableTask);
         if(actionableTask == null) {
             getLogger().debug(".registerPetasosActionableTask(): Exit, actionableTask is null");
             return null;
@@ -169,7 +170,8 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
             actionableTaskRegistration.setRegistrationInstant(Instant.now());
             actionableTaskRegistration.setCheckInstant(Instant.now());
         }
-        actionableTaskRegistration.addFulfillmentProcessingPlant(integrationPoint.getProcessingPlantInstanceId());
+        actionableTaskRegistration.addPerformerParticipantId(actionableTask.getTaskFulfillment().getFulfiller().getParticipantId());
+        actionableTaskRegistration.addPerformerComponentId(actionableTask.getTaskFulfillment().getFulfiller().getComponentID());
         actionableTaskRegistration.addPerformerTypes(actionableTask.getTaskPerformerTypes());
         if(!taskAlreadyRegistered){
             actionableTask.setRegistered(true);
@@ -187,8 +189,8 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
     }
 
     @Override
-    public PetasosActionableTaskRegistrationType updatePetasosActionableTask(PetasosActionableTask actionableTask, JGroupsIntegrationPointSummary integrationPoint) {
-        getLogger().debug(".updatePetasosActionableTask(): Entry, actionableTask->{}, integrationPoint->{}", actionableTask,integrationPoint);
+    public PetasosActionableTaskRegistrationType updatePetasosActionableTask(PetasosActionableTask actionableTask) {
+        getLogger().debug(".updatePetasosActionableTask(): Entry, actionableTask->{}", actionableTask);
         if(actionableTask == null) {
             getLogger().debug(".updatePetasosActionableTask(): Exit, actionableTask is null");
             return null;
@@ -201,10 +203,11 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
             getTaskCache().replace(entryKey, actionableTask);
             actionableTaskRegistration.setCheckInstant(Instant.now());
             actionableTaskRegistration.addPerformerTypes(actionableTask.getTaskPerformerTypes());
-            actionableTaskRegistration.addFulfillmentProcessingPlant(integrationPoint.getProcessingPlantInstanceId());
+            actionableTaskRegistration.addPerformerParticipantId(actionableTask.getTaskFulfillment().getFulfiller().getParticipantId());
+            actionableTaskRegistration.addPerformerComponentId(actionableTask.getTaskFulfillment().getFulfiller().getComponentID());
             getTaskRegistrationCache().replace(entryKey, actionableTaskRegistration);
         } else{
-            actionableTaskRegistration = registerPetasosActionableTask(actionableTask, integrationPoint);
+            actionableTaskRegistration = registerPetasosActionableTask(actionableTask);
         }
         getLogger().debug(".updatePetasosActionableTask(): Exit, actionableTaskRegistration->{}", actionableTaskRegistration);
         return(actionableTaskRegistration);
@@ -236,7 +239,7 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
         }
         List<PetasosActionableTask> activeActionableTasks = new ArrayList<>();
         for(PetasosActionableTaskRegistrationType currentTaskRegistration: getTaskRegistrationCache().values()){
-            for(ComponentIdType currentComponentId: currentTaskRegistration.getFulfillmentProcessingPlants()) {
+            for(ComponentIdType currentComponentId: currentTaskRegistration.getFulfillerComponentIdSet()) {
                 if (currentComponentId.equals(componentId)) {
                     PonosDatagridTaskKey entryKey = new PonosDatagridTaskKey(currentTaskRegistration.getActionableTaskId());
                     PetasosActionableTask actionableTask = SerializationUtils.clone(getTaskCache().get(entryKey));
@@ -249,25 +252,25 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
     }
 
     @Override
-    public List<PetasosActionableTask> getWaitingActionableTasksForComponent(ComponentIdType componentId) {
-        getLogger().debug(".getWaitingActionableTasksForComponent(): Entry, componentId->{}", componentId);
-        if(componentId == null){
-            getLogger().debug(".getWaitingActionableTasksForComponent(): Exit, componentId is null, returning empty list");
-            return(new ArrayList<>());
+    public PetasosActionableTaskSet getPendingActionableTasks(PetasosParticipantId participantId) {
+        getLogger().debug(".getPendingActionableTasks(): Entry, participantId->{}", participantId);
+        if(participantId == null){
+            getLogger().debug(".getPendingActionableTasks(): Exit, participantId is null, returning empty list");
+            return(new PetasosActionableTaskSet());
         }
-        List<PetasosActionableTask> waitingActionableTasks = new ArrayList<>();
+        PetasosActionableTaskSet waitingActionableTasks = new PetasosActionableTaskSet();
         for(PetasosActionableTaskRegistrationType currentTaskRegistration: getTaskRegistrationCache().values()){
-            for(ComponentIdType currentComponentId: currentTaskRegistration.getFulfillmentProcessingPlants()) {
-                if (currentComponentId.equals(componentId)) {
+            for(PetasosParticipantId currentParticipant: currentTaskRegistration.getFulfillerParticipantIdSet()) {
+                if (currentParticipant.equals(participantId)) {
                     PonosDatagridTaskKey entryKey = new PonosDatagridTaskKey(currentTaskRegistration.getActionableTaskId());
                     PetasosActionableTask actionableTask = SerializationUtils.clone(getTaskCache().get(entryKey));
                     if(actionableTask.getTaskFulfillment().getStatus().equals(FulfillmentExecutionStatusEnum.FULFILLMENT_EXECUTION_STATUS_REGISTERED)) {
-                        waitingActionableTasks.add(actionableTask);
+                        waitingActionableTasks.addActionableTask(actionableTask);
                     }
                 }
             }
         }
-        getLogger().debug(".getWaitingActionableTasksForComponent(): Exit");
+        getLogger().debug(".getPendingActionableTasks(): Exit");
         return(waitingActionableTasks);
     }
 

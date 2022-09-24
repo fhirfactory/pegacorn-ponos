@@ -32,13 +32,13 @@ public class PonosAcolyteTopologyFactory extends FHIRIMSubsystemTopologyFactory 
 
     @Override
     protected ProcessingPlantSoftwareComponent buildSubsystemTopology() {
-        SubsystemTopologyNode subsystemTopologyNode = addSubsystemNode(getTopologyIM().getSolutionTopology());
+        SubsystemTopologyNode subsystemTopologyNode = buildSubsystemNodeFromConfigurationFile();
         BusinessServiceTopologyNode businessServiceTopologyNode = addBusinessServiceNode(subsystemTopologyNode);
         DeploymentSiteTopologyNode deploymentSiteTopologyNode = addDeploymentSiteNode(businessServiceTopologyNode);
-        ClusterServiceTopologyNode clusterServiceTopologyNode = addClusterServiceNode(deploymentSiteTopologyNode);
+        ClusterServiceTopologyNode clusterServiceTopologyNode = addClusterServiceNode(deploymentSiteTopologyNode, businessServiceTopologyNode);
 
         PlatformTopologyNode platformTopologyNode = addPlatformNode(clusterServiceTopologyNode);
-        ProcessingPlantSoftwareComponent processingPlantSoftwareComponent = addPegacornProcessingPlant(platformTopologyNode);
+        ProcessingPlantSoftwareComponent processingPlantSoftwareComponent = buildProcessingPlant(platformTopologyNode, clusterServiceTopologyNode);
         addPrometheusPort(processingPlantSoftwareComponent);
         addJolokiaPort(processingPlantSoftwareComponent);
         addKubeLivelinessPort(processingPlantSoftwareComponent);
