@@ -19,25 +19,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.workshops.datagrid.workflow;
+package net.fhirfactory.pegacorn.ponos.workshops.workflow.tasks.activities;
 
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosAggregateTask;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.ActionableTaskCacheServices;
-import org.apache.camel.LoggingLevel;
-import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.time.Instant;
 
 @ApplicationScoped
-public class AggregateTaskLifeCycleActivities extends RouteBuilder {
-    private static final Logger LOG = LoggerFactory.getLogger(AggregateTaskLifeCycleActivities.class);
+public class ActionableTaskRecoveryActivities {
+    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskRecoveryActivities.class);
 
     private boolean initialised;
 
@@ -48,7 +42,7 @@ public class AggregateTaskLifeCycleActivities extends RouteBuilder {
     // Constructor(s)
     //
 
-    public AggregateTaskLifeCycleActivities(){
+    public ActionableTaskRecoveryActivities(){
         this.initialised = false;
     }
 
@@ -65,24 +59,6 @@ public class AggregateTaskLifeCycleActivities extends RouteBuilder {
     // Business Methods
     //
 
-    public PetasosAggregateTask buildAggregateTask(PetasosActionableTask triggerEvent){
-        PetasosAggregateTask aggregateTask = new PetasosAggregateTask();
-
-        return(aggregateTask);
-    }
-
-    public Instant saveAggregateTask(PetasosAggregateTask aggregateTask){
-
-
-        Instant saveInstant = Instant.now();
-        return(saveInstant);
-    }
-
-    public PetasosAggregateTask loadAggregateTask(TaskIdType aggregateTaskId){
-        PetasosAggregateTask aggregateTask = new PetasosAggregateTask();
-
-        return(aggregateTask);
-    }
 
     //
     // Getters (and Setters)
@@ -94,18 +70,5 @@ public class AggregateTaskLifeCycleActivities extends RouteBuilder {
 
     protected ActionableTaskCacheServices getTaskCacheServices(){
         return(taskCacheServices);
-    }
-
-    //
-    // Mechanism to ensure Startup
-    //
-
-    @Override
-    public void configure() throws Exception {
-        String className = getClass().getSimpleName();
-
-        from("timer://" + className + "?delay=1000&repeatCount=1")
-                .routeId("DaemonTaskClass::" + className)
-                .log(LoggingLevel.DEBUG, "Starting....");
     }
 }
