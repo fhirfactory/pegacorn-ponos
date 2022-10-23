@@ -57,7 +57,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public boolean isPetasosParticipantRegistered(PetasosParticipantRegistration localParticipantRegistration) {
         getLogger().debug(".isPetasosParticipantRegistered(): Entry, localParticipantRegistration->{}", localParticipantRegistration);
-        boolean isRegistered = petasosParticipantCache.getPetasosParticipantRegistration(localParticipantRegistration.getLocalComponentId()) != null;
+        boolean isRegistered = petasosParticipantCache.getParticipantRegistration(localParticipantRegistration.getLocalComponentId()) != null;
         getLogger().debug(".isPetasosParticipantRegistered(): Exit, isRegistered->{}", isRegistered);
         return(isRegistered);
     }
@@ -111,7 +111,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
         }
         PetasosParticipantRegistration registration = null;
         if(isPetasosParticipantRegistered(localParticipantRegistration)){
-            registration = petasosParticipantCache.updatePetasosParticipant(localParticipantRegistration);
+            registration = petasosParticipantCache.updateParticipantRegistration(localParticipantRegistration);
             processingPlantPathwayReportProxy.reportParticipantRegistration(localParticipantRegistration, true);
         } else {
             registration = petasosParticipantCache.registerPetasosParticipant(localParticipantRegistration);

@@ -24,9 +24,11 @@ package net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache;
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
 import net.fhirfactory.pegacorn.core.model.componentid.SoftwareComponentTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantControlStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.registration.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.registration.PetasosParticipantRegistrationStatus;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.registration.PetasosParticipantRegistrationStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemManifestType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.core.PonosReplicatedCacheServices;
 import org.apache.commons.lang3.StringUtils;
@@ -142,6 +144,7 @@ public class ParticipantCacheServices {
                 }
                 addPetasosParticipantInstanceForParticipantName(localParticipantRegistration.getParticipantId().getSubsystemName(), registration);
             }
+            registration.setControlStatus(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED);
             getLogger().debug(".registerTaskProducer(): Exit, registration->{}", registration);
             return (registration);
         }
@@ -202,16 +205,42 @@ public class ParticipantCacheServices {
      * @param localParticipantRegistration
      * @return
      */
-    public PetasosParticipantRegistration updatePetasosParticipant(PetasosParticipantRegistration localParticipantRegistration){
-        getLogger().debug(".updatePetasosParticipant(): Entry, localParticipantRegistration->{}", localParticipantRegistration);
+    public PetasosParticipantRegistration updateParticipantRegistration(PetasosParticipantRegistration localParticipantRegistration){
+        getLogger().debug(".updateParticipantRegistration(): Entry, localParticipantRegistration->{}", localParticipantRegistration);
         if(localParticipantRegistration == null){
-            getLogger().debug(".updatePetasosParticipant(): Exit, localParticipantRegistration is null, returning null");
+            getLogger().debug(".updateParticipantRegistration(): Exit, localParticipantRegistration is null, returning null");
             return(null);
         }
-        deregisterPetasosParticipant(localParticipantRegistration.getLocalComponentId());
-        PetasosParticipantRegistration registration = registerPetasosParticipant(localParticipantRegistration);
-        getLogger().debug(".updatePetasosParticipant(): Exit, registration->{}", registration);
-        return(registration);
+        PetasosParticipantRegistration centralRegistration = getParticipantRegistration(localParticipantRegistration.getLocalComponentId());
+        if(centralRegistration == null){
+            centralRegistration = registerPetasosParticipant(localParticipantRegistration);
+        } else {
+            centralRegistration.setLocalRegistrationStatus(localParticipantRegistration.getLocalRegistrationStatus());
+            centralRegistration.setLocalRegistrationInstant(localParticipantRegistration.getLocalRegistrationInstant());
+            if(!centralRegistration.getCentralRegistrationStatus().equals(PetasosParticipantRegistrationStatusEnum.PARTICIPANT_REGISTERED)){
+                centralRegistration.setCentralRegistrationStatus(PetasosParticipantRegistrationStatusEnum.PARTICIPANT_REGISTERED);
+                centralRegistration.setCentralRegistrationInstant(Instant.now());
+            }
+            if(!localParticipantRegistration.getSubscriptions().isEmpty()){
+                for(TaskWorkItemSubscriptionType currentSubscription: localParticipantRegistration.getSubscriptions()){
+                    if(!centralRegistration.getSubscriptions().contains(currentSubscription)){
+                        centralRegistration.getSubscriptions().add(currentSubscription);
+                    }
+                }
+            }
+            if(!localParticipantRegistration.getOutputs().isEmpty()){
+                for(TaskWorkItemManifestType currentOutput: localParticipantRegistration.getOutputs()){
+                    if(!centralRegistration.getOutputs().contains(currentOutput)){
+                        centralRegistration.getOutputs().add(currentOutput);
+                    }
+                }
+            }
+            centralRegistration.setParticipantStatus(localParticipantRegistration.getParticipantStatus());
+            centralRegistration.setControlStatus(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED);
+            centralRegistration.setLocalComponentStatus(localParticipantRegistration.getLocalComponentStatus());
+        }
+        getLogger().debug(".updateParticipantRegistration(): Exit, centralRegistration->{}", centralRegistration);
+        return(centralRegistration);
     }
 
     /**
@@ -219,12 +248,12 @@ public class ParticipantCacheServices {
      * @param componentId
      * @return
      */
-    public PetasosParticipantRegistrationStatus getPetasosParticipantRegistration(ComponentIdType componentId){
+    public PetasosParticipantRegistration getParticipantRegistration(ComponentIdType componentId){
         getLogger().debug(".getPetasosParticipantRegistration(): Entry, componentId->{}", componentId);
         if(getPetasosParticipantComponentIdMap().containsKey(componentId)){
             String registrationId = getPetasosParticipantComponentIdMap().get(componentId);
             if(getPetasosParticipantRegistrationCache().containsKey(registrationId)){
-                PetasosParticipantRegistrationStatus registration = getPetasosParticipantRegistrationCache().get(registrationId);
+                PetasosParticipantRegistration registration = getPetasosParticipantRegistrationCache().get(registrationId);
                 getLogger().debug(".getPetasosParticipantRegistration(): Exit, registration->{}", registration);
                 return(registration);
             }
