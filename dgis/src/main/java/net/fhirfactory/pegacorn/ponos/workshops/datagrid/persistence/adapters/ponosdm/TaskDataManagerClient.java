@@ -25,7 +25,7 @@ import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.gclient.ICriterion;
 import ca.uhn.fhir.rest.gclient.TokenClientParam;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.valuesets.FulfillmentExecutionStatusEnum;
-import net.fhirfactory.pegacorn.internals.fhir.r4.resources.task.factories.TaskBusinessStatusFactory;
+import net.fhirfactory.pegacorn.internals.fhir.r4.resources.task.factories.TaskStatusReasonFactory;
 import net.fhirfactory.pegacorn.ponos.common.PonosNames;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.adapters.ponosdm.base.ResourceDataManagerClient;
 import org.hl7.fhir.r4.model.Bundle;
@@ -42,7 +42,7 @@ public class TaskDataManagerClient extends ResourceDataManagerClient {
     private static final Logger LOG = LoggerFactory.getLogger(TaskDataManagerClient.class);
 
     @Inject
-    private TaskBusinessStatusFactory businessStatusFactory;
+    private TaskStatusReasonFactory businessStatusFactory;
 
     @Inject
     private PonosNames ponosNames;
@@ -64,7 +64,7 @@ public class TaskDataManagerClient extends ResourceDataManagerClient {
         return (LOG);
     }
 
-    protected  TaskBusinessStatusFactory getBusinessStatusFactory(){
+    protected TaskStatusReasonFactory getBusinessStatusFactory(){
         return(businessStatusFactory);
     }
 

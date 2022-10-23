@@ -44,6 +44,7 @@ public abstract class DataManagerProxy extends DataManagerSecureProxy {
     public void initialise(){
         if(!initialised) {
             newRestfulGenericClient(deriveTargetEndpointDetails());
+            postConstructActivities();
             this.initialised = true;
         }
     }
