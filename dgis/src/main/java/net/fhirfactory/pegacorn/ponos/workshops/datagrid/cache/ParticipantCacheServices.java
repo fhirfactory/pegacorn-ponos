@@ -138,11 +138,13 @@ public class ParticipantCacheServices {
             synchronized(this.getPetasosParticipantComponentIdMapLock()){
                 getPetasosParticipantComponentIdMap().put(localParticipantRegistration.getLocalComponentId(), registration.getRegistrationId());
             }
-            if(localParticipantRegistration.getComponentType().equals(SoftwareComponentTypeEnum.PROCESSING_PLANT)) {
-                for (TaskWorkItemSubscriptionType currentTaskWorkItem : localParticipantRegistration.getSubscriptions()) {
-                    addDownstreamSubscriberParticipant(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
+            if(localParticipantRegistration.hasComponentType()) {
+                if (localParticipantRegistration.getComponentType().equals(SoftwareComponentTypeEnum.PROCESSING_PLANT)) {
+                    for (TaskWorkItemSubscriptionType currentTaskWorkItem : localParticipantRegistration.getSubscriptions()) {
+                        addDownstreamSubscriberParticipant(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
+                    }
+                    addPetasosParticipantInstanceForParticipantName(localParticipantRegistration.getParticipantId().getSubsystemName(), registration);
                 }
-                addPetasosParticipantInstanceForParticipantName(localParticipantRegistration.getParticipantId().getSubsystemName(), registration);
             }
             registration.setControlStatus(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED);
             getLogger().debug(".registerTaskProducer(): Exit, registration->{}", registration);
