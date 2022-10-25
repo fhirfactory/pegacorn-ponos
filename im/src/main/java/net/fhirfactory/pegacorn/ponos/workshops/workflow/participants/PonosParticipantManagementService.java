@@ -91,44 +91,46 @@ public class PonosParticipantManagementService extends PetasosParticipantService
     }
 
     public PetasosParticipantRegistration synchroniseRegistrationHandler(String sourceComponentName, String sourceParticipantName, PetasosParticipantRegistration localParticipantRegistration){
-        getLogger().debug(".getDownstreamSubscribersHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, localParticipantRegistration->{}", sourceComponentName, sourceParticipantName, localParticipantRegistration);
+        getLogger().debug(".synchroniseRegistrationHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, localParticipantRegistration->{}", sourceComponentName, sourceParticipantName, localParticipantRegistration);
         getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
 
-        getLogger().trace(".getDownstreamSubscribersHandler(): [Synchronise Registration with Central Cache] Start");
+        getLogger().trace(".synchroniseRegistrationHandler(): [Synchronise Registration with Central Cache] Start");
         PetasosParticipantRegistration centralRegistration = synchroniseRegistration(localParticipantRegistration);
-        getLogger().trace(".getDownstreamSubscribersHandler(): [Synchronise Registration with Central Cache] Finish");
+        getLogger().trace(".synchroniseRegistrationHandler(): [Synchronise Registration with Central Cache] Finish");
 
-        getLogger().debug(".getDownstreamSubscribersHandler(): Exit, centralRegistration->{}", centralRegistration);
+        getLogger().debug(".synchroniseRegistrationHandler(): Exit, centralRegistration->{}", centralRegistration);
         return(centralRegistration);
     }
 
     @Override
     public PetasosParticipantRegistration synchroniseRegistration(PetasosParticipantRegistration localParticipantRegistration) {
-        getLogger().info(".registerPetasosParticipant(): Entry, localParticipantRegistration->{}", localParticipantRegistration);
+        getLogger().info(".synchroniseRegistration(): Entry, localParticipantRegistration->{}", localParticipantRegistration);
         if(localParticipantRegistration == null) {
-            getLogger().info(".registerPetasosParticipant(): Exit, localParticipantRegistration is null, returning null");
+            getLogger().info(".synchroniseRegistration(): Exit, localParticipantRegistration is null, returning null");
             return (null);
         }
         PetasosParticipantRegistration registration = null;
         if(isPetasosParticipantRegistered(localParticipantRegistration)){
+            getLogger().trace(".synchroniseRegistration(): Already Registered, so updating");
             registration = petasosParticipantCache.updateParticipantRegistration(localParticipantRegistration);
             processingPlantPathwayReportProxy.reportParticipantRegistration(localParticipantRegistration, true);
         } else {
+            getLogger().trace(".synchroniseRegistration(): Not presently registered, so registering");
             registration = petasosParticipantCache.registerPetasosParticipant(localParticipantRegistration);
             processingPlantPathwayReportProxy.reportParticipantRegistration(localParticipantRegistration, false);
         }
-        getLogger().info(".registerPetasosParticipant(): Exit, registration->{}", registration);
+        getLogger().info(".synchroniseRegistration(): Exit, registration->{}", registration);
         return(registration);
     }
 
     public PetasosParticipantRegistration getParticipantRegistration(ComponentIdType componentId) {
-        getLogger().debug(".getPetasosParticipantRegistration(): Entry, componentId->{}", componentId);
+        getLogger().debug(".getParticipantRegistration(): Entry, componentId->{}", componentId);
         if(componentId == null){
-            getLogger().debug(".getPetasosParticipantRegistration(): Exit, componentId is null, returning null");
+            getLogger().debug(".getParticipantRegistration(): Exit, componentId is null, returning null");
             return(null);
         }
         PetasosParticipantRegistration registration = petasosParticipantCache.deregisterPetasosParticipant(componentId);
-        getLogger().debug(".getPetasosParticipantRegistration(): Exit, registration->{}", registration);
+        getLogger().debug(".getParticipantRegistration(): Exit, registration->{}", registration);
         return(registration);
     }
 

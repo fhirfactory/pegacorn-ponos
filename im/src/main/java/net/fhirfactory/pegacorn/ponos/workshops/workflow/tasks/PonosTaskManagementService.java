@@ -34,6 +34,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.va
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.valuesets.TaskExecutionCommandEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.valuesets.TaskOutcomeStatusEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.datatypes.TaskStorageType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.valuesets.TaskStorageStatusEnum;
 import net.fhirfactory.pegacorn.petasos.endpoints.services.tasking.PetasosTaskServicesEndpoint;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
@@ -377,6 +378,9 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
         getLogger().trace(".registerTask(): [Add ActionableTask to Central Cache] Finish");
 
         PetasosTaskJobCard responseJobCard = new PetasosTaskJobCard(jobCard);
+        if(!responseJobCard.hasPersistenceStatus()){
+            responseJobCard.setPersistenceStatus(new TaskStorageType());
+        }
         responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
         responseJobCard.getPersistenceStatus().setCentralStorageLocation(getProcessingPlant().getTopologyNode().getParticipant().getParticipantId().getName());
         responseJobCard.setGrantedStatus(TaskExecutionCommandEnum.TASK_COMMAND_WAIT);
@@ -390,11 +394,15 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
         getLogger().debug(".registerTaskOutcome(): Entry, actionableTask->{}, jobCard->{}", actionableTask, jobCard);
         PetasosActionableTask registeredActionableTask = getActionableTaskCache().updateTask(actionableTask, true);
         PetasosTaskJobCard responseJobCard = SerializationUtils.clone(jobCard);
+        if(!responseJobCard.hasPersistenceStatus()){
+            responseJobCard.setPersistenceStatus(new TaskStorageType());
+        }
         responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
         responseJobCard.getPersistenceStatus().setCentralStorageLocation(getProcessingPlant().getTopologyNode().getParticipant().getParticipantId().getName());
         responseJobCard.setGrantedStatus(TaskExecutionCommandEnum.TASK_COMMAND_CLEAN_UP);
         responseJobCard.getPersistenceStatus().setCentralStorageInstant(Instant.now());
         responseJobCard.setUpdateInstant(Instant.now());
+        getLogger().debug(".registerTaskOutcome(): Entry, responseJobCard->{}", jobCard);
         return(responseJobCard);
     }
 
@@ -408,6 +416,9 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
 
         getLogger().trace(".registerTaskWaiting(): [Clone and Update JobCard Status] Start");
         PetasosTaskJobCard responseJobCard = SerializationUtils.clone(jobCard);
+        if(!responseJobCard.hasPersistenceStatus()){
+            responseJobCard.setPersistenceStatus(new TaskStorageType());
+        }
         responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
         responseJobCard.getPersistenceStatus().setCentralStorageLocation(getProcessingPlant().getTopologyNode().getParticipant().getParticipantId().getName());
         responseJobCard.setGrantedStatus(TaskExecutionCommandEnum.TASK_COMMAND_WAIT);
@@ -428,6 +439,9 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
 
         getLogger().trace(".registerTaskStart(): [Clone and Update JobCard Status] Start");
         PetasosTaskJobCard responseJobCard = SerializationUtils.clone(jobCard);
+        if(!responseJobCard.hasPersistenceStatus()){
+            responseJobCard.setPersistenceStatus(new TaskStorageType());
+        }
         responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
         responseJobCard.getPersistenceStatus().setCentralStorageLocation(getProcessingPlant().getTopologyNode().getParticipant().getParticipantId().getName());
         responseJobCard.setGrantedStatus(TaskExecutionCommandEnum.TASK_COMMAND_EXECUTE);
@@ -442,18 +456,21 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
     public PetasosTaskJobCard registerTaskFailure(PetasosTaskJobCard jobCard) {
         getLogger().debug(".registerTaskFailure(): Entry, jobCard->{}", jobCard);
 
-        getLogger().trace(".registerTaskStart(): [Update Cached Task Status] Start");
+        getLogger().trace(".registerTaskFailure(): [Update Cached Task Status] Start");
         PetasosActionableTask cachedActionableTask = getActionableTaskCache().setTaskStatus(jobCard.getTaskId(), TaskOutcomeStatusEnum.OUTCOME_STATUS_FAILED, FulfillmentExecutionStatusEnum.FULFILLMENT_EXECUTION_STATUS_FAILED, jobCard.getUpdateInstant());
-        getLogger().trace(".registerTaskStart(): [Update Cached Task Status] Finish");
+        getLogger().trace(".registerTaskFailure(): [Update Cached Task Status] Finish");
 
-        getLogger().trace(".registerTaskStart(): [Clone and Update JobCard Status] Start");
+        getLogger().trace(".registerTaskFailure(): [Clone and Update JobCard Status] Start");
         PetasosTaskJobCard responseJobCard = SerializationUtils.clone(jobCard);
+        if(!responseJobCard.hasPersistenceStatus()){
+            responseJobCard.setPersistenceStatus(new TaskStorageType());
+        }
         responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
         responseJobCard.getPersistenceStatus().setCentralStorageLocation(getProcessingPlant().getTopologyNode().getParticipant().getParticipantId().getName());
         responseJobCard.setOutcomeStatus(cachedActionableTask.getTaskOutcomeStatus().getOutcomeStatus());
         responseJobCard.setGrantedStatus(TaskExecutionCommandEnum.TASK_COMMAND_FAIL);
         responseJobCard.setUpdateInstant(Instant.now());
-        getLogger().trace(".registerTaskStart(): [Clone and Update JobCard Status] Finish");
+        getLogger().trace(".registerTaskFailure(): [Clone and Update JobCard Status] Finish");
 
         getLogger().debug(".registerTaskFailure(): Exit, responseJobCard->{}", responseJobCard);
         return(responseJobCard);
@@ -461,22 +478,25 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
 
     @Override
     public PetasosTaskJobCard registerTaskFinish( PetasosTaskJobCard jobCard) {
-        getLogger().debug(".registerTaskCompletion(): Entry, jobCard->{}", jobCard);
+        getLogger().debug(".registerTaskFinish(): Entry, jobCard->{}", jobCard);
 
-        getLogger().trace(".registerTaskStart(): [Update Cached Task Status] Start");
+        getLogger().trace(".registerTaskFinish(): [Update Cached Task Status] Start");
         PetasosActionableTask cachedActionableTask = getActionableTaskCache().setTaskStatus(jobCard.getTaskId(), TaskOutcomeStatusEnum.OUTCOME_STATUS_FINISHED, FulfillmentExecutionStatusEnum.FULFILLMENT_EXECUTION_STATUS_FINISHED, jobCard.getUpdateInstant());
-        getLogger().trace(".registerTaskStart(): [Update Cached Task Status] Finish");
+        getLogger().trace(".registerTaskFinish(): [Update Cached Task Status] Finish");
 
-        getLogger().trace(".registerTaskStart(): [Clone and Update JobCard Status] Start");
+        getLogger().trace(".registerTaskFinish(): [Clone and Update JobCard Status] Start");
         PetasosTaskJobCard responseJobCard = SerializationUtils.clone(jobCard);
+        if(!responseJobCard.hasPersistenceStatus()){
+            responseJobCard.setPersistenceStatus(new TaskStorageType());
+        }
         responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
         responseJobCard.getPersistenceStatus().setCentralStorageLocation(getProcessingPlant().getTopologyNode().getParticipant().getParticipantId().getName());
         responseJobCard.setOutcomeStatus(cachedActionableTask.getTaskOutcomeStatus().getOutcomeStatus());
         responseJobCard.setGrantedStatus(TaskExecutionCommandEnum.TASK_COMMAND_FINISH);
         responseJobCard.setUpdateInstant(Instant.now());
-        getLogger().trace(".registerTaskStart(): [Clone and Update JobCard Status] Finish");
+        getLogger().trace(".registerTaskFinish(): [Clone and Update JobCard Status] Finish");
 
-        getLogger().debug(".registerTaskCompletion(): Exit, responseJobCard->{}", responseJobCard);
+        getLogger().debug(".registerTaskFinish(): Exit, responseJobCard->{}", responseJobCard);
         return(responseJobCard);
     }
 
@@ -484,18 +504,21 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
     public PetasosTaskJobCard registerTaskFinalisation(PetasosTaskJobCard jobCard) {
         getLogger().debug(".registerTaskFinalisation(): Entry, jobCard->{}", jobCard);
 
-        getLogger().trace(".registerTaskStart(): [Update Cached Task Status] Start");
+        getLogger().trace(".registerTaskFinalisation(): [Update Cached Task Status] Start");
         PetasosActionableTask cachedActionableTask = getActionableTaskCache().setTaskStatus(jobCard.getTaskId(), TaskOutcomeStatusEnum.OUTCOME_STATUS_FINALISED, FulfillmentExecutionStatusEnum.FULFILLMENT_EXECUTION_STATUS_FINALISED, jobCard.getUpdateInstant());
-        getLogger().trace(".registerTaskStart(): [Update Cached Task Status] Finish");
+        getLogger().trace(".registerTaskFinalisation(): [Update Cached Task Status] Finish");
 
-        getLogger().trace(".registerTaskStart(): [Clone and Update JobCard Status] Start");
+        getLogger().trace(".registerTaskFinalisation(): [Clone and Update JobCard Status] Start");
         PetasosTaskJobCard responseJobCard = SerializationUtils.clone(jobCard);
+        if(!responseJobCard.hasPersistenceStatus()){
+            responseJobCard.setPersistenceStatus(new TaskStorageType());
+        }
         responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
         responseJobCard.getPersistenceStatus().setCentralStorageLocation(getProcessingPlant().getTopologyNode().getParticipant().getParticipantId().getName());
         responseJobCard.setOutcomeStatus(cachedActionableTask.getTaskOutcomeStatus().getOutcomeStatus());
         responseJobCard.setGrantedStatus(TaskExecutionCommandEnum.TASK_COMMAND_CLEAN_UP);
         responseJobCard.setUpdateInstant(Instant.now());
-        getLogger().trace(".registerTaskStart(): [Clone and Update JobCard Status] Finish");
+        getLogger().trace(".registerTaskFinalisation(): [Clone and Update JobCard Status] Finish");
 
         getLogger().debug(".registerTaskFinalisation(): Exit, responseJobCard->{}", responseJobCard);
         return(responseJobCard);
@@ -507,18 +530,21 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
     public PetasosTaskJobCard registerTaskCancellation(PetasosTaskJobCard jobCard) {
         getLogger().debug(".registerTaskCancellation(): Entry, jobCard->{}", jobCard);
 
-        getLogger().trace(".registerTaskStart(): [Update Cached Task Status] Start");
+        getLogger().trace(".registerTaskCancellation(): [Update Cached Task Status] Start");
         PetasosActionableTask cachedActionableTask = getActionableTaskCache().setTaskStatus(jobCard.getTaskId(), TaskOutcomeStatusEnum.OUTCOME_STATUS_CANCELLED, FulfillmentExecutionStatusEnum.FULFILLMENT_EXECUTION_STATUS_CANCELLED, jobCard.getUpdateInstant());
-        getLogger().trace(".registerTaskStart(): [Update Cached Task Status] Finish");
+        getLogger().error(".registerTaskCancellation(): [Update Cached Task Status] Finish, cachedActionableTask->{}", cachedActionableTask);
 
-        getLogger().trace(".registerTaskStart(): [Clone and Update JobCard Status] Start");
+        getLogger().trace(".registerTaskCancellation(): [Clone and Update JobCard Status] Start");
         PetasosTaskJobCard responseJobCard = SerializationUtils.clone(jobCard);
+        if(!responseJobCard.hasPersistenceStatus()){
+            responseJobCard.setPersistenceStatus(new TaskStorageType());
+        }
          responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
         responseJobCard.getPersistenceStatus().setCentralStorageLocation(getProcessingPlant().getTopologyNode().getParticipant().getParticipantId().getName());
         responseJobCard.setOutcomeStatus(cachedActionableTask.getTaskOutcomeStatus().getOutcomeStatus());
         responseJobCard.setGrantedStatus(TaskExecutionCommandEnum.TASK_COMMAND_CANCEL);
         responseJobCard.setUpdateInstant(Instant.now());
-        getLogger().trace(".registerTaskStart(): [Clone and Update JobCard Status] Finish");
+        getLogger().trace(".registerTaskCancellation(): [Clone and Update JobCard Status] Finish");
 
         getLogger().debug(".registerTaskCancellation(): Exit, responseJobCard->{}", responseJobCard);
         return(responseJobCard);
@@ -526,13 +552,13 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
 
     @Override
     public PetasosActionableTaskSet getOffloadedPendingTasks(PetasosParticipantId participantId, Integer maxNumber) {
-        getLogger().debug(".retrievePendingActionableTasks(): Entry, participantId->{}", participantId);
+        getLogger().debug(".getOffloadedPendingTasks(): Entry, participantId->{}", participantId);
         if (participantId == null) {
-            getLogger().debug(".retrievePendingActionableTasks(): Exit, participantId is null, returning empty list");
+            getLogger().debug(".getOffloadedPendingTasks(): Exit, participantId is null, returning empty list");
             return (new PetasosActionableTaskSet());
         }
         PetasosActionableTaskSet waitingActionableTasksForComponent = getActionableTaskCache().getAllOffloadedPendingActionableTasks(participantId);
-        getLogger().info(".retrievePendingActionableTasks(): Exit");
+        getLogger().info(".getOffloadedPendingTasks(): Exit");
         return(waitingActionableTasksForComponent);
     }
 
