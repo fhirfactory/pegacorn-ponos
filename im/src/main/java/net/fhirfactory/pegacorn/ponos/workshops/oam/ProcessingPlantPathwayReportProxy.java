@@ -36,7 +36,7 @@ import java.time.format.DateTimeFormatter;
 
 @ApplicationScoped
 public class ProcessingPlantPathwayReportProxy {
-    private static final Logger LOG = LoggerFactory.getLogger(ProcessingPlantTaskReportProxy.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProcessingPlantPathwayReportProxy.class);
 
     private DateTimeFormatter timeFormatter;
 
@@ -68,6 +68,7 @@ public class ProcessingPlantPathwayReportProxy {
     //
 
     public void reportParticipantRegistration(PetasosParticipantRegistration participantRegistration, boolean isUpdate){
+        getLogger().debug(".reportParticipantRegistration(): Entry, participantRegistration->{}", participantRegistration);
         StringBuilder reportBuilder = new StringBuilder();
         StringBuilder formattedReportBuilder = new StringBuilder();
 
@@ -113,7 +114,9 @@ public class ProcessingPlantPathwayReportProxy {
         formattedReportBuilder.append("</tr>");
         formattedReportBuilder.append("</table>");
 
-        metricsAgentAccessor.getMetricsAgent().sendITOpsNotification(reportBuilder.toString(), formattedReportBuilder.toString());
+        String unformattedReport = reportBuilder.toString();
+        metricsAgentAccessor.getMetricsAgent().sendITOpsNotification(unformattedReport, formattedReportBuilder.toString());
+        getLogger().debug(".reportParticipantRegistration(): Entry, reportBuilder.toString()->{}", unformattedReport);
     }
 
     public String condensedSubscriptionSummary(TaskWorkItemSubscriptionType subscription){
@@ -147,6 +150,6 @@ public class ProcessingPlantPathwayReportProxy {
     }
 
     public void touchProcessingPlantSubscriptionSynchronisationInstant(String processingPlant){
-        metricsAgentAccessor.getMetricsAgent().touchPathwaySynchronisationIndicator(processingPlant);
+        metricsAgentAccessor.getMetricsAgent().touchParticipantSynchronisationIndicator(processingPlant);
     }
 }

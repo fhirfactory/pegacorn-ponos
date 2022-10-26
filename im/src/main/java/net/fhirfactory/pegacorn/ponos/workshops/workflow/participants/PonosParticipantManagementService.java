@@ -33,14 +33,13 @@ import net.fhirfactory.pegacorn.core.model.ui.resources.summaries.TaskSummary;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.ParticipantCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.oam.ProcessingPlantPathwayReportProxy;
 import net.fhirfactory.pegacorn.services.tasks.endpoint.PetasosParticipantServicesManagerEndpoint;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -57,7 +56,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public boolean isPetasosParticipantRegistered(PetasosParticipantRegistration localParticipantRegistration) {
         getLogger().debug(".isPetasosParticipantRegistered(): Entry, localParticipantRegistration->{}", localParticipantRegistration);
-        boolean isRegistered = petasosParticipantCache.getParticipantRegistration(localParticipantRegistration.getLocalComponentId()) != null;
+        boolean isRegistered = petasosParticipantCache.getParticipantRegistration(localParticipantRegistration.getParticipantId().getName()) != null;
         getLogger().debug(".isPetasosParticipantRegistered(): Exit, isRegistered->{}", isRegistered);
         return(isRegistered);
     }
@@ -68,7 +67,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public Set<PetasosParticipantRegistration> getDownstreamSubscribersHandler(String sourceComponentName, String sourceParticipantName, String producerParticipantName){
         getLogger().debug(".getDownstreamSubscribersHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, producerParticipantName->{}", sourceComponentName, sourceParticipantName, producerParticipantName);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
 
         getLogger().trace(".getDownstreamSubscribersHandler(): [Get Downstream Subscribers from Central Cache] Start");
         Set<PetasosParticipantRegistration> subscribers = getDownstreamSubscribers(producerParticipantName);
@@ -92,7 +91,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public PetasosParticipantRegistration synchroniseRegistrationHandler(String sourceComponentName, String sourceParticipantName, PetasosParticipantRegistration localParticipantRegistration){
         getLogger().debug(".synchroniseRegistrationHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, localParticipantRegistration->{}", sourceComponentName, sourceParticipantName, localParticipantRegistration);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
 
         getLogger().trace(".synchroniseRegistrationHandler(): [Synchronise Registration with Central Cache] Start");
         PetasosParticipantRegistration centralRegistration = synchroniseRegistration(localParticipantRegistration);
@@ -113,12 +112,17 @@ public class PonosParticipantManagementService extends PetasosParticipantService
         if(isPetasosParticipantRegistered(localParticipantRegistration)){
             getLogger().trace(".synchroniseRegistration(): Already Registered, so updating");
             registration = petasosParticipantCache.updateParticipantRegistration(localParticipantRegistration);
-            processingPlantPathwayReportProxy.reportParticipantRegistration(localParticipantRegistration, true);
+            if(registration.getUpdateInstant().isAfter(registration.getReportingInstant())){
+                processingPlantPathwayReportProxy.reportParticipantRegistration(SerializationUtils.clone(localParticipantRegistration), true);
+                registration.setReportingInstant(Instant.now());
+            }
         } else {
             getLogger().trace(".synchroniseRegistration(): Not presently registered, so registering");
             registration = petasosParticipantCache.registerPetasosParticipant(localParticipantRegistration);
-            processingPlantPathwayReportProxy.reportParticipantRegistration(localParticipantRegistration, false);
+            processingPlantPathwayReportProxy.reportParticipantRegistration(SerializationUtils.clone(localParticipantRegistration), false);
+            registration.setReportingInstant(Instant.now());
         }
+
         getLogger().info(".synchroniseRegistration(): Exit, registration->{}", registration);
         return(registration);
     }
@@ -134,17 +138,6 @@ public class PonosParticipantManagementService extends PetasosParticipantService
         return(registration);
     }
 
-    public Set<PetasosParticipantRegistration> getParticipantRegistrationSetForParticipantName(String participantName) {
-        getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Entry, participantName->{}", participantName);
-        if(StringUtils.isEmpty(participantName)){
-            getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Exit, participantName is null, returning empty set");
-            return(new HashSet<>());
-        }
-        Set<PetasosParticipantRegistration> downstreamTaskPerformers = petasosParticipantCache.getParticipantRegistrationSetForParticipantName(participantName);
-        getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Exit");
-        return (downstreamTaskPerformers);
-    }
-
     public Set<PetasosParticipantRegistration> getAllRegistrations() {
         Set<PetasosParticipantRegistration> allRegistrations = petasosParticipantCache.getAllRegistrations();
         return (allRegistrations);
@@ -156,7 +149,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public List<PetasosParticipantSummary> listSubsystemsHandler(String sourceComponentName, String sourceParticipantName){
         getLogger().debug(".listSubsystemsHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}", sourceComponentName, sourceParticipantName);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
         List<PetasosParticipantSummary> response = listSubsystems();
         getLogger().debug(".listSubsystemsHandler(): Exit, response->{}", response);
         return(response);
@@ -169,7 +162,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public List<PetasosParticipantSummary> listParticipantsHandler(String sourceComponentName, String sourceParticipantName, String subsystemName){
         getLogger().debug(".listParticipantsHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, subsystemName->{}", sourceComponentName, sourceParticipantName, subsystemName);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
         List<PetasosParticipantSummary> response = listParticipants(subsystemName);
         getLogger().debug(".listParticipantsHandler(): Exit, response->{}", response);
         return(response);
@@ -182,7 +175,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public PetasosParticipantSummary setControlStatusHandler(String sourceComponentName, String sourceParticipantName, String participantName, PetasosParticipantControlStatusEnum controlStatus){
         getLogger().debug(".setControlStatusHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, participantName->{}", sourceComponentName, sourceParticipantName, participantName);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
         PetasosParticipantSummary response = setControlStatus(participantName, controlStatus);
         getLogger().debug(".setControlStatusHandler(): Exit, response->{}", response);
         return(response);
@@ -195,7 +188,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public PetasosParticipantSummary getParticipantSummaryHandler(String sourceComponentName, String sourceParticipantName, String participantName){
         getLogger().debug(".getParticipantSummaryHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, participantName->{}", sourceComponentName, sourceParticipantName, participantName);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
         PetasosParticipantSummary response = getParticipantSummary(participantName);
         getLogger().debug(".getParticipantSummaryHandler(): Exit, response->{}", response);
         return(response);
@@ -208,7 +201,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public PetasosParticipantESR getParticipantESRHandler(String sourceComponentName, String sourceParticipantName, String participantName){
         getLogger().debug(".getParticipantESRHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, participantName->{}", sourceComponentName, sourceParticipantName, participantName);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
         PetasosParticipantESR response = getParticipantESR(participantName);
         getLogger().debug(".getParticipantESRHandler(): Exit, response->{}", response);
         return(response);
@@ -221,7 +214,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public List<TaskSummary> listTasks(String sourceComponentName, String sourceParticipantName, String participantName, TaskOutcomeStatusEnum status, boolean order, Instant startTime, Instant endTime){
         getLogger().debug(".listTasks(): Entry, sourceComponentName->{}, sourceParticipantName->{}, participantName->{}, status->{}, order->{}, startTime->{}, endTime->{}", sourceComponentName, sourceParticipantName, participantName, status, order, startTime, endTime);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
         List<TaskSummary> response = listTasks(participantName, status, order, startTime, endTime);
         getLogger().debug(".listTasks(): Exit, response->{}", response);
         return(response);
@@ -234,7 +227,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public TaskSummary redoTaskHandler(String sourceComponentName, String sourceParticipantName, String taskId){
         getLogger().debug(".redoTaskHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, taskId->{}", sourceComponentName, sourceParticipantName, taskId);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
         TaskSummary response = initiateTaskRedo(taskId);
         getLogger().debug(".redoTaskHandler(): Exit, response->{}", response);
         return(response);
@@ -247,7 +240,7 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     public TaskSummary cancelTaskHandler(String sourceComponentName, String sourceParticipantName, String taskId){
         getLogger().debug(".cancelTaskHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, taskId->{}", sourceComponentName, sourceParticipantName, taskId);
-        getMetricsAgent().incrementRPCInvocationCount(sourceParticipantName);
+        getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
         TaskSummary response = initiateTaskCancellation(taskId);
         getLogger().debug(".redoTaskHcancelTaskHandlerandler(): Exit, response->{}", response);
         return(response);

@@ -278,13 +278,23 @@ public class ActionableTaskCacheServices  {
     }
 
     public PetasosActionableTask setTaskStatus(TaskIdType taskId, TaskOutcomeStatusEnum taskOutcomeStatus, FulfillmentExecutionStatusEnum fulfillmentStatus, Instant updateInstant){
+        getLogger().debug(".setTaskStatus(): Entry, taskId->{}, taskOutcomeStatus->{}, executionStatus->{}, updateInstant->{}", taskId, taskOutcomeStatus, fulfillmentStatus, updateInstant);
         if(taskId == null){
+            getLogger().debug(".setTaskStatus(): Exit, taskId is null, doing nothing");
             return(null);
         }
+
+        if(getLogger().isTraceEnabled()) {
+            getLogger().trace(logAllTaskIdsInCache(".setTaskStatus"));
+        }
+
         PonosDatagridTaskKey entryKey = new PonosDatagridTaskKey(taskId);
         PetasosActionableTask updatedTask = null;
         synchronized(getTaskCacheLock()){
             PetasosActionableTask inCacheTask = getTaskCache().get(entryKey);
+            if(getLogger().isTraceEnabled()) {
+                getLogger().trace(".setTaskStatus(): inCacheTask->{}", inCacheTask.getTaskId());
+            }
             if(updateInstant == null){
                 updateInstant = Instant.now();
             }
@@ -329,6 +339,10 @@ public class ActionableTaskCacheServices  {
                 updatedTask = SerializationUtils.clone(inCacheTask);
             }
         }
+        if (updatedTask == null) {
+            getLogger().warn(".setTaskStatus(): Could not resolve ActionableTask for taskId->{}", taskId);
+        }
+        getLogger().debug(".setTaskStatus(): Exit, updatedTask->{}", updatedTask);
         return(updatedTask);
     }
 
@@ -612,6 +626,31 @@ public class ActionableTaskCacheServices  {
     public int getTaskRegistrationCacheSize(){
         int size = getTaskRegistrationCache().size();
         return(size);
+    }
+
+    public Set<TaskIdType> getAllTaskIdsFromCache(){
+        Set<TaskIdType> taskIdSet = new HashSet<>();
+        synchronized (getTaskCacheLock()){
+            for(PetasosActionableTask currentTask: getTaskCache().values()){
+                taskIdSet.add(currentTask.getTaskId());
+            }
+        }
+        return(taskIdSet);
+    }
+
+    protected String logAllTaskIdsInCache(String invocationLocation){
+        Set<TaskIdType> allTaskIdsFromCache = getAllTaskIdsFromCache();
+        StringBuilder taskIdLogBuilder = new StringBuilder();
+        taskIdLogBuilder.append(invocationLocation);
+        taskIdLogBuilder.append("->");
+        for(TaskIdType currentTaskId: allTaskIdsFromCache){
+            taskIdLogBuilder.append("[");
+            taskIdLogBuilder.append(currentTaskId.getLocalId());
+            taskIdLogBuilder.append(",");
+            taskIdLogBuilder.append(currentTaskId.getTaskSequenceNumber().getCompleteSequenceNumberAsString());
+            taskIdLogBuilder.append("]");
+        }
+        return(taskIdLogBuilder.toString());
     }
 
     //
