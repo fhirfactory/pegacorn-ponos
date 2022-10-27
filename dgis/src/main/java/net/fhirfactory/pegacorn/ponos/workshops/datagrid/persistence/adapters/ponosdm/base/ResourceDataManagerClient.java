@@ -58,7 +58,7 @@ public abstract class ResourceDataManagerClient extends DataManagerClientBase {
 
     //
     // Create Resource
-    public MethodOutcome createResource(Resource resourceToCreate){
+    public MethodOutcome  createResource(Resource resourceToCreate){
         getLogger().debug(".createResource(): Entry, resourceToCreate->{}", resourceToCreate);
         MethodOutcome outcome = null;
         try {
