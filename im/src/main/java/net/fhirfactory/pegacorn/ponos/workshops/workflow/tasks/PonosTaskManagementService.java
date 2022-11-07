@@ -539,7 +539,7 @@ public class PonosTaskManagementService extends PetasosTaskServicesEndpoint impl
         if(!responseJobCard.hasPersistenceStatus()){
             responseJobCard.setPersistenceStatus(new TaskStorageType());
         }
-         responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
+        responseJobCard.getPersistenceStatus().setCentralStorageStatus(TaskStorageStatusEnum.TASK_SAVED);
         responseJobCard.getPersistenceStatus().setCentralStorageLocation(getProcessingPlant().getTopologyNode().getParticipant().getParticipantId().getName());
         responseJobCard.setOutcomeStatus(cachedActionableTask.getTaskOutcomeStatus().getOutcomeStatus());
         responseJobCard.setGrantedStatus(TaskExecutionCommandEnum.TASK_COMMAND_CANCEL);

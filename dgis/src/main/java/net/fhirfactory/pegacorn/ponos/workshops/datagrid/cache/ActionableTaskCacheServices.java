@@ -72,8 +72,8 @@ public class ActionableTaskCacheServices  {
     private static final String PONOS_TASK_PERSISTENCE_SERVICE = "Ponos-ActionableTask-Persistence-Service";
 
     private static final String ACTIONABLE_TASK_CACHE_NAME = "ActionableTaskSharedCache";
-    private static final String TASK_REGISTRATION_CACHE_NAME = "TaskRegistrationSharedCache";
-    private static final String TASK_PERSISTENCE_SERVICE_CACHE_NAME = "TaskPersistenceSharedCache";
+    private static final String ACTIONABLE_TASK_REGISTRATION_CACHE_NAME = "ActionableTaskRegistrationSharedCache";
+    private static final String ACTIONABLE_TASK_PERSISTENCE_SERVICE_CACHE_NAME = "ActionableTaskPersistenceSharedCache";
     private static final String TASK_JOURNEY_REPORTING_STATUS_CACHE_NAME = "TaskJourneyReportingSharedCache";
 
     private Cache<DatagridElementKeyInterface, PetasosActionableTask> taskCache;
@@ -119,15 +119,15 @@ public class ActionableTaskCacheServices  {
             } else {
                 taskCache = replicatedCacheServices.getCacheManager().createCache(ACTIONABLE_TASK_CACHE_NAME, replicatedCacheServices.getCacheConfigurationBuild());
             }
-            if(replicatedCacheServices.getCacheManager().cacheExists(TASK_REGISTRATION_CACHE_NAME)){
-                taskRegistrationCache = replicatedCacheServices.getCacheManager().getCache(TASK_REGISTRATION_CACHE_NAME);
+            if(replicatedCacheServices.getCacheManager().cacheExists(ACTIONABLE_TASK_REGISTRATION_CACHE_NAME)){
+                taskRegistrationCache = replicatedCacheServices.getCacheManager().getCache(ACTIONABLE_TASK_REGISTRATION_CACHE_NAME);
             } else {
-                taskRegistrationCache = replicatedCacheServices.getCacheManager().createCache(TASK_REGISTRATION_CACHE_NAME, replicatedCacheServices.getCacheConfigurationBuild());
+                taskRegistrationCache = replicatedCacheServices.getCacheManager().createCache(ACTIONABLE_TASK_REGISTRATION_CACHE_NAME, replicatedCacheServices.getCacheConfigurationBuild());
             }
-            if(replicatedCacheServices.getCacheManager().cacheExists(TASK_PERSISTENCE_SERVICE_CACHE_NAME)){
-                taskPersistenceServiceCache = replicatedCacheServices.getCacheManager().getCache(TASK_PERSISTENCE_SERVICE_CACHE_NAME);
+            if(replicatedCacheServices.getCacheManager().cacheExists(ACTIONABLE_TASK_PERSISTENCE_SERVICE_CACHE_NAME)){
+                taskPersistenceServiceCache = replicatedCacheServices.getCacheManager().getCache(ACTIONABLE_TASK_PERSISTENCE_SERVICE_CACHE_NAME);
             } else {
-                taskPersistenceServiceCache = replicatedCacheServices.getCacheManager().createCache(TASK_PERSISTENCE_SERVICE_CACHE_NAME, replicatedCacheServices.getCacheConfigurationBuild());
+                taskPersistenceServiceCache = replicatedCacheServices.getCacheManager().createCache(ACTIONABLE_TASK_PERSISTENCE_SERVICE_CACHE_NAME, replicatedCacheServices.getCacheConfigurationBuild());
             }
             if(replicatedCacheServices.getCacheManager().cacheExists(TASK_JOURNEY_REPORTING_STATUS_CACHE_NAME)){
                 taskJourneyReportedMap = replicatedCacheServices.getCacheManager().getCache(TASK_JOURNEY_REPORTING_STATUS_CACHE_NAME);

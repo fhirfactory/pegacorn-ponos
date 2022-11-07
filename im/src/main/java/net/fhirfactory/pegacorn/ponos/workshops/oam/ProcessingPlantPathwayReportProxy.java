@@ -22,7 +22,7 @@
 package net.fhirfactory.pegacorn.ponos.workshops.oam;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.registration.PetasosParticipantRegistration;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import org.slf4j.Logger;
@@ -67,7 +67,7 @@ public class ProcessingPlantPathwayReportProxy {
     // Business Methods
     //
 
-    public void reportParticipantRegistration(PetasosParticipantRegistration participantRegistration, boolean isUpdate){
+    public void reportParticipantRegistration(PetasosParticipant participantRegistration, boolean isUpdate){
         getLogger().debug(".reportParticipantRegistration(): Entry, participantRegistration->{}", participantRegistration);
         StringBuilder reportBuilder = new StringBuilder();
         StringBuilder formattedReportBuilder = new StringBuilder();

@@ -24,16 +24,18 @@ package net.fhirfactory.pegacorn.ponos.workshops.workflow.participants;
 import net.fhirfactory.pegacorn.core.interfaces.ui.resources.ParticipantUIServicesAPI;
 import net.fhirfactory.pegacorn.core.interfaces.ui.resources.TaskUIServicesAPI;
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantControlStatusEnum;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.registration.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.valuesets.TaskOutcomeStatusEnum;
 import net.fhirfactory.pegacorn.core.model.ui.resources.simple.PetasosParticipantESR;
 import net.fhirfactory.pegacorn.core.model.ui.resources.summaries.PetasosParticipantSummary;
 import net.fhirfactory.pegacorn.core.model.ui.resources.summaries.TaskSummary;
+import net.fhirfactory.pegacorn.core.model.ui.resources.summaries.factories.ParticipantSummaryFactory;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.ParticipantCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.oam.ProcessingPlantPathwayReportProxy;
 import net.fhirfactory.pegacorn.services.tasks.endpoint.PetasosParticipantServicesManagerEndpoint;
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,10 +55,13 @@ public class PonosParticipantManagementService extends PetasosParticipantService
     @Inject
     private ProcessingPlantPathwayReportProxy processingPlantPathwayReportProxy;
 
+    @Inject
+    private ParticipantSummaryFactory participantSummaryFactory;
 
-    public boolean isPetasosParticipantRegistered(PetasosParticipantRegistration localParticipantRegistration) {
+
+    public boolean isPetasosParticipantRegistered(PetasosParticipant localParticipantRegistration) {
         getLogger().debug(".isPetasosParticipantRegistered(): Entry, localParticipantRegistration->{}", localParticipantRegistration);
-        boolean isRegistered = petasosParticipantCache.getParticipantRegistration(localParticipantRegistration.getParticipantId().getName()) != null;
+        boolean isRegistered = petasosParticipantCache.getParticipant(localParticipantRegistration.getParticipantId().getName()) != null;
         getLogger().debug(".isPetasosParticipantRegistered(): Exit, isRegistered->{}", isRegistered);
         return(isRegistered);
     }
@@ -65,12 +70,12 @@ public class PonosParticipantManagementService extends PetasosParticipantService
     // Business Methods
     //
 
-    public Set<PetasosParticipantRegistration> getDownstreamSubscribersHandler(String sourceComponentName, String sourceParticipantName, String producerParticipantName){
+    public Set<PetasosParticipant> getDownstreamSubscribersHandler(String sourceComponentName, String sourceParticipantName, String producerParticipantName){
         getLogger().debug(".getDownstreamSubscribersHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, producerParticipantName->{}", sourceComponentName, sourceParticipantName, producerParticipantName);
         getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
 
         getLogger().trace(".getDownstreamSubscribersHandler(): [Get Downstream Subscribers from Central Cache] Start");
-        Set<PetasosParticipantRegistration> subscribers = getDownstreamSubscribers(producerParticipantName);
+        Set<PetasosParticipant> subscribers = getDownstreamSubscribers(producerParticipantName);
         getLogger().trace(".getDownstreamSubscribersHandler(): [Get Downstream Subscribers from Central Cache] Finish");
 
         getLogger().debug(".getDownstreamSubscribersHandler(): Exit, subscribers->{}", subscribers);
@@ -78,9 +83,9 @@ public class PonosParticipantManagementService extends PetasosParticipantService
     }
 
     @Override
-    public Set<PetasosParticipantRegistration> getDownstreamSubscribers(String producerParticipantName) {
+    public Set<PetasosParticipant> getDownstreamSubscribers(String producerParticipantName) {
         getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): Entry, producerParticipantName->{}", producerParticipantName);
-        Set<PetasosParticipantRegistration> subscriberSet = petasosParticipantCache.getDownstreamParticipantSet(producerParticipantName);
+        Set<PetasosParticipant> subscriberSet = petasosParticipantCache.getDownstreamParticipantSet(producerParticipantName);
         if(getLogger().isInfoEnabled()){
             getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
         }
@@ -89,12 +94,12 @@ public class PonosParticipantManagementService extends PetasosParticipantService
         return(subscriberSet);
     }
 
-    public PetasosParticipantRegistration synchroniseRegistrationHandler(String sourceComponentName, String sourceParticipantName, PetasosParticipantRegistration localParticipantRegistration){
+    public PetasosParticipant synchroniseRegistrationHandler(String sourceComponentName, String sourceParticipantName, PetasosParticipant localParticipantRegistration){
         getLogger().debug(".synchroniseRegistrationHandler(): Entry, sourceComponentName->{}, sourceParticipantName->{}, localParticipantRegistration->{}", sourceComponentName, sourceParticipantName, localParticipantRegistration);
         getMetricsAgent().incrementReceivedRPCRequestCount(sourceParticipantName);
 
         getLogger().trace(".synchroniseRegistrationHandler(): [Synchronise Registration with Central Cache] Start");
-        PetasosParticipantRegistration centralRegistration = synchroniseRegistration(localParticipantRegistration);
+        PetasosParticipant centralRegistration = synchroniseRegistration(localParticipantRegistration);
         getLogger().trace(".synchroniseRegistrationHandler(): [Synchronise Registration with Central Cache] Finish");
 
         getLogger().debug(".synchroniseRegistrationHandler(): Exit, centralRegistration->{}", centralRegistration);
@@ -102,44 +107,57 @@ public class PonosParticipantManagementService extends PetasosParticipantService
     }
 
     @Override
-    public PetasosParticipantRegistration synchroniseRegistration(PetasosParticipantRegistration localParticipantRegistration) {
-        getLogger().info(".synchroniseRegistration(): Entry, localParticipantRegistration->{}", localParticipantRegistration);
-        if(localParticipantRegistration == null) {
-            getLogger().info(".synchroniseRegistration(): Exit, localParticipantRegistration is null, returning null");
+    public PetasosParticipant synchroniseRegistration(PetasosParticipant participant) {
+        getLogger().info(".synchroniseRegistration(): Entry, participant->{}", participant);
+        if(participant == null) {
+            getLogger().info(".synchroniseRegistration(): Exit, participant is null, returning null");
             return (null);
         }
-        PetasosParticipantRegistration registration = null;
-        if(isPetasosParticipantRegistered(localParticipantRegistration)){
+
+        PetasosParticipant cachedParticipant = null;
+        if(isPetasosParticipantRegistered(participant)){
             getLogger().trace(".synchroniseRegistration(): Already Registered, so updating");
-            registration = petasosParticipantCache.updateParticipantRegistration(localParticipantRegistration);
-            if(registration.getUpdateInstant().isAfter(registration.getReportingInstant())){
-                processingPlantPathwayReportProxy.reportParticipantRegistration(SerializationUtils.clone(localParticipantRegistration), true);
-                registration.setReportingInstant(Instant.now());
+            cachedParticipant = petasosParticipantCache.updateParticipantRegistration(participant);
+            if(cachedParticipant.getUpdateInstant().isAfter(cachedParticipant.getReportingInstant())){
+                processingPlantPathwayReportProxy.reportParticipantRegistration(SerializationUtils.clone(participant), true);
+                cachedParticipant.setReportingInstant(Instant.now());
             }
         } else {
             getLogger().trace(".synchroniseRegistration(): Not presently registered, so registering");
-            registration = petasosParticipantCache.registerPetasosParticipant(localParticipantRegistration);
-            processingPlantPathwayReportProxy.reportParticipantRegistration(SerializationUtils.clone(localParticipantRegistration), false);
-            registration.setReportingInstant(Instant.now());
+            cachedParticipant = petasosParticipantCache.registerPetasosParticipant(participant);
+            processingPlantPathwayReportProxy.reportParticipantRegistration(SerializationUtils.clone(participant), false);
+            cachedParticipant.setReportingInstant(Instant.now());
         }
 
-        getLogger().info(".synchroniseRegistration(): Exit, registration->{}", registration);
-        return(registration);
+        getLogger().trace(".synchroniseRegistration(): [Synchronise Central Queue Status] Start");
+        cachedParticipant.getTaskQueueStatus().setPendingTasksPersisted(false);
+        cachedParticipant.getTaskQueueStatus().setPendingTasksOffloaded(false);
+        getLogger().trace(".synchroniseRegistration(): [Synchronise Central Queue Status] Finish");
+
+        getLogger().trace(".synchroniseRegistration(): [Synchronise Control Status] Start");
+        if(!cachedParticipant.getControlStatus().equals(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED)) {
+            cachedParticipant.setControlStatus(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED);
+        }
+        getLogger().trace(".synchroniseRegistration(): [Synchronise Control Status] Finish");
+
+
+        getLogger().info(".synchroniseRegistration(): Exit, cachedParticipant->{}", cachedParticipant);
+        return(cachedParticipant);
     }
 
-    public PetasosParticipantRegistration getParticipantRegistration(ComponentIdType componentId) {
+    public PetasosParticipant getParticipantRegistration(ComponentIdType componentId) {
         getLogger().debug(".getParticipantRegistration(): Entry, componentId->{}", componentId);
         if(componentId == null){
             getLogger().debug(".getParticipantRegistration(): Exit, componentId is null, returning null");
             return(null);
         }
-        PetasosParticipantRegistration registration = petasosParticipantCache.deregisterPetasosParticipant(componentId);
+        PetasosParticipant registration = petasosParticipantCache.deregisterPetasosParticipant(componentId);
         getLogger().debug(".getParticipantRegistration(): Exit, registration->{}", registration);
         return(registration);
     }
 
-    public Set<PetasosParticipantRegistration> getAllRegistrations() {
-        Set<PetasosParticipantRegistration> allRegistrations = petasosParticipantCache.getAllRegistrations();
+    public Set<PetasosParticipant> getAllRegistrations() {
+        Set<PetasosParticipant> allRegistrations = petasosParticipantCache.getAllRegistrations();
         return (allRegistrations);
     }
 
@@ -183,7 +201,18 @@ public class PonosParticipantManagementService extends PetasosParticipantService
 
     @Override
     public PetasosParticipantSummary setControlStatus(String participantName, PetasosParticipantControlStatusEnum controlStatus) {
-        return null;
+        getLogger().debug(".setControlStatus(): Entry, participantName->{}, controlStatus->{}", participantName, controlStatus);
+        if(StringUtils.isEmpty(participantName)){
+            return(null);
+        }
+        PetasosParticipant participant = petasosParticipantCache.getParticipant(participantName);
+        PetasosParticipantSummary participantSummary = null;
+        if(participant != null){
+            participant.setControlStatus(controlStatus);
+            participantSummary = participantSummaryFactory.newParticipantSummary(participant);
+        }
+        getLogger().debug(".setControlStatus(): Exit, participantSummary->{}", participantSummary);
+        return(participantSummary);
     }
 
     public PetasosParticipantSummary getParticipantSummaryHandler(String sourceComponentName, String sourceParticipantName, String participantName){

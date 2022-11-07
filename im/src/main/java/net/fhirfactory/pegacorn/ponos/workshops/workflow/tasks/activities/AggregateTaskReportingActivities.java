@@ -63,6 +63,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
     private DateTimeFormatter timeFormatter;
 
     private boolean stillRunning;
+    private boolean aggregateTaskCreatorDaemonStillRunning;
 
     private Long CONTENT_FORWARDER_STARTUP_DELAY = 120000L;
     private Long CONTENT_FORWARDER_REFRESH_PERIOD = 15000L;
@@ -106,6 +107,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
         super();
         this.initialised = false;
         this.stillRunning = false;
+        this.aggregateTaskCreatorDaemonStillRunning = false;
         timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss.SSS").withZone(ZoneId.of(PetasosPropertyConstants.DEFAULT_TIMEZONE));
 
     }
@@ -150,10 +152,6 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
         getLogger().debug(".scheduleAggregateTaskReportingDaemon(): Exit");
     }
 
-    //
-    // Business Methods
-    //
-
     public void aggregateTaskReportingDaemon(){
         getLogger().debug(".aggregateTaskReportingDaemon(): Entry");
 
@@ -190,6 +188,11 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
 
         getLogger().debug(".aggregateTaskReportingDaemon(): Exit");
     }
+
+
+    //
+    // Business Methods
+    //
 
     public void publishEndOfChainFullTaskReport(PetasosActionableTask lastTask) {
         getLogger().debug(".publishEndOfChainTaskReport(): Entry, lastTask->{}", lastTask);
