@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Mark A. Hunter
+ * Copyright (c) 2020 Mark A. Hunter (ACT Health)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,30 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.workshops.workflow.status.activities;
-
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.adapters.common.base.http;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-@ApplicationScoped
-public class ActionableTaskRecoveryActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskRecoveryActivities.class);
+public abstract class DataManagerProxy extends DataManagerSecureProxy {
 
     private boolean initialised;
-
-    @Inject
-    private TaskLoggingCacheServices taskCacheServices;
 
     //
     // Constructor(s)
     //
 
-    public ActionableTaskRecoveryActivities(){
+    public DataManagerProxy(){
+        super();
         this.initialised = false;
     }
 
@@ -52,23 +42,18 @@ public class ActionableTaskRecoveryActivities {
 
     @PostConstruct
     public void initialise(){
-
+        if(!initialised) {
+            newRestfulGenericClient(deriveTargetEndpointDetails());
+            postConstructActivities();
+            this.initialised = true;
+        }
     }
 
     //
-    // Business Methods
+    // Abstract Methods
     //
 
+    protected abstract String deriveTargetEndpointDetails();
+    protected abstract void postConstructActivities();
 
-    //
-    // Getters (and Setters)
-    //
-
-    protected Logger getLogger(){
-        return(LOG);
-    }
-
-    protected TaskLoggingCacheServices getTaskCacheServices(){
-        return(taskCacheServices);
-    }
 }

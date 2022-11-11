@@ -39,8 +39,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 @ApplicationScoped
-public class ActionableTaskLifeCycleActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskLifeCycleActivities.class);
+public class ActionableTaskResourceManager {
+    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskResourceManager.class);
 
     private boolean initialised;
 
@@ -70,7 +70,7 @@ public class ActionableTaskLifeCycleActivities {
     // Constructor(s)
     //
 
-    public ActionableTaskLifeCycleActivities(){
+    public ActionableTaskResourceManager(){
         this.initialised = false;
     }
 

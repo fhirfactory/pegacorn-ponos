@@ -38,7 +38,7 @@ import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetric
 import net.fhirfactory.pegacorn.ponos.workshops.oam.ProcessingPlantTaskReportProxy;
 import net.fhirfactory.pegacorn.ponos.workshops.workflow.factories.AggregateTaskReportFactory;
 import net.fhirfactory.pegacorn.ponos.workshops.workflow.status.activities.common.TaskActivityProcessorBase;
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -69,7 +68,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
     private Long CONTENT_FORWARDER_REFRESH_PERIOD = 15000L;
 
     @Inject
-    private PonosPetasosActionableTaskCacheServices taskCacheServices;
+    private TaskLoggingCacheServices taskCacheServices;
 
     @Inject
     private HL7V2XTopicFactory hl7V2XTopicFactory;
@@ -287,7 +286,7 @@ public class AggregateTaskReportingActivities extends TaskActivityProcessorBase 
         return(LOG);
     }
 
-    protected PonosPetasosActionableTaskCacheServices getTaskCacheServices(){
+    protected TaskLoggingCacheServices getTaskCacheServices(){
         return(taskCacheServices);
     }
 

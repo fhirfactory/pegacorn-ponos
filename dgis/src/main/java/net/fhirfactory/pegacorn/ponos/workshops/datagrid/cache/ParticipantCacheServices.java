@@ -21,13 +21,16 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache;
 
+import ca.uhn.fhir.util.StringUtil;
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
 import net.fhirfactory.pegacorn.core.model.componentid.PegacornSystemComponentTypeTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantControlStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistrationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.core.PonosReplicatedCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.services.common.ActionableTaskPersistenceServiceCommon;
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.Cache;
 import org.slf4j.Logger;
@@ -39,10 +42,11 @@ import javax.inject.Inject;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
-public class PonosPetasosParticipantCacheServices {
-    private static final Logger LOG = LoggerFactory.getLogger(PonosPetasosParticipantCacheServices.class);
+public class ParticipantCacheServices {
+    private static final Logger LOG = LoggerFactory.getLogger(ParticipantCacheServices.class);
 
     private boolean initialised;
 
@@ -62,6 +66,15 @@ public class PonosPetasosParticipantCacheServices {
     private Cache<String, Set<String>> participantServiceNameToPetasosParticipantRegistration;
     private Object participantServiceNameToPetasosParticipantRegistrationLock;
 
+    private ConcurrentHashMap<String, PetasosParticipantControlStatusEnum> participantStatusMap;
+    private Object participantStatusLock;
+
+    private ConcurrentHashMap<String, Instant> participantActivityTimestampMap;
+    private Object participantActivityTimestampMapLock;
+
+    private ConcurrentHashMap<String, Integer> participantCacheSizeMap;
+    private Object participantCacheSizeMapLock;
+
 
     @Inject
     private PonosReplicatedCacheServices replicatedCacheServices;
@@ -70,7 +83,7 @@ public class PonosPetasosParticipantCacheServices {
     // Constructor(s)
     //
 
-    public PonosPetasosParticipantCacheServices(){
+    public ParticipantCacheServices(){
         this.initialised = false;
         this.petasosParticipantRegistrationCache = null;
         this.petasosParticipantRegistrationCacheLock = new Object();
@@ -80,6 +93,12 @@ public class PonosPetasosParticipantCacheServices {
         this.petasosParticipantComponentIdMapLock = new Object();
         this.producerTaskConsumerMap = null;
         this.producerTaskConsumerMapLock = new Object();
+        this.participantStatusMap = new ConcurrentHashMap<>();
+        this.participantStatusLock = new Object();
+        this.participantActivityTimestampMap = new ConcurrentHashMap<>();
+        this.participantActivityTimestampMapLock = new Object();
+        this.participantCacheSizeMap = new ConcurrentHashMap<>();
+        this.participantCacheSizeMapLock = new Object();
     }
 
     @PostConstruct
@@ -462,6 +481,64 @@ public class PonosPetasosParticipantCacheServices {
         }
         getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Exit");
         return(petasosParticipantRegistrationSet);
+    }
+
+    //
+    // Participant Status
+    //
+
+    public void setParticipantStatus(String participantName, PetasosParticipantControlStatusEnum participantStatus) {
+        if(StringUtils.isNotEmpty(participantName) && participantStatus != null){
+            synchronized (participantStatusLock){
+                participantStatusMap.put(participantName, participantStatus);
+            }
+        }
+    }
+
+    public PetasosParticipantControlStatusEnum getParticipantStatus(String participantName){
+        if(StringUtils.isEmpty(participantName)){
+            return(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_DISABLED);
+        }
+        PetasosParticipantControlStatusEnum participantStatus = participantStatusMap.get(participantName);
+        return(participantStatus);
+    }
+
+    public void touchParticipantActivityTimestamp(String participantName){
+        if(StringUtils.isNotEmpty(participantName)){
+            synchronized (participantActivityTimestampMapLock){
+                participantActivityTimestampMap.put(participantName, Instant.now());
+            }
+        }
+    }
+
+    public Instant getParticipantActivityTimestamp(String participantName){
+        if(StringUtils.isEmpty(participantName)){
+            return(Instant.EPOCH);
+        }
+        Instant activityInstant = participantActivityTimestampMap.get(participantName);
+        if(activityInstant == null){
+            activityInstant = Instant.EPOCH;
+        }
+        return(activityInstant);
+    }
+
+    public void setParticipantCacheSize(String participantName, Integer size){
+        if(StringUtils.isNotEmpty(participantName) && size != null){
+            synchronized (participantCacheSizeMapLock){
+                participantCacheSizeMap.put(participantName, size);
+            }
+        }
+    }
+
+    public Integer getParticipantCacheSize(String participantName){
+        if(StringUtils.isEmpty(participantName)){
+            return(-1);
+        }
+        Integer size = participantCacheSizeMap.get(participantName);
+        if(size == null){
+            size = 0;
+        }
+        return(size);
     }
 
     //

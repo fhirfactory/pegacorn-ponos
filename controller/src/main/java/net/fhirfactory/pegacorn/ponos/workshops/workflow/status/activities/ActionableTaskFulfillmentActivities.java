@@ -21,7 +21,7 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.status.activities;
 
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +36,7 @@ public class ActionableTaskFulfillmentActivities {
     private boolean initialised;
 
     @Inject
-    private PonosPetasosActionableTaskCacheServices taskCacheServices;
+    private TaskLoggingCacheServices taskCacheServices;
 
     //
     // Constructor(s)
@@ -68,7 +68,7 @@ public class ActionableTaskFulfillmentActivities {
         return(LOG);
     }
 
-    protected PonosPetasosActionableTaskCacheServices getTaskCacheServices(){
+    protected TaskLoggingCacheServices getTaskCacheServices(){
         return(taskCacheServices);
     }
 }

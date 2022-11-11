@@ -22,8 +22,13 @@
 package net.fhirfactory.pegacorn.ponos.subsystem.processingplant.configuration;
 
 import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.archetypes.PetasosEnabledSubsystemPropertyFile;
+import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.segments.ports.http.HTTPClientPortSegment;
 
 public class PonosAcolyteConfigurationFile extends PetasosEnabledSubsystemPropertyFile {
+
+    private HTTPClientPortSegment taskLoggerDM;
+    private HTTPClientPortSegment taskRouterDM;
+    private HTTPClientPortSegment taskReportDM;
 
     //
     // Constructor(s)
@@ -32,6 +37,35 @@ public class PonosAcolyteConfigurationFile extends PetasosEnabledSubsystemProper
     public PonosAcolyteConfigurationFile(){
         super();
     }
+
+    //
+    // Getters and Setters
+    //
+
+    public HTTPClientPortSegment getTaskLoggerDM() {
+        return taskLoggerDM;
+    }
+
+    public void setTaskLoggerDM(HTTPClientPortSegment taskLoggerDM) {
+        this.taskLoggerDM = taskLoggerDM;
+    }
+
+    public HTTPClientPortSegment getTaskRouterDM() {
+        return taskRouterDM;
+    }
+
+    public void setTaskRouterDM(HTTPClientPortSegment taskRouterDM) {
+        this.taskRouterDM = taskRouterDM;
+    }
+
+    public HTTPClientPortSegment getTaskReportDM() {
+        return taskReportDM;
+    }
+
+    public void setTaskReportDM(HTTPClientPortSegment taskReportDM) {
+        this.taskReportDM = taskReportDM;
+    }
+
 
     //
     // To Stirng
@@ -67,6 +101,9 @@ public class PonosAcolyteConfigurationFile extends PetasosEnabledSubsystemProper
                 ", petasosIPCMessagingEndpoint=" + getPetasosIPCMessagingEndpoint() +
                 ", edgeAnswer=" + getEdgeAnswer() +
                 ", petasosTopologyDiscoveryEndpoint=" + getPetasosTopologyDiscoveryEndpoint() +
+                ", taskLoggerDM=" + taskLoggerDM +
+                ", taskReportDM=" + taskReportDM +
+                ", taskRouterDM=" + taskRouterDM +
                 '}';
     }
 }

@@ -19,56 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.workshops.workflow.status.activities;
+package net.fhirfactory.pegacorn.ponos.subsystem.common;
 
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 @ApplicationScoped
-public class ActionableTaskRecoveryActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskRecoveryActivities.class);
+public class PonosNames {
 
-    private boolean initialised;
-
-    @Inject
-    private TaskLoggingCacheServices taskCacheServices;
-
-    //
-    // Constructor(s)
-    //
-
-    public ActionableTaskRecoveryActivities(){
-        this.initialised = false;
-    }
-
-    //
-    // Post Construct
-    //
-
-    @PostConstruct
-    public void initialise(){
-
-    }
-
-    //
-    // Business Methods
-    //
-
-
-    //
-    // Getters (and Setters)
-    //
-
-    protected Logger getLogger(){
-        return(LOG);
-    }
-
-    protected TaskLoggingCacheServices getTaskCacheServices(){
-        return(taskCacheServices);
+    public String getPonosDMClientName(){
+        return("ponos-dm");
     }
 }

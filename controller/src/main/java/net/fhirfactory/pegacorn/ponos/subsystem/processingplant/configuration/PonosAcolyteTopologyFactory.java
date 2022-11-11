@@ -1,8 +1,10 @@
 package net.fhirfactory.pegacorn.ponos.subsystem.processingplant.configuration;
 
 import net.fhirfactory.pegacorn.core.model.topology.nodes.*;
+import net.fhirfactory.pegacorn.core.model.topology.nodes.common.EndpointProviderInterface;
+import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.segments.ports.http.HTTPClientPortSegment;
 import net.fhirfactory.pegacorn.deployment.topology.factories.archetypes.fhirpersistence.im.FHIRIMSubsystemTopologyFactory;
-import net.fhirfactory.pegacorn.ponos.subsystem.common.PonosAcolyteNames;
+import net.fhirfactory.pegacorn.ponos.common.PonosNames;
 import net.fhirfactory.pegacorn.util.PegacornEnvironmentProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +17,7 @@ public class PonosAcolyteTopologyFactory extends FHIRIMSubsystemTopologyFactory 
     private static final Logger LOG = LoggerFactory.getLogger(PonosAcolyteTopologyFactory.class);
 
     @Inject
-    private PonosAcolyteNames ponosAcolyteNames;
+    private PonosNames ponosNames;
 
     @Inject
     private PegacornEnvironmentProperties pegacornEnvironmentProperties;
@@ -49,6 +51,22 @@ public class PonosAcolyteTopologyFactory extends FHIRIMSubsystemTopologyFactory 
 
         return(processingPlantSoftwareComponent);
     }
+
+    protected void addHTTPClientPorts(EndpointProviderInterface endpointProvider){
+        getLogger().debug(".addHTTPClientPorts(): Entry, endpointProvider->{}", endpointProvider);
+
+        HTTPClientPortSegment taskRouterDMSegment = ((PonosAcolyteConfigurationFile) getPropertyFile()).getTaskRouterDM();
+        getHTTPTopologyEndpointFactory().newHTTPClientTopologyEndpoint(getPropertyFile(),endpointProvider,ponosNames.getPonosTaskRouterCacheDMName(),taskRouterDMSegment );
+
+        HTTPClientPortSegment taskLoggerDMSegment = ((PonosAcolyteConfigurationFile) getPropertyFile()).getTaskLoggerDM();
+        getHTTPTopologyEndpointFactory().newHTTPClientTopologyEndpoint(getPropertyFile(),endpointProvider,ponosNames.getPonosTaskLoggerDMName(),taskLoggerDMSegment );
+
+        HTTPClientPortSegment taskReporterDMSegment = ((PonosAcolyteConfigurationFile) getPropertyFile()).getTaskReportDM();
+        getHTTPTopologyEndpointFactory().newHTTPClientTopologyEndpoint(getPropertyFile(),endpointProvider,ponosNames.getPonosTaskReporterDMName(),taskReporterDMSegment );
+
+        getLogger().debug(".addHTTPClientPorts(): Exit");
+    }
+
 
     protected String specifyPropertyFileName() {
         getLogger().info(".specifyPropertyFileName(): Entry");

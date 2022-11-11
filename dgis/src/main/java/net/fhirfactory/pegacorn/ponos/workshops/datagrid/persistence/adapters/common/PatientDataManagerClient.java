@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Mark A. Hunter
+ * Copyright (c) 2020 Mark A. Hunter (ACT Health)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,44 +19,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.workshops.workflow.status.activities;
+package net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.adapters.common;
 
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.adapters.common.base.ResourceDataManagerClient;
+import org.hl7.fhir.r4.model.Patient;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-@ApplicationScoped
-public class ActionableTaskRecoveryActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskRecoveryActivities.class);
+public abstract class PatientDataManagerClient extends ResourceDataManagerClient {
 
-    private boolean initialised;
-
-    @Inject
-    private TaskLoggingCacheServices taskCacheServices;
 
     //
     // Constructor(s)
-    //
-
-    public ActionableTaskRecoveryActivities(){
-        this.initialised = false;
-    }
-
-    //
-    // Post Construct
-    //
-
-    @PostConstruct
-    public void initialise(){
-
-    }
-
-    //
-    // Business Methods
     //
 
 
@@ -64,11 +38,22 @@ public class ActionableTaskRecoveryActivities {
     // Getters (and Setters)
     //
 
-    protected Logger getLogger(){
-        return(LOG);
+    //
+    // Business Methods
+    //
+
+    public MethodOutcome createPatient(String patientJSONString){
+        getLogger().debug(".createPatient(): Entry, patientJSONString->{}", patientJSONString);
+        Patient patient = getFHIRParser().parseResource(Patient.class, patientJSONString);
+        MethodOutcome outcome = createResource(patient);
+        getLogger().debug(".createPatient(): Exit, outcome->{}", outcome);
+        return(outcome);
     }
 
-    protected TaskLoggingCacheServices getTaskCacheServices(){
-        return(taskCacheServices);
+    public MethodOutcome createPatient(Patient patient){
+        getLogger().debug(".createPatient(): Entry, patient->{}", patient);
+        MethodOutcome outcome = createResource(patient);
+        getLogger().debug(".createPatient(): Exit, outcome->{}", outcome);
+        return(outcome);
     }
 }

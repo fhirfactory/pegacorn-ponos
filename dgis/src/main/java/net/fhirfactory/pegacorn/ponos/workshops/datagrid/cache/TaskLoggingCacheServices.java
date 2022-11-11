@@ -39,6 +39,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.va
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.edge.jgroups.JGroupsIntegrationPointSummary;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.core.PonosReplicatedCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.services.TaskLoggerFHIRTaskService;
 import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
 import net.fhirfactory.pegacorn.services.tasks.datatypes.PetasosActionableTaskRegistrationType;
 import org.apache.commons.lang3.SerializationUtils;
@@ -58,8 +59,8 @@ import java.util.List;
 import java.util.Set;
 
 @ApplicationScoped
-public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTaskDM {
-    private static final Logger LOG = LoggerFactory.getLogger(PonosPetasosActionableTaskCacheServices.class);
+public class TaskLoggingCacheServices extends PetasosActionableTaskDM {
+    private static final Logger LOG = LoggerFactory.getLogger(TaskLoggingCacheServices.class);
 
     private boolean initialised;
 
@@ -85,11 +86,14 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
     @Inject
     private PonosReplicatedCacheServices replicatedCacheServices;
 
+    @Inject
+    private TaskLoggerFHIRTaskService taskLogger;
+
     //
     // Constructor(s)
     //
 
-    public PonosPetasosActionableTaskCacheServices(){
+    public TaskLoggingCacheServices(){
         super();
         this.initialised = false;
         this.taskCacheLock = new Object();
@@ -177,11 +181,18 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
             getTaskCache().put(entryKey, actionableTask);
             getTaskRegistrationCache().put(entryKey, actionableTaskRegistration);
             getTaskJourneyReportedMap().putIfAbsent(entryKey, false);
-
         } else {
             getTaskCache().replace(entryKey, actionableTask);
             getTaskRegistrationCache().replace(entryKey, actionableTaskRegistration);
         }
+        //
+        // Persist It
+        try{
+            taskLogger.saveActionableTask(actionableTask);
+        } catch (Exception ex){
+            getLogger().warn(".registerPetasosActionableTask(): Could not save ActionableTask -> ", ex);
+        }
+
         getLogger().debug(".registerPetasosActionableTask(): Exit, actionableTaskRegistration->{}", actionableTaskRegistration);
         return(actionableTaskRegistration);
     }
@@ -205,6 +216,13 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
             getTaskRegistrationCache().replace(entryKey, actionableTaskRegistration);
         } else{
             actionableTaskRegistration = registerPetasosActionableTask(actionableTask, integrationPoint);
+        }
+        //
+        // Persist It
+        try{
+            taskLogger.saveActionableTask(actionableTask);
+        } catch (Exception ex){
+            getLogger().warn(".registerPetasosActionableTask(): Could not save ActionableTask -> ", ex);
         }
         getLogger().debug(".updatePetasosActionableTask(): Exit, actionableTaskRegistration->{}", actionableTaskRegistration);
         return(actionableTaskRegistration);
@@ -291,6 +309,17 @@ public class PonosPetasosActionableTaskCacheServices extends PetasosActionableTa
         PetasosActionableTaskRegistrationType actionableTaskRegistrationType = getTaskRegistrationCache().get(entryKey);
         actionableTaskRegistrationType.setResourceStatus(DatagridPersistenceResourceStatusEnum.RESOURCE_SAVE_REQUESTED);
         getDatagridEntrySaveRequestService().requestDatagridEntrySave(entryKey);
+        //
+        // Persist It
+        try{
+            PetasosActionableTaskRegistrationType actionableTaskRegistration = null;
+            if(getTaskRegistrationCache().containsKey(entryKey)) {
+                PetasosActionableTask registeredActionableTask = getTaskCache().get(entryKey);
+                taskLogger.saveActionableTask(registeredActionableTask);
+            }
+        } catch (Exception ex){
+            getLogger().warn(".registerPetasosActionableTask(): Could not save ActionableTask -> ", ex);
+        }
         return(true);
     }
 

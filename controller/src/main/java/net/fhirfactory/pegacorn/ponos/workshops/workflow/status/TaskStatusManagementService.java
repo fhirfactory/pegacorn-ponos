@@ -22,12 +22,10 @@
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.status;
 
 import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgent;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.cache.PetasosActionableTaskDM;
 import net.fhirfactory.pegacorn.services.tasks.manager.PetasosTaskServicesManagerHandler;
-import org.apache.camel.LoggingLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +54,7 @@ public class TaskStatusManagementService extends PetasosTaskServicesManagerHandl
     private static Long TASK_AGE_BEFORE_FORCED_RETIREMENT = 120L;
 
     @Inject
-    private PonosPetasosActionableTaskCacheServices taskCacheServices;
+    private TaskLoggingCacheServices taskCacheServices;
 
     @Inject
     private ProcessingPlantMetricsAgentAccessor metricsAgentAccessor;

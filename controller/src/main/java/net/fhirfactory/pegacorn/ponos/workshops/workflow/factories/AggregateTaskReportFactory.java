@@ -35,7 +35,7 @@ import net.fhirfactory.pegacorn.deployment.names.subsystems.SubsystemNames;
 import net.fhirfactory.pegacorn.internals.hl7v2.helpers.UltraDefensivePipeParser;
 import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.GeneralTaskMetadataExtractor;
 import net.fhirfactory.pegacorn.petasos.core.tasks.factories.metadata.HL7v2xTaskMetadataExtractor;
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class AggregateTaskReportFactory {
     private GeneralTaskMetadataExtractor generalTaskMetadataExtractor;
 
     @Inject
-    private PonosPetasosActionableTaskCacheServices taskCacheServices;
+    private TaskLoggingCacheServices taskCacheServices;
 
     @Inject
     private SubsystemNames subsystemNames;
@@ -525,7 +525,7 @@ public class AggregateTaskReportFactory {
     // Getters (and Setters)
     //
 
-    protected PonosPetasosActionableTaskCacheServices getTaskCacheServices(){
+    protected TaskLoggingCacheServices getTaskCacheServices(){
         return(taskCacheServices);
     }
 

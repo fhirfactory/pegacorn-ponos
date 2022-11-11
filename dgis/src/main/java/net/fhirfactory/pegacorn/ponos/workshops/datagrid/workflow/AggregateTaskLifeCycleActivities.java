@@ -24,7 +24,7 @@ package net.fhirfactory.pegacorn.ponos.workshops.datagrid.workflow;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosAggregateTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.PonosPetasosActionableTaskCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
@@ -42,7 +42,7 @@ public class AggregateTaskLifeCycleActivities extends RouteBuilder {
     private boolean initialised;
 
     @Inject
-    private PonosPetasosActionableTaskCacheServices taskCacheServices;
+    private TaskLoggingCacheServices taskCacheServices;
 
     //
     // Constructor(s)
@@ -92,7 +92,7 @@ public class AggregateTaskLifeCycleActivities extends RouteBuilder {
         return(LOG);
     }
 
-    protected PonosPetasosActionableTaskCacheServices getTaskCacheServices(){
+    protected TaskLoggingCacheServices getTaskCacheServices(){
         return(taskCacheServices);
     }
 

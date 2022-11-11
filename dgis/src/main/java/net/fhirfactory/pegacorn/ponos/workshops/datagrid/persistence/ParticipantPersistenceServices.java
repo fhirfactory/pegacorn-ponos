@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Mark A. Hunter
+ * Copyright (c) 2022 Mark A. Hunter
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,56 +19,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.workshops.workflow.status.activities;
+package net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence;
 
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.id.PetasosParticipantId;
+import org.hl7.fhir.instance.model.api.IIdType;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 @ApplicationScoped
-public class ActionableTaskRecoveryActivities {
-    private static final Logger LOG = LoggerFactory.getLogger(ActionableTaskRecoveryActivities.class);
+public class ParticipantPersistenceServices {
 
-    private boolean initialised;
+    public Boolean hasPendingActionableTasks(PetasosParticipantId participantId){
 
-    @Inject
-    private TaskLoggingCacheServices taskCacheServices;
-
-    //
-    // Constructor(s)
-    //
-
-    public ActionableTaskRecoveryActivities(){
-        this.initialised = false;
+        return(false);
     }
 
-    //
-    // Post Construct
-    //
-
-    @PostConstruct
-    public void initialise(){
-
+    public IIdType getParticipantDeviceId(PetasosParticipantId participantId){
+        return(null);
     }
 
-    //
-    // Business Methods
-    //
+    public PetasosParticipant loadParticipant(PetasosParticipantId participantId){
 
+        PetasosParticipant component = null;
 
-    //
-    // Getters (and Setters)
-    //
-
-    protected Logger getLogger(){
-        return(LOG);
+        return(component);
     }
 
-    protected TaskLoggingCacheServices getTaskCacheServices(){
-        return(taskCacheServices);
+    public PetasosParticipant saveParticipant(PetasosParticipant participant){
+        PetasosParticipant component = null;
+
+        return(component);
+
     }
 }
