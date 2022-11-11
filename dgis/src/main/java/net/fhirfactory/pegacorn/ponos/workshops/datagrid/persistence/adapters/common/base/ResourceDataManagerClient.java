@@ -127,7 +127,8 @@ public abstract class ResourceDataManagerClient extends DataManagerClientBase {
         String identifierSystem = identifierCode.getSystem();
         String identifierValue = identifier.getValue();
 
-        Resource response = findResourceByIdentifier(resourceType.toString(), identifierSystem, identifierCodeValue, identifierValue);
+//        Resource response = findResourceByIdentifier(resourceType.toString(), identifierSystem, identifierCodeValue, identifierValue);
+        Resource response = findResourceByIdentifier(resourceType.toString(), identifierValue);
         return (response);
     }
 
@@ -185,6 +186,28 @@ public abstract class ResourceDataManagerClient extends DataManagerClientBase {
         }
         String searchURL = resourceType + "?" + urlEncodedString;
         getLogger().debug(".findResourceByIdentifier(): URL --> {}", searchURL);
+        Bundle response = getClient().search()
+                .byUrl(searchURL)
+                .returnBundle(Bundle.class)
+                .execute();
+        IParser r4Parser = getFHIRParser().setPrettyPrint(true);
+        if(getLogger().isInfoEnabled()) {
+            if(response != null) {
+                getLogger().debug(".findResourceByIdentifier(): Retrieved Bundle --> {}", r4Parser.encodeResourceToString(response));
+            }
+        }
+        Resource resource = bundleContentHelper.extractFirstRepOfType(response, resourceType);
+        getLogger().debug(".findResourceByIdentifier(): Retrieved Resource --> {}", resource);
+        return (resource);
+    }
+
+    public Resource findResourceByIdentifier(String resourceType, String identifierValue){
+        getLogger().debug(".findResourceByIdentifier(): Entry, resourceType --> {},identifierValue -->{}", resourceType, identifierValue);
+        String urlEncodedString = null;
+        String rawSearchString = identifierValue;
+        urlEncodedString = "identifier=" + URLEncoder.encode(rawSearchString, StandardCharsets.UTF_8);
+        String searchURL = resourceType + "?" + urlEncodedString;
+        getLogger().warn(".findResourceByIdentifier(): URL --> {}", searchURL);
         Bundle response = getClient().search()
                 .byUrl(searchURL)
                 .returnBundle(Bundle.class)

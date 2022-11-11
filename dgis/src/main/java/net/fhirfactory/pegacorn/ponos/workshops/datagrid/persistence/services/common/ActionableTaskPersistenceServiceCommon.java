@@ -116,19 +116,24 @@ public abstract class ActionableTaskPersistenceServiceCommon {
         getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Start");
         IIdType id = null;
         for(Resource currentResource: resourceList){
+            getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] currentResource->{}", currentResource );
             MethodOutcome outcome = null;
             if(currentResource.getResourceType().equals(ResourceType.Task)){
+                getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] processingTask" );
                 Task currentTask = (Task)currentResource;
                 Resource existingResource = getTaskFHIRClient().findResourceByIdentifier(ResourceType.Task, currentTask.getIdentifierFirstRep());
                 if(existingResource == null){
+                    getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] Updating Task" );
                     outcome = getTaskFHIRClient().createTask(currentTask);
                 } else {
+                    getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] Creating Task" );
                     currentTask.setId(existingResource.getId());
                     outcome = getTaskFHIRClient().updateTask(currentTask);
                 }
                 if(outcome != null){
                     if(outcome.getId() != null){
                         id = outcome.getId();
+                        getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] New Task Id->{}", id );
                     }
                 }
                 if(getLogger().isTraceEnabled()) {
@@ -140,6 +145,7 @@ public abstract class ActionableTaskPersistenceServiceCommon {
                 }
             }
             if(currentResource.getResourceType().equals(ResourceType.Provenance)){
+                getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] processingProvenance" );
                 Provenance currentProvenance = (Provenance)currentResource;
                 currentProvenance.addTarget(new Reference(id));
                 outcome = getProvenanceFHIRClient().createProvenance(currentProvenance);
