@@ -48,6 +48,7 @@ public class PonosAcolyteTopologyFactory extends FHIRIMSubsystemTopologyFactory 
         addEdgeAnswerPort(processingPlantSoftwareComponent);
         addEdgeAskPort(processingPlantSoftwareComponent);
         addAllJGroupsEndpoints(processingPlantSoftwareComponent);
+        addHTTPClientPorts(processingPlantSoftwareComponent);
 
         return(processingPlantSoftwareComponent);
     }
