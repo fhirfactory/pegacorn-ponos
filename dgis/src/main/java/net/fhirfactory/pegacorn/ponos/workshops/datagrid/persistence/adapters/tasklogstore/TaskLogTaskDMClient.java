@@ -22,7 +22,6 @@
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.adapters.tasklogstore;
 
 import net.fhirfactory.pegacorn.ponos.common.PonosNames;
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.adapters.common.DeviceDataManagerClient;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.adapters.common.TaskDataManagerClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,7 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class TaskLogTaskDMClient extends TaskDataManagerClient {
-    private static final Logger LOG = LoggerFactory.getLogger(DeviceDataManagerClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskLogTaskDMClient.class);
 
     @Inject
     private PonosNames ponosNames;

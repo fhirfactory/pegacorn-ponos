@@ -21,11 +21,14 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.routing.endpoints;
 
+import net.fhirfactory.pegacorn.core.interfaces.edge.PetasosEdgeMessageForwarderService;
+import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
 import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointFunctionTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointTopologyTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantControlStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.edge.jgroups.JGroupsIntegrationPointSummary;
+import net.fhirfactory.pegacorn.core.model.topology.mode.NetworkSecurityZoneEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.endpoint.valuesets.EndpointPayloadTypeEnum;
 import net.fhirfactory.pegacorn.platform.edge.model.ipc.packets.InterProcessingPlantHandoverPacket;
 import net.fhirfactory.pegacorn.platform.edge.model.ipc.packets.InterProcessingPlantHandoverResponsePacket;
@@ -46,7 +49,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @ApplicationScoped
-public class PonosTaskRouterHubSender extends PonosTaskRouterHubCommon {
+public class PonosTaskRouterHubSender extends PonosTaskRouterHubCommon implements PetasosEdgeMessageForwarderService {
     private static final Logger LOG = LoggerFactory.getLogger(PonosTaskRouterHubSender.class);
 
     @Produce
@@ -125,6 +128,25 @@ public class PonosTaskRouterHubSender extends PonosTaskRouterHubCommon {
     @Override
     protected EndpointPayloadTypeEnum specifyPetasosEndpointPayloadType() {
         return (EndpointPayloadTypeEnum.ENDPOINT_PAYLOAD_INTERNAL_TASK_ROUTING_FORWARDER);
+    }
+
+    @Override
+    public ComponentIdType getComponentId() {
+        return (getJGroupsIntegrationPoint().getComponentID());
+    }
+
+
+    @Override
+    protected String specifyJGroupsChannelName() {
+        getLogger().debug(".specifyJGroupsChannelName(): Entry");
+        String originalChannelName = getJGroupsIntegrationPoint().getChannelName();
+        String newChannelName = originalChannelName;
+        if (!originalChannelName.contains(PetasosEndpointFunctionTypeEnum.PETASOS_TASK_ROUTING_FORWARDER_HUB_ENDPOINT.getDisplayName())) {
+            newChannelName = originalChannelName.replace(PetasosEndpointFunctionTypeEnum.PETASOS_TASK_ROUTING_FORWARDER_ENDPOINT.getDisplayName(), PetasosEndpointFunctionTypeEnum.PETASOS_TASK_ROUTING_FORWARDER_HUB_ENDPOINT.getDisplayName());
+        }
+        getJGroupsIntegrationPoint().setChannelName(newChannelName);
+        getLogger().debug(".specifyJGroupsChannelName(): Exit, channelName->{}", newChannelName);
+        return (newChannelName);
     }
 
     //

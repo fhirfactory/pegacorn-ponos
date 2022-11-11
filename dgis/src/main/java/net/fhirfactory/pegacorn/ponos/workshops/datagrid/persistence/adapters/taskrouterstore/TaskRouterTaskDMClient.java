@@ -32,7 +32,7 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class TaskRouterTaskDMClient extends TaskDataManagerClient {
-    private static final Logger LOG = LoggerFactory.getLogger(DeviceDataManagerClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskRouterTaskDMClient.class);
 
     @Inject
     private PonosNames ponosNames;

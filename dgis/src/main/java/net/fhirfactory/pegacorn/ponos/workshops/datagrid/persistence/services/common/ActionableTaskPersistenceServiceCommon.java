@@ -121,7 +121,7 @@ public abstract class ActionableTaskPersistenceServiceCommon {
             if(currentResource.getResourceType().equals(ResourceType.Task)){
                 getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] processingTask" );
                 Task currentTask = (Task)currentResource;
-                Resource existingResource = getTaskFHIRClient().findResourceByIdentifier(ResourceType.Task, currentTask.getIdentifierFirstRep());
+                Resource existingResource = getTaskFHIRClient().findResourceByIdentifier(currentTask.getIdentifierFirstRep());
                 if(existingResource == null){
                     getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] Updating Task" );
                     outcome = getTaskFHIRClient().createTask(currentTask);
@@ -215,7 +215,7 @@ public abstract class ActionableTaskPersistenceServiceCommon {
         getLogger().trace(".loadActionableTask(): [Retrieve FHIR Task Resource] Start");
         Identifier taskIdentifier = getTaskIdentifierFactory().newTaskIdentifier(TaskTypeTypeEnum.PETASOS_ACTIONABLE_TASK_TYPE, taskId);
 
-        Resource resource = getTaskFHIRClient().findResourceByIdentifier(ResourceType.Task, taskIdentifier);
+        Resource resource = getTaskFHIRClient().findResourceByIdentifier(taskIdentifier);
         Task task = null;
         if(resource != null){
             if(resource.getResourceType().equals(ResourceType.Task)){

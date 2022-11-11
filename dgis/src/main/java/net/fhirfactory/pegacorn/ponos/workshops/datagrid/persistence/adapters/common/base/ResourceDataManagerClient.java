@@ -208,7 +208,8 @@ public abstract class ResourceDataManagerClient extends DataManagerClientBase {
         urlEncodedString = "identifier=" + URLEncoder.encode(rawSearchString, StandardCharsets.UTF_8);
         String searchURL = resourceType + "?" + urlEncodedString;
         getLogger().warn(".findResourceByIdentifier(): URL --> {}", searchURL);
-        Bundle response = getClient().search()
+        Bundle response = getClient()
+                .search()
                 .byUrl(searchURL)
                 .returnBundle(Bundle.class)
                 .execute();

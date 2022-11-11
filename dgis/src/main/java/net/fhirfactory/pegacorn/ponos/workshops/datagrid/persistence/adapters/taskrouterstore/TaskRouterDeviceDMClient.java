@@ -31,7 +31,7 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class TaskRouterDeviceDMClient extends DeviceDataManagerClient {
-    private static final Logger LOG = LoggerFactory.getLogger(DeviceDataManagerClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskRouterDeviceDMClient.class);
 
     @Inject
     private PonosNames ponosNames;

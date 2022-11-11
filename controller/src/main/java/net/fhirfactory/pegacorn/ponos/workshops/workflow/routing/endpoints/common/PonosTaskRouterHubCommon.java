@@ -21,12 +21,16 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.routing.endpoints.common;
 
+import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointFunctionTypeEnum;
 import net.fhirfactory.pegacorn.petasos.endpoints.technologies.jgroups.JGroupsIntegrationPointBase;
 import org.jgroups.Address;
 
 import java.util.List;
 
 public abstract class PonosTaskRouterHubCommon extends JGroupsIntegrationPointBase {
+
+
+
 
     //
     // Routing Helper Methods
@@ -47,8 +51,8 @@ public abstract class PonosTaskRouterHubCommon extends JGroupsIntegrationPointBa
             for (Address currentAddress : addressList) {
                 getLogger().debug(".resolveTargetAddressForTaskReceiver(): Iterating through Address list, current element->{}", currentAddress);
                 String currentService = deriveIntegrationPointSubsystemName(currentAddress.toString());
-                if (currentService.equals(participantName)) {
-                    if(currentService.contains("Receiver")) {
+                if (currentService.contentEquals(participantName)) {
+                    if(currentAddress.toString().contains(PetasosEndpointFunctionTypeEnum.PETASOS_TASK_ROUTING_RECEIVER_ENDPOINT.getDisplayName())) {
                         getLogger().debug(".resolveTargetAddressForTaskReceiver(): Exit, A match!");
                         foundAddress = currentAddress;
                         break;

@@ -21,20 +21,25 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.adapters.common;
 
+import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.gclient.ICriterion;
 import ca.uhn.fhir.rest.gclient.TokenClientParam;
+import ca.uhn.fhir.util.BundleUtil;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.valuesets.FulfillmentExecutionStatusEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.task.factories.TaskStatusReasonFactory;
 import net.fhirfactory.pegacorn.ponos.common.PonosNames;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.adapters.common.base.ResourceDataManagerClient;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Task;
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public abstract class TaskDataManagerClient extends ResourceDataManagerClient {
@@ -129,5 +134,33 @@ public abstract class TaskDataManagerClient extends ResourceDataManagerClient {
                 .execute();
         getLogger().debug(".getFinishedButNotFinalisedTasks(): Exit, response->{}", response);
         return(response);
+    }
+
+
+    public Resource findResourceByIdentifier( Identifier identifier){
+        getLogger().debug(".findResourceByIdentifier(): Entry, identifier->{}", identifier);
+
+        Bundle response = getClient()
+                .search()
+                .forResource(Task.class)
+                .where(Task.IDENTIFIER.exactly().systemAndValues(identifier.getSystem(), identifier.getValue()))
+                .returnBundle(Bundle.class)
+                .execute();
+
+        List<IBaseResource> tasks = new ArrayList<>(BundleUtil.toListOfResources(getFHIRContextUtility().getFhirContext(), response));
+
+        IParser r4Parser = getFHIRParser().setPrettyPrint(true);
+        if(getLogger().isInfoEnabled()) {
+            if(response != null) {
+                getLogger().debug(".findResourceByIdentifier(): Retrieved Bundle --> {}", r4Parser.encodeResourceToString(response));
+            }
+        }
+
+        Task resource = null;
+        if(tasks.size() > 0) {
+            resource = (Task) tasks.get(0);
+        }
+        getLogger().debug(".findResourceByIdentifier(): Exit, Resource->{}", resource);
+        return (resource);
     }
 }

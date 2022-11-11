@@ -33,7 +33,7 @@ import javax.inject.Inject;
 
 @ApplicationScoped
 public class TaskLogProvenanceDMClient extends ProvenanceDataManagerClient {
-    private static final Logger LOG = LoggerFactory.getLogger(DeviceDataManagerClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskLogProvenanceDMClient.class);
 
     @Inject
     private PonosNames ponosNames;

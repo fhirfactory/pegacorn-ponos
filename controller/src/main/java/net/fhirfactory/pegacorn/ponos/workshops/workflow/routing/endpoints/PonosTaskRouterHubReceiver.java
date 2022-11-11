@@ -28,10 +28,13 @@ import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEnd
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantControlStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskSequenceNumber;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.factories.TaskIdTypeFactory;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.reason.valuesets.TaskReasonTypeEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.edge.jgroups.JGroupsIntegrationPointSummary;
+import net.fhirfactory.pegacorn.core.model.topology.mode.NetworkSecurityZoneEnum;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.endpoint.valuesets.EndpointPayloadTypeEnum;
+import net.fhirfactory.pegacorn.petasos.core.tasks.caches.TaskSequenceNumberGenerator;
 import net.fhirfactory.pegacorn.platform.edge.model.ipc.packets.InterProcessingPlantHandoverPacket;
 import net.fhirfactory.pegacorn.platform.edge.model.ipc.packets.InterProcessingPlantHandoverResponsePacket;
 import net.fhirfactory.pegacorn.platform.edge.model.router.TaskRouterResponsePacket;
@@ -72,6 +75,9 @@ public class PonosTaskRouterHubReceiver extends PonosTaskRouterHubCommon {
     @Inject
     private PetasosTaskCacheStatusInterface taskCacheStatus;
 
+    @Inject
+    private TaskSequenceNumberGenerator taskSequenceNumberGenerator;
+
     //
     // Constructor(s)
     //
@@ -109,6 +115,10 @@ public class PonosTaskRouterHubReceiver extends PonosTaskRouterHubCommon {
 
     public TaskQueueServices getTaskQueueServices(){
         return(taskQueueServices);
+    }
+
+    protected TaskSequenceNumberGenerator getTaskSequenceNumberGenerator(){
+        return(taskSequenceNumberGenerator);
     }
 
     //
@@ -154,6 +164,20 @@ public class PonosTaskRouterHubReceiver extends PonosTaskRouterHubCommon {
     protected EndpointPayloadTypeEnum specifyPetasosEndpointPayloadType() {
         return (EndpointPayloadTypeEnum.ENDPOINT_PAYLOAD_INTERNAL_TASK_ROUTING_RECEIVER);
     }
+
+    @Override
+    protected String specifyJGroupsChannelName() {
+        getLogger().debug(".specifyJGroupsChannelName(): Entry");
+        String originalChannelName = getJGroupsIntegrationPoint().getChannelName();
+        String newChannelName = originalChannelName;
+        if(!originalChannelName.contains(PetasosEndpointFunctionTypeEnum.PETASOS_TASK_ROUTING_RECEIVER_HUB_ENDPOINT.getDisplayName())) {
+            newChannelName = originalChannelName.replace(PetasosEndpointFunctionTypeEnum.PETASOS_TASK_ROUTING_RECEIVER_ENDPOINT.getDisplayName(), PetasosEndpointFunctionTypeEnum.PETASOS_TASK_ROUTING_RECEIVER_HUB_ENDPOINT.getDisplayName());
+        }
+        getJGroupsIntegrationPoint().setChannelName(newChannelName);
+        getLogger().debug(".specifyJGroupsChannelName(): Exit, channelName->{}", newChannelName);
+        return(newChannelName);
+    }
+
 
     //
     // Processing Plant check triggered by JGroups Cluster membership change
@@ -206,12 +230,14 @@ public class PonosTaskRouterHubReceiver extends PonosTaskRouterHubCommon {
         if(routingTaskId == null){
             routingTaskId = getTaskIdFactory().newTaskId(getSubsystemParticipantName(), TaskReasonTypeEnum.TASK_REASON_TASK_ROUTING, task.getTaskWorkItem().getPayloadTopicID().getContentDescriptor());
         }
+        TaskSequenceNumber taskSequenceNumber = getTaskSequenceNumberGenerator().generateNewSequenceNumber();
+        routingTaskId.setTaskSequenceNumber(taskSequenceNumber);
         routingTask.setTaskId(routingTaskId);
         getLogger().trace(".receiveTask(): [Create Routing Task] Finish, routingTask->{}", routingTask);
 
-        getLogger().trace(".receiveTask(): [Queue Task] Start");
+        getLogger().warn(".receiveTask(): [Queue Task] Start");
         boolean isOK = getTaskQueueServices().queueTask(routingTask);
-        getLogger().trace(".receiveTask(): [Queue Task] Finish, isOK->{}", isOK);
+        getLogger().warn(".receiveTask(): [Queue Task] Finish, isOK->{}", isOK);
 
         getLogger().trace(".receiveTask(): [Generate Response] Start");
         TaskRouterResponsePacket response = new TaskRouterResponsePacket();

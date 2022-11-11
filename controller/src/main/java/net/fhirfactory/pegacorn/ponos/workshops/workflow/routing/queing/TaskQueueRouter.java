@@ -5,6 +5,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipan
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.completion.datatypes.TaskCompletionSummaryType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.queue.ParticipantTaskQueueEntry;
+import net.fhirfactory.pegacorn.petasos.core.tasks.management.participant.watchdogs.common.DaemonBase;
 import net.fhirfactory.pegacorn.platform.edge.model.router.TaskRouterResponsePacket;
 import net.fhirfactory.pegacorn.platform.edge.model.router.TaskRouterStatusPacket;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.ParticipantCacheServices;
@@ -15,18 +16,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants.PARTICIPANT_QUEUE_TASK_BATCH_SIZE;
 
 @ApplicationScoped
-public class TaskQueueRouter {
+public class TaskQueueRouter extends DaemonBase {
     private static final Logger LOG = LoggerFactory.getLogger(TaskQueueRouter.class);
 
     private static Integer MAX_CACHE_SIZE=500;
+    private boolean initialised;
 
     private boolean taskForwarderDaemonBusy;
     private Instant taskForwarderDaemonActivityInstant;
@@ -65,6 +70,20 @@ public class TaskQueueRouter {
     // Post Construct
     //
 
+    @PostConstruct
+    public void initialise(){
+        getLogger().debug(".initialise(): Entry");
+        if(this.initialised){
+            getLogger().debug(".initialise(): Exit, already initialised, nothing to do!");
+            return;
+        } else {
+            getLogger().info("GlobalPetasosTaskContinuityWatchdog::initialise(): Starting initialisation");
+            scheduleTaskForwarderDaemon();
+            getLogger().info("GlobalPetasosTaskContinuityWatchdog::initialise(): Finished initialisation");
+            this.initialised = true;
+            getLogger().debug(".initialise(): Exit");
+        }
+    }
     //
     // Getters and Setters
     //
@@ -186,41 +205,80 @@ public class TaskQueueRouter {
     // Router Daemon
     //
 
+    public void scheduleTaskForwarderDaemon() {
+        getLogger().debug(".scheduleTaskForwarderDaemon(): Entry");
+        TimerTask taskForwarderDaemonTask = new TimerTask() {
+            public void run() {
+                getLogger().debug(".taskForwarderDaemonTask(): Entry");
+                if(isTaskForwarderDaemonBusy()){
+                    // do nothing
+                } else {
+                    taskForwarderDaemon();
+                }
+                getLogger().debug(".taskForwarderDaemonTask(): Exit");
+            }
+        };
+        Timer timer = new Timer("actionableTaskCleanupActivityTimer");
+        timer.schedule(taskForwarderDaemonTask, getTaskForwarderDaemonStartupDelay(), getTaskForwarderDaemonPeriod());
+        getLogger().debug(".scheduleTaskForwarderDaemon(): Exit");
+    }
+
     public void taskForwarderDaemon(){
         getLogger().debug(".taskForwarderDaemon(): Entry");
-        setTaskForwarderDaemonActivityInstant(Instant.now());
+        setTaskForwarderDaemonBusy(true);
+        try {
+            Set<String> participantNameList = getTaskQueueMap().getParticipants();
 
-        Set<String> participantNameList = getTaskQueueMap().getParticipants();
-
-        for(String currentParticipant: participantNameList){
-            switch(getParticipantCacheServices().getParticipantStatus(currentParticipant)){
-                case PARTICIPANT_IS_ENABLED:
-                    if(getParticipantCacheServices().getParticipantCacheSize(currentParticipant) > MAX_CACHE_SIZE) {
-                        TaskRouterStatusPacket status = getTaskSender().getStatus(currentParticipant);
-                        getParticipantCacheServices().setParticipantStatus(currentParticipant, status.getParticipantStatus());
-                        getParticipantCacheServices().setParticipantCacheSize(currentParticipant, status.getLocalCacheSize());
+            boolean hasMoreTasksToForward = true;
+            while (hasMoreTasksToForward) {
+                setTaskForwarderDaemonActivityInstant(Instant.now());
+                hasMoreTasksToForward = false;
+                boolean couldForward = false;
+                for (String currentParticipant : participantNameList) {
+                    PetasosParticipantControlStatusEnum participantStatus = getParticipantCacheServices().getParticipantStatus(currentParticipant);
+                    if(participantStatus == null) {
+                        participantStatus = PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED;
+                        getParticipantCacheServices().setParticipantStatus(currentParticipant, participantStatus);
                     }
-                    if(getParticipantCacheServices().getParticipantCacheSize(currentParticipant) < MAX_CACHE_SIZE) {
-                        forwardParticipantTasks(currentParticipant);
+                    switch (getParticipantCacheServices().getParticipantStatus(currentParticipant)) {
+                        case PARTICIPANT_IS_ENABLED:
+                            if (getParticipantCacheServices().getParticipantCacheSize(currentParticipant) > MAX_CACHE_SIZE) {
+                                TaskRouterStatusPacket status = getTaskSender().getStatus(currentParticipant);
+                                getParticipantCacheServices().setParticipantStatus(currentParticipant, status.getParticipantStatus());
+                                getParticipantCacheServices().setParticipantCacheSize(currentParticipant, status.getLocalCacheSize());
+                            }
+                            if (getParticipantCacheServices().getParticipantCacheSize(currentParticipant) < MAX_CACHE_SIZE) {
+                                forwardParticipantTasks(currentParticipant);
+                                couldForward = true;
+                            }
+                            break;
+                        case PARTICIPANT_IS_IN_ERROR:
+                            if (Instant.now().isAfter(getParticipantCacheServices().getParticipantActivityTimestamp(currentParticipant).plusMillis(getRetryOnErrorDelay()))) {
+                                TaskRouterStatusPacket status = getTaskSender().getStatus(currentParticipant);
+                                if (status.getParticipantStatus().equals(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED)) {
+                                    forwardParticipantTasks(currentParticipant);
+                                    couldForward = true;
+                                } else {
+                                    getParticipantCacheServices().touchParticipantActivityTimestamp(currentParticipant);
+                                }
+                            }
+                            break;
+                        case PARTICIPANT_IS_SUSPENDED:
+                            break;
+                        case PARTICIPANT_IS_DISABLED:
+                            break;
                     }
-                    break;
-                case PARTICIPANT_IS_IN_ERROR:
-                    if(Instant.now().isAfter(getParticipantCacheServices().getParticipantActivityTimestamp(currentParticipant).plusMillis(getRetryOnErrorDelay()))) {
-                        TaskRouterStatusPacket status = getTaskSender().getStatus(currentParticipant);
-                        if(status.getParticipantStatus().equals(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED)) {
-                            forwardParticipantTasks(currentParticipant);
-                        } else {
-                            getParticipantCacheServices().touchParticipantActivityTimestamp(currentParticipant);
+                    if (couldForward) {
+                        if (getParticipantCacheServices().getParticipantCacheSize(currentParticipant) > 0) {
+                            hasMoreTasksToForward = true;
                         }
                     }
-                    break;
-                case PARTICIPANT_IS_SUSPENDED:
-                    break;
-                case PARTICIPANT_IS_DISABLED:
-                    break;
+                }
             }
+        } catch (Exception ex){
+            getLogger().error(".taskForwarderDaemon(): An Exception Occurred ->", ex);
         }
-
+        setTaskForwarderDaemonBusy(false);
         getLogger().debug(".taskForwarderDaemon(): Entry");
     }
 
