@@ -19,14 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.subsystem.common;
+package net.fhirfactory.pegacorn.ponos.common;
 
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class PonosNames {
 
-    public String getPonosDMClientName(){
-        return("ponos-dm");
+    public String getPonosTaskLoggerDMName(){
+        return("tasklog-dm");
+    }
+    public String getPonosTaskRouterCacheDMName(){
+        return("taskroute-dm");
+    }
+
+    public String getPonosTaskReporterDMName(){
+        return("taskrep-dm");
     }
 }

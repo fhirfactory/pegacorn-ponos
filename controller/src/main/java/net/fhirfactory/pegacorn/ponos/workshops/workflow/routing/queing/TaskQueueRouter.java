@@ -5,7 +5,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipan
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.completion.datatypes.TaskCompletionSummaryType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.queue.ParticipantTaskQueueEntry;
-import net.fhirfactory.pegacorn.petasos.core.tasks.management.participant.watchdogs.common.DaemonBase;
+import net.fhirfactory.pegacorn.petasos.core.tasks.management.daemon.DaemonBase;
 import net.fhirfactory.pegacorn.platform.edge.model.router.TaskRouterResponsePacket;
 import net.fhirfactory.pegacorn.platform.edge.model.router.TaskRouterStatusPacket;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.ParticipantCacheServices;
