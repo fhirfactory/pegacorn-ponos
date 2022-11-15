@@ -23,12 +23,18 @@ package net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache;
 
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.completion.datatypes.TaskCompletionSummaryType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.datatypes.TaskFulfillmentType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.datatypes.TaskExecutionControl;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.valuesets.TaskExecutionCommandEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.datatypes.TaskOutcomeStatusType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.valuesets.TaskStorageStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.queue.ParticipantTaskQueueEntry;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayloadSet;
+import net.fhirfactory.pegacorn.core.model.petasos.wup.valuesets.PetasosTaskExecutionStatusEnum;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.services.TaskRouterFHIRTaskService;
 import org.apache.commons.lang3.StringUtils;
-import org.hl7.fhir.instance.model.api.IIdType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +45,8 @@ import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
-public class TaskRoutingCacheServices {
-    private static final Logger LOG = LoggerFactory.getLogger(TaskRoutingCacheServices.class);
+public class TaskGridCacheServices {
+    private static final Logger LOG = LoggerFactory.getLogger(TaskGridCacheServices.class);
 
     private Integer maxCachedTasksPerParticipant;
 
@@ -62,7 +68,7 @@ public class TaskRoutingCacheServices {
     // Constructor(s)
     //
 
-    public TaskRoutingCacheServices(){
+    public TaskGridCacheServices(){
         super();
         this.initialised = false;
         this.participantTaskCacheLock = new Object();
@@ -94,19 +100,19 @@ public class TaskRoutingCacheServices {
     // Basic Cache Add, Get
     //
 
-    public boolean addTask(String participantName, PetasosActionableTask task, ParticipantTaskQueueEntry queueEntry){
+    public TaskIdType addTask(String participantName, PetasosActionableTask task, ParticipantTaskQueueEntry queueEntry){
         getLogger().debug(".addTask(): Entry, participantName->{}, task->{}", participantName, task);
         if(StringUtils.isEmpty(participantName)){
             getLogger().warn(".addTask(): Cannot add task to cache, participantName is empty");
-            return(false);
+            return(null);
         }
         if(task == null){
             getLogger().warn(".addTask(): Cannot add task to cache, task is empty");
-            return(false);
+            return(null);
         }
         if(queueEntry == null){
             getLogger().warn(".addTask(): Cannot add task to cache, queueEntry is empty");
-            return(false);
+            return(null);
         }
         ConcurrentHashMap<String, PetasosActionableTask> taskCache = null;
         Object lockObject = null;
@@ -131,33 +137,33 @@ public class TaskRoutingCacheServices {
             }
         }
 
-        IIdType iIdType = saveTaskIntoPersistence(participantName, task);
-        if(iIdType == null){
+        TaskIdType taskId = saveTaskIntoPersistence(participantName, task);
+        if(taskId == null){
             getLogger().error(".addTask(): Cannot add task to cache, task could not be persisted");
             taskCache.put(task.getTaskId().getId(), task);
-            return(false);
+            return(null);
         } else {
             queueEntry.setPersistenceStatus(TaskStorageStatusEnum.TASK_SAVED);
             queueEntry.setPersistenceLocation(processingPlant.getSubsystemName());
             queueEntry.setPersistenceInstant(Instant.now());
         }
 
-        getLogger().debug(".addTask(): Exit, success->{}", true);
-        return(true);
+        getLogger().debug(".addTask(): Exit, taskId->{}", taskId);
+        return(taskId);
     }
 
-    public IIdType saveTaskIntoPersistence(String participantName, PetasosActionableTask task){
+    public TaskIdType saveTaskIntoPersistence(String participantName, PetasosActionableTask task){
         getLogger().debug(".saveTaskIntoPersistence(): Entry, participantName->{}, task->{}", participantName, task);
         if(task == null){
             getLogger().debug(".saveTaskIntoPersistence(): Exit, cannot save task, task is null");
         }
-        IIdType iIdType = getTaskPersistenceService().saveActionableTask(task);
+        TaskIdType taskId = getTaskPersistenceService().saveActionableTask(task);
 
-        getLogger().debug(".saveTaskIntoPersistence(): Exit, iIdType->{}", iIdType);
-        return(iIdType);
+        getLogger().debug(".saveTaskIntoPersistence(): Exit, taskId->{}", taskId);
+        return(taskId);
     }
 
-    public IIdType synchroniseTaskIntoPersistence(String participantName, PetasosActionableTask task,  ParticipantTaskQueueEntry queueEntry){
+    public TaskIdType synchroniseTaskIntoPersistence(String participantName, PetasosActionableTask task,  ParticipantTaskQueueEntry queueEntry){
         getLogger().debug(".saveTaskIntoPersistence(): Entry, participantName->{}, task->{}", participantName, task);
         if(task == null){
             getLogger().debug(".saveTaskIntoPersistence(): Exit, cannot save task, task is null");
@@ -183,8 +189,8 @@ public class TaskRoutingCacheServices {
             queueEntry.setCentralCacheInstant(Instant.now());
         }
 
-        IIdType iIdType = getTaskPersistenceService().saveActionableTask(task);
-        if(iIdType == null){
+        TaskIdType taskId = getTaskPersistenceService().saveActionableTask(task);
+        if(taskId == null){
             getLogger().error(".addTask(): Cannot add task to cache, task could not be persisted");
         } else {
             queueEntry.setPersistenceStatus(TaskStorageStatusEnum.TASK_SAVED);
@@ -192,33 +198,12 @@ public class TaskRoutingCacheServices {
             queueEntry.setPersistenceInstant(Instant.now());
         }
 
-        getLogger().debug(".saveTaskIntoPersistence(): Exit, iIdType->{}", iIdType);
-        return(iIdType);
+        getLogger().debug(".saveTaskIntoPersistence(): Exit, taskId->{}", taskId);
+        return(taskId);
     }
 
     //
     // Get
-
-    public PetasosActionableTask getTask(String participantName, TaskIdType taskId, ParticipantTaskQueueEntry queueEntry){
-        getLogger().debug(".getTask(): Entry, participantName->{}, taskId->{}", participantName, taskId);
-        if(StringUtils.isEmpty(participantName)){
-            getLogger().debug(".getTask(): Cannot find task in cache, participantName is empty");
-            return(null);
-        }
-        if(taskId == null){
-            getLogger().debug(".getTask(): Cannot find task in cache, taskId is empty");
-            return(null);
-        }
-        PetasosActionableTask actionableTask = getTaskFromCache(participantName, taskId);
-        if(actionableTask == null){
-            actionableTask = getTaskFromPersistence(participantName, taskId);
-            if(actionableTask != null){
-                addTask(participantName, actionableTask, queueEntry);
-            }
-        }
-        getLogger().debug(".getTask(): Exit, actionableTask->{}", actionableTask);
-        return(actionableTask);
-    }
 
     public PetasosActionableTask getTaskFromCache(String participantName, TaskIdType taskId){
         getLogger().debug(".getTaskFromCache(): Entry, participantName->{}, taskId->{}", participantName, taskId);
@@ -287,9 +272,41 @@ public class TaskRoutingCacheServices {
     }
 
     //
-    // Finalise
+    // Task Status Updates
+    //
 
-    public void finaliseTask(String participantName, PetasosActionableTask task){
+    //
+    // Task Start
+
+    public TaskExecutionCommandEnum updateTaskStatusToStarted(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail){
+
+    }
+
+    //
+    // Task Finish
+
+    public TaskExecutionCommandEnum updateTaskStatusToFinish(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome){
+
+    }
+
+    //
+    // Task Cancellation
+
+    public TaskExecutionCommandEnum updateTaskStatusToCancelled(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome){
+
+    }
+
+    //
+    // Task Failure
+
+    public TaskExecutionCommandEnum updateTaskStatusToFailed(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome){
+
+    }
+
+   //
+   // Finalise
+
+   public TaskExecutionCommandEnum updateTaskStatusToFinalised(String participantName, TaskIdType taskId, TaskCompletionSummaryType taskOutcome){
         getLogger().debug(".finaliseTask(): Entry, participantName->{}, task->{}", participantName, task);
 
         if(StringUtils.isEmpty(participantName)){
@@ -304,6 +321,17 @@ public class TaskRoutingCacheServices {
         deleteTaskFromCache(participantName,task.getTaskId());
 
         getLogger().debug(".finaliseTask(): Exit");
+    }
+
+    //
+    // Task Lock
+    //
+
+    public Object getTaskInstanceLock(TaskIdType taskId){
+        Object lockObject = getParticipantTaskCacheLockMap().get(taskId);
+        if(lockObject == null){
+            getParticipantTaskCacheLockMap().put(taskId.getId(), new Object());
+        }
     }
 
     //

@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.workshops.workflow.routing.endpoints.common;
+package net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid.common;
 
 import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointFunctionTypeEnum;
 import net.fhirfactory.pegacorn.petasos.endpoints.technologies.jgroups.JGroupsIntegrationPointBase;
@@ -52,7 +52,7 @@ public abstract class PonosTaskRouterHubCommon extends JGroupsIntegrationPointBa
                 getLogger().debug(".resolveTargetAddressForTaskReceiver(): Iterating through Address list, current element->{}", currentAddress);
                 String currentService = deriveIntegrationPointSubsystemName(currentAddress.toString());
                 if (currentService.contentEquals(participantName)) {
-                    if(currentAddress.toString().contains(PetasosEndpointFunctionTypeEnum.PETASOS_TASK_ROUTING_RECEIVER_ENDPOINT.getDisplayName())) {
+                    if(currentAddress.toString().contains(PetasosEndpointFunctionTypeEnum.PETASOS_TASK_DISTRIBUTION_GRID_ENDPOINT.getDisplayName())) {
                         getLogger().debug(".resolveTargetAddressForTaskReceiver(): Exit, A match!");
                         foundAddress = currentAddress;
                         break;

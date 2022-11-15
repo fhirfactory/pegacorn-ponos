@@ -93,7 +93,7 @@ public abstract class ActionableTaskPersistenceServiceCommon {
     // Business Logic
     //
 
-    public IIdType saveActionableTask(PetasosActionableTask actionableTask){
+    public TaskIdType saveActionableTask(PetasosActionableTask actionableTask){
         getLogger().debug(".savePetasosActionableTask(): Entry, actionableTask->{}", actionableTask);
         if(actionableTask == null){
             getLogger().debug(".savePetasosActionableTask():Exit, actionableTask is null");
@@ -197,7 +197,7 @@ public abstract class ActionableTaskPersistenceServiceCommon {
              */
         }
         getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Finish");
-        return(id);
+        return(actionableTask.getTaskId());
     }
 
 

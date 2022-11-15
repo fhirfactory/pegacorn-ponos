@@ -19,13 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.workshops.workflow.routing.queing;
+package net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid.queing;
 
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.performer.datatypes.TaskPerformerTypeType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.queue.ParticipantTaskQueueEntry;
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskRoutingCacheServices;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskGridCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.queues.CentralTaskQueueMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class TaskQueueServices {
     private CentralTaskQueueMap taskQueueMap;
 
     @Inject
-    private TaskRoutingCacheServices taskCache;
+    private TaskGridCacheServices taskCache;
 
     @Inject
     private ProcessingPlantInterface processingPlant;
@@ -105,7 +106,7 @@ public class TaskQueueServices {
                 entry.setTaskId(actionableTask.getTaskId());
                 entry.setSequenceNumber(actionableTask.getTaskId().getTaskSequenceNumber());
                 taskQueueMap.addEntry(currentPerformer.getRequiredParticipantName(), entry);
-                taskCache.addTask(currentPerformer.getRequiredParticipantName(), actionableTask, entry);
+                TaskIdType updatedTaskId = taskCache.addTask(currentPerformer.getRequiredParticipantName(), actionableTask, entry);
                 getLogger().info(".queueTask(): [Queue to ALL TaskPerformers] taskPerformer->{}, queueEntry->{}", currentPerformer.getRequiredParticipantName(), entry);
             }
 
