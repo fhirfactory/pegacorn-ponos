@@ -19,14 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package net.fhirfactory.pegacorn.ponos.workshops.workflow.pathway;
+package net.fhirfactory.pegacorn.ponos.workshops.workflow.participantgrid;
 
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
+import net.fhirfactory.pegacorn.petasos.endpoints.services.subscriptions.ParticipantServicesEndpointBase;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.ParticipantCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.oam.ProcessingPlantPathwayReportProxy;
-import net.fhirfactory.pegacorn.services.tasks.endpoint.PetasosTaskPerformerServicesManagerEndpoint;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +38,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @ApplicationScoped
-public class TaskPathwayManagementService  extends PetasosTaskPerformerServicesManagerEndpoint {
-    private static final Logger LOG = LoggerFactory.getLogger(TaskPathwayManagementService.class);
+public class ParticipantGridServer extends ParticipantServicesEndpointBase {
+    private static final Logger LOG = LoggerFactory.getLogger(ParticipantGridServer.class);
 
     @Inject
     private ParticipantCacheServices petasosParticipantCache;

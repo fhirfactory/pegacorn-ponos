@@ -22,6 +22,9 @@
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid;
 
 import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
+import net.fhirfactory.pegacorn.core.interfaces.tasks.PetasosTaskGridServicesHandlerInterface;
+import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointFunctionTypeEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointTopologyTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.completion.datatypes.TaskCompletionSummaryType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.datatypes.TaskFulfillmentType;
@@ -30,13 +33,13 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.datat
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.valuesets.TaskExecutionCommandEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.datatypes.TaskOutcomeStatusType;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayloadSet;
-import net.fhirfactory.pegacorn.core.model.petasos.wup.valuesets.PetasosTaskExecutionStatusEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.edge.jgroups.JGroupsIntegrationPointSummary;
+import net.fhirfactory.pegacorn.internals.fhir.r4.resources.endpoint.valuesets.EndpointPayloadTypeEnum;
+import net.fhirfactory.pegacorn.petasos.endpoints.technologies.jgroups.JGroupsIntegrationPointBase;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskGridCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.queues.CentralTaskQueueMap;
 import net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid.queing.TaskQueueServices;
-import net.fhirfactory.pegacorn.services.tasks.manager.PetasosTaskServicesManagerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +52,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 @ApplicationScoped
-public class TaskGridServer extends PetasosTaskServicesManagerHandler {
-    private static final Logger LOG = LoggerFactory.getLogger(TaskGridServer.class);
+public class PetasosTaskGridServer extends JGroupsIntegrationPointBase implements PetasosTaskGridServicesHandlerInterface {
+    private static final Logger LOG = LoggerFactory.getLogger(PetasosTaskGridServer.class);
+
+
 
     private boolean initialised;
 
@@ -80,7 +85,7 @@ public class TaskGridServer extends PetasosTaskServicesManagerHandler {
     // Constructor(s)
     //
 
-    public TaskGridServer(){
+    public PetasosTaskGridServer(){
         super();
         this.initialised = false;
     }
@@ -89,20 +94,12 @@ public class TaskGridServer extends PetasosTaskServicesManagerHandler {
     // Post Construct
     //
 
-    @PostConstruct
-    public void initialise() {
-        getLogger().debug(".initialise(): Entry");
-        if (initialised) {
-            getLogger().debug(".initialise(): Exit, already initialised, nothing to do");
-            return;
-        }
-        getLogger().info(".initialise(): Initialisation Start...");
-
+    @Override
+    protected void executePostConstructActivities(){
+        getLogger().debug(".executePostConstructActivities(): Entry");
+        getLogger().info(".executePostConstructActivities(): Initialisation Start...");
         scheduleTaskStatusManagementDaemon();
-
-        this.initialised = true;
-
-        getLogger().info(".initialise(): Initialisation Finish...");
+        getLogger().info(".executePostConstructActivities(): Initialisation Finish...");
     }
 
     //
@@ -137,15 +134,10 @@ public class TaskGridServer extends PetasosTaskServicesManagerHandler {
     //
 
     public void taskStatusManagementDaemon(){
-        int cacheSize = taskCacheServices.getTaskCacheSize();
-        metricsAgentAccessor.getMetricsAgent().updateLocalCacheStatus("ActionableTaskCache", cacheSize);
-        int registrationCacheSize = taskCacheServices.getTaskRegistrationCacheSize();
-        metricsAgentAccessor.getMetricsAgent().updateLocalCacheStatus("ActionableTaskRegistrationCache", registrationCacheSize);
-
-        Set<DatagridElementKeyInterface> agedCacheContent = taskCacheServices.getAgedCacheContent(TASK_AGE_BEFORE_FORCED_RETIREMENT);
-        for(DatagridElementKeyInterface currentKey: agedCacheContent){
-            taskCacheServices.clearTaskFromCache(currentKey);
-        }
+        int cacheSize = taskCacheServices.getParticipantTaskCacheSize();
+        metricsAgentAccessor.getMetricsAgent().updateLocalCacheStatus("ParticipantTaskCacheSize", cacheSize);
+        int registrationCacheSize = taskCacheServices.getFullTaskCacheSize();
+        metricsAgentAccessor.getMetricsAgent().updateLocalCacheStatus("TotalTaskCacheSize", registrationCacheSize);
     }
 
     //
@@ -257,4 +249,53 @@ public class TaskGridServer extends PetasosTaskServicesManagerHandler {
         return(taskQueueMap);
     }
 
+    //
+    // JGroups Endpoint Housekeeping
+    //
+
+
+    @Override
+    protected String specifySubsystemParticipantName() {
+        return (getProcessingPlant().getSubsystemParticipantName());
+    }
+
+    @Override
+    protected String specifyJGroupsClusterName() {
+        return (getComponentNameUtilities().getPetasosTaskServicesGroupName());
+    }
+
+    @Override
+    protected String specifyJGroupsStackFileName() {
+        return (getProcessingPlant().getMeAsASoftwareComponent().getPetasosTaskingStackConfigFile());
+    }
+
+    @Override
+    protected String specifyIPCInterfaceName() {
+        return (getInterfaceNames().getPetasosTaskServicesEndpointName());
+    }
+
+    @Override
+    protected PetasosEndpointTopologyTypeEnum specifyIPCType() {
+        return (PetasosEndpointTopologyTypeEnum.JGROUPS_INTEGRATION_POINT);
+    }
+
+    @Override
+    protected PetasosEndpointFunctionTypeEnum specifyPetasosEndpointFunctionType() {
+        return (PetasosEndpointFunctionTypeEnum.PETASOS_TASK_DISTRIBUTION_GRID_ENDPOINT);
+    }
+
+    @Override
+    protected EndpointPayloadTypeEnum specifyPetasosEndpointPayloadType() {
+        return (EndpointPayloadTypeEnum.ENDPOINT_PAYLOAD_INTERNAL_TASKS);
+    }
+
+    @Override
+    protected void addIntegrationPointToJGroupsIntegrationPointSet() {
+        getJgroupsIPSet().setPetasosTaskServicesEndpoint(getJGroupsIntegrationPoint());
+    }
+
+    @Override
+    protected void doIntegrationPointBusinessFunctionCheck(JGroupsIntegrationPointSummary integrationPointSummary, boolean isRemoved, boolean isAdded) {
+
+    }
 }

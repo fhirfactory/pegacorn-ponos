@@ -23,16 +23,15 @@ package net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache;
 
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.completion.datatypes.DownstreamTaskStatusType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.completion.datatypes.TaskCompletionSummaryType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.datatypes.TaskFulfillmentType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
-import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.datatypes.TaskExecutionControl;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.valuesets.TaskExecutionCommandEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.datatypes.TaskOutcomeStatusType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.valuesets.TaskStorageStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.queue.ParticipantTaskQueueEntry;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayloadSet;
-import net.fhirfactory.pegacorn.core.model.petasos.wup.valuesets.PetasosTaskExecutionStatusEnum;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.services.TaskRouterFHIRTaskService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -280,6 +279,7 @@ public class TaskGridCacheServices {
 
     public TaskExecutionCommandEnum updateTaskStatusToStarted(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail){
 
+        return(TaskExecutionCommandEnum.TASK_COMMAND_EXECUTE);
     }
 
     //
@@ -287,6 +287,8 @@ public class TaskGridCacheServices {
 
     public TaskExecutionCommandEnum updateTaskStatusToFinish(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome){
 
+
+        return(TaskExecutionCommandEnum.TASK_COMMAND_FINISH);
     }
 
     //
@@ -294,6 +296,7 @@ public class TaskGridCacheServices {
 
     public TaskExecutionCommandEnum updateTaskStatusToCancelled(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome){
 
+        return(TaskExecutionCommandEnum.TASK_COMMAND_CANCEL);
     }
 
     //
@@ -301,38 +304,63 @@ public class TaskGridCacheServices {
 
     public TaskExecutionCommandEnum updateTaskStatusToFailed(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome){
 
+        return(TaskExecutionCommandEnum.TASK_COMMAND_FAIL);
     }
 
    //
    // Finalise
 
-   public TaskExecutionCommandEnum updateTaskStatusToFinalised(String participantName, TaskIdType taskId, TaskCompletionSummaryType taskOutcome){
-        getLogger().debug(".finaliseTask(): Entry, participantName->{}, task->{}", participantName, task);
+   public TaskExecutionCommandEnum updateTaskStatusToFinalised(String participantName, TaskIdType taskId, TaskCompletionSummaryType taskCompletionSummary){
+        getLogger().debug(".finaliseTask(): Entry, participantName->{}, task->{}, taskCompletionSummary->{}", participantName, taskId, taskCompletionSummary);
 
         if(StringUtils.isEmpty(participantName)){
             getLogger().debug(".finaliseTask(): Cannot find task in cache, participantName is empty");
         }
-        if(task == null){
-            getLogger().debug(".finaliseTask(): Exit, cannot delete task, task is null");
-        }
 
-        task.getTaskCompletionSummary().setFinalised(true);
-        getTaskPersistenceService().saveActionableTask(task);
-        deleteTaskFromCache(participantName,task.getTaskId());
+        PetasosActionableTask taskFromCache = getTaskFromCache(participantName, taskId);
+        if(taskFromCache.getTaskCompletionSummary() == null){
+            taskFromCache.setTaskCompletionSummary(new TaskCompletionSummaryType());
+        }
+        taskFromCache.getTaskCompletionSummary().setFinalised(true);
+
+        if(taskCompletionSummary != null) {
+            if (!taskCompletionSummary.getDownstreamTaskMap().isEmpty()) {
+                for (TaskIdType currentDownstreamTaskId : taskCompletionSummary.getDownstreamTaskMap().keySet()) {
+                    DownstreamTaskStatusType downstreamTaskStatusType = taskCompletionSummary.getDownstreamTaskMap().get(currentDownstreamTaskId);
+                    taskFromCache.getTaskCompletionSummary().getDownstreamTaskMap().put(currentDownstreamTaskId, downstreamTaskStatusType);
+                }
+            }
+        }
+       TaskIdType taskIdType = getTaskPersistenceService().saveActionableTask(taskFromCache);
+        if(taskIdType == null){
+            getLogger().error(".updateTaskStatusToFinalised(): Cannot persist Task, will hold onto it for a bit in cache! NOT GOOD");
+        } else {
+            deleteTaskFromCache(participantName, taskFromCache.getTaskId());
+        }
 
         getLogger().debug(".finaliseTask(): Exit");
+        return(TaskExecutionCommandEnum.TASK_COMMAND_FINALISE);
     }
 
     //
-    // Task Lock
+    // Task Metrics
     //
 
-    public Object getTaskInstanceLock(TaskIdType taskId){
-        Object lockObject = getParticipantTaskCacheLockMap().get(taskId);
-        if(lockObject == null){
-            getParticipantTaskCacheLockMap().put(taskId.getId(), new Object());
+    public Integer getParticipantTaskCacheSize(){
+        int size = getParticipantTaskCache().size();
+        return(size);
+    }
+
+    public Integer getFullTaskCacheSize(){
+        int size = 0;
+        synchronized (getTaskCacheLock()) {
+            for(String currentParticipant: getParticipantTaskCache().keySet()){
+                size += getParticipantTaskCache().get(currentParticipant).size();
+            }
         }
+        return(size);
     }
+
 
     //
     // Cache Cleanup
