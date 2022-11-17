@@ -21,10 +21,10 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid;
 
-import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
 import net.fhirfactory.pegacorn.core.interfaces.tasks.PetasosTaskGridServicesHandlerInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointFunctionTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointTopologyTypeEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantControlStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.completion.datatypes.TaskCompletionSummaryType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.datatypes.TaskFulfillmentType;
@@ -32,22 +32,24 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datat
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.datatypes.TaskExecutionControl;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.valuesets.TaskExecutionCommandEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.datatypes.TaskOutcomeStatusType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.queue.ParticipantTaskQueueEntry;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayloadSet;
+import net.fhirfactory.pegacorn.core.model.petasos.wup.valuesets.PetasosTaskExecutionStatusEnum;
 import net.fhirfactory.pegacorn.core.model.topology.endpoints.edge.jgroups.JGroupsIntegrationPointSummary;
 import net.fhirfactory.pegacorn.internals.fhir.r4.resources.endpoint.valuesets.EndpointPayloadTypeEnum;
 import net.fhirfactory.pegacorn.petasos.endpoints.technologies.jgroups.JGroupsIntegrationPointBase;
 import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
+import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.ParticipantCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskGridCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.queues.CentralTaskQueueMap;
 import net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid.queing.TaskQueueServices;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -80,6 +82,9 @@ public class PetasosTaskGridServer extends JGroupsIntegrationPointBase implement
 
     @Inject
     private TaskQueueServices taskQueueServices;
+
+    @Inject
+    private ParticipantCacheServices participantCacheServices;
 
     //
     // Constructor(s)
@@ -155,7 +160,49 @@ public class PetasosTaskGridServer extends JGroupsIntegrationPointBase implement
 
     @Override
     public PetasosActionableTask getNextPendingTask(String participantName, JGroupsIntegrationPointSummary requesterEndpointSummary) {
-        return null;
+        getLogger().debug(".getNextPendingTask(): Entry, participantName->{}, requesterEndpointSummary->{}", participantName, requesterEndpointSummary);
+        if(StringUtils.isEmpty(participantName)){
+            getLogger().debug(".getNextPendingTask(): Exit, participantName is empty");
+            return(null);
+        }
+        PetasosParticipantControlStatusEnum participantStatus = getParticipantCacheServices().getParticipantStatus(participantName);
+        if(participantStatus == null){
+            getLogger().debug(".getNextPendingTask(): Exit, participant {} is not registered, returning null", participantName);
+            return(null);
+        }
+        if(!participantStatus.equals(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED)){
+            getLogger().debug(".getNextPendingTask(): Exit, participant {} is not ENABLED, returning null", participantName);
+            return(null);
+        }
+        ParticipantTaskQueueEntry participantTaskQueueEntry = getTaskQueueMap().peekNextTask(participantName);
+        if(participantTaskQueueEntry == null){
+            getLogger().debug(".getNextPendingTask(): Exit, participant {} is no PENDING tasks, returning null", participantName);
+            return(null);
+        }
+        PetasosActionableTask task = null;
+        PetasosActionableTask taskFromCache = getTaskCache().getTaskFromCache(participantName, participantTaskQueueEntry.getTaskId());
+        PetasosActionableTask taskFromPersistence = null;
+        if(taskFromCache == null){
+            taskFromPersistence = getTaskCache().getTaskFromPersistence(participantName, participantTaskQueueEntry.getTaskId());
+            if(taskFromPersistence != null){
+                task = taskFromPersistence;
+            }
+        } else {
+            task = taskFromCache;
+        }
+        if(task == null){
+            getLogger().warn(".getNextPendingTask(): Task (taskId->{}) cannot be found in cache or persistence - but was in the queue, QueueEntry->{}", participantTaskQueueEntry.getTaskId(), participantTaskQueueEntry);
+            getTaskQueueMap().pollNextTask(participantName);
+            getLogger().debug(".getNextPendingTask(): Exit, cannot find corresponding task to queue entry, removed queue entry and returning null");
+            return(null);
+        }
+        task.getTaskExecutionDetail().setCurrentExecutionStatus(PetasosTaskExecutionStatusEnum.PETASOS_TASK_ACTIVITY_STATUS_ASSIGNED);
+        if(taskFromCache == null){
+            getTaskCache().addTask(participantName, task, participantTaskQueueEntry);
+        }
+        getTaskQueueMap().pollNextTask(participantName);
+        getLogger().debug(".getNextPendingTask(): Exit, task->{}", task);
+        return(task);
     }
 
     @Override
@@ -247,6 +294,10 @@ public class PetasosTaskGridServer extends JGroupsIntegrationPointBase implement
 
     protected CentralTaskQueueMap getTaskQueueMap(){
         return(taskQueueMap);
+    }
+
+    protected ParticipantCacheServices getParticipantCacheServices(){
+        return(participantCacheServices);
     }
 
     //

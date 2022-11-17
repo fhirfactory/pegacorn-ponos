@@ -26,6 +26,7 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.performer.datatypes.TaskPerformerTypeType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.queue.ParticipantTaskQueueEntry;
+import net.fhirfactory.pegacorn.core.model.petasos.wup.valuesets.PetasosTaskExecutionStatusEnum;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskGridCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.queues.CentralTaskQueueMap;
 import org.apache.commons.lang3.StringUtils;
@@ -106,6 +107,7 @@ public class TaskQueueServices {
                 entry.setTaskId(actionableTask.getTaskId());
                 entry.setSequenceNumber(actionableTask.getTaskId().getTaskSequenceNumber());
                 taskQueueMap.addEntry(currentPerformer.getRequiredParticipantName(), entry);
+                actionableTask.getTaskExecutionDetail().setCurrentExecutionStatus(PetasosTaskExecutionStatusEnum.PETASOS_TASK_ACTIVITY_STATUS_QUEUED);
                 TaskIdType updatedTaskId = taskCache.addTask(currentPerformer.getRequiredParticipantName(), actionableTask, entry);
                 getLogger().info(".queueTask(): [Queue to ALL TaskPerformers] taskPerformer->{}, queueEntry->{}", currentPerformer.getRequiredParticipantName(), entry);
             }
@@ -116,9 +118,4 @@ public class TaskQueueServices {
         getLogger().debug(".queueTask(): Exit, allGood->{}", allGood);
         return(allGood);
     }
-
-
-
-
-
 }
