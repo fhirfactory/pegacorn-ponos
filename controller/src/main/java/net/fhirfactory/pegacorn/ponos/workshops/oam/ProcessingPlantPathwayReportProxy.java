@@ -22,11 +22,9 @@
 package net.fhirfactory.pegacorn.ponos.workshops.oam;
 
 import net.fhirfactory.pegacorn.core.constants.petasos.PetasosPropertyConstants;
-import net.fhirfactory.pegacorn.core.interfaces.oam.tasks.PetasosITOpsTaskReportingAgentInterface;
-import net.fhirfactory.pegacorn.core.model.dataparcel.valuesets.DataParcelDirectionEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.collectors.ProcessingPlantMetricsAgentAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +33,6 @@ import javax.inject.Inject;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Set;
 
 @ApplicationScoped
 public class ProcessingPlantPathwayReportProxy {
@@ -103,9 +100,9 @@ public class ProcessingPlantPathwayReportProxy {
         counter = 0;
         for(TaskWorkItemSubscriptionType currentSubscription: participant.getSubscriptions()) {
             formattedReportBuilder.append("<tr>");
-            if(currentSubscription.hasSourceProcessingPlantParticipantName()) {
+            if(currentSubscription.hasOriginParticipant()) {
                 formattedReportBuilder.append("<td>  Subscription[" + counter + "] </td>");
-                formattedReportBuilder.append("<td> SourceParticipant:" + currentSubscription.getSourceProcessingPlantParticipantName() + "</td>");
+                formattedReportBuilder.append("<td> SourceParticipant:" + currentSubscription.getOriginParticipant() + "</td>");
             }
             if(currentSubscription.hasContentDescriptor()){
                 formattedReportBuilder.append("<td>  Subscription[" + counter + "] </td>");
@@ -121,8 +118,8 @@ public class ProcessingPlantPathwayReportProxy {
 
     public String condensedSubscriptionSummary(TaskWorkItemSubscriptionType subscription){
         StringBuilder condensedSummaryBuilder = new StringBuilder();
-        if(subscription.hasSourceProcessingPlantParticipantName()){
-            condensedSummaryBuilder.append("SourceParticipant:" + subscription.getSourceProcessingPlantParticipantName() + ",");
+        if(subscription.hasOriginParticipant()){
+            condensedSummaryBuilder.append("SourceParticipant:" + subscription.getOriginParticipant() + ",");
         }
         if(subscription.hasContainerDescriptor()) {
             condensedSummaryBuilder.append("Container:" + subscription.getContainerDescriptor().toDotString() + ",");

@@ -1,8 +1,11 @@
 package net.fhirfactory.pegacorn.ponos.subsystem.processingplant.configuration;
 
+import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointFunctionTypeEnum;
+import net.fhirfactory.pegacorn.core.model.petasos.endpoint.valuesets.PetasosEndpointTopologyTypeEnum;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.*;
 import net.fhirfactory.pegacorn.core.model.topology.nodes.common.EndpointProviderInterface;
 import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.segments.ports.http.HTTPClientPortSegment;
+import net.fhirfactory.pegacorn.deployment.properties.configurationfilebased.common.segments.ports.jgroups.JGroupsInterZoneRepeaterClientPortSegment;
 import net.fhirfactory.pegacorn.deployment.topology.factories.archetypes.fhirpersistence.im.FHIRIMSubsystemTopologyFactory;
 import net.fhirfactory.pegacorn.ponos.common.PonosNames;
 import net.fhirfactory.pegacorn.util.PegacornEnvironmentProperties;
@@ -64,6 +67,16 @@ public class PonosAcolyteTopologyFactory extends FHIRIMSubsystemTopologyFactory 
 
         HTTPClientPortSegment taskReporterDMSegment = ((PonosAcolyteConfigurationFile) getPropertyFile()).getTaskReportDM();
         getHTTPTopologyEndpointFactory().newHTTPClientTopologyEndpoint(getPropertyFile(),endpointProvider,ponosNames.getPonosTaskReporterDMName(),taskReporterDMSegment );
+
+        //
+        // Petasos Task Grid Services Client Endpoint (Uno)
+        JGroupsInterZoneRepeaterClientPortSegment interZoneTasking = ((PonosAcolyteConfigurationFile) getPropertyFile()).getPetasosTaskServicesEndpoint();
+        String taskDataGridServerOne = getInterfaceNames().getEndpointName(PetasosEndpointTopologyTypeEnum.JGROUPS_INTEGRATION_POINT, PetasosEndpointFunctionTypeEnum.PETASOS_TASK_DISTRIBUTION_GRID_ENDPOINT_ONE.getDisplayName());
+        getJGroupsTopologyEndpointFactory().newInterZoneRepeaterJGroupsIntegrationPoint(getProcessingPlantNode(), getPropertyFile(), endpointProvider, interZoneTasking, PetasosEndpointTopologyTypeEnum.JGROUPS_INTEGRATION_POINT, PetasosEndpointFunctionTypeEnum.PETASOS_TASK_DISTRIBUTION_GRID_ENDPOINT_ONE, taskDataGridServerOne, getResilienceMode(), getConcurrenceMode() );
+        // Petasos Task Grid Services Client Endpoint (Duo)
+        String taskDataGridServerTwo = getInterfaceNames().getEndpointName(PetasosEndpointTopologyTypeEnum.JGROUPS_INTEGRATION_POINT, PetasosEndpointFunctionTypeEnum.PETASOS_TASK_DISTRIBUTION_GRID_ENDPOINT_TWO.getDisplayName());
+        getJGroupsTopologyEndpointFactory().newInterZoneRepeaterJGroupsIntegrationPoint(getProcessingPlantNode(), getPropertyFile(), endpointProvider, interZoneTasking, PetasosEndpointTopologyTypeEnum.JGROUPS_INTEGRATION_POINT, PetasosEndpointFunctionTypeEnum.PETASOS_TASK_DISTRIBUTION_GRID_ENDPOINT_TWO, taskDataGridServerTwo, getResilienceMode(), getConcurrenceMode() );
+
 
         getLogger().debug(".addHTTPClientPorts(): Exit");
     }

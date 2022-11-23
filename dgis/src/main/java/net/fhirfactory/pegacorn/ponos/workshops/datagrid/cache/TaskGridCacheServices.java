@@ -26,12 +26,15 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.completion.datatypes.DownstreamTaskStatusType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.completion.datatypes.TaskCompletionSummaryType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.datatypes.TaskFulfillmentType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.fulfillment.valuesets.FulfillmentExecutionStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.schedule.valuesets.TaskExecutionCommandEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.datatypes.TaskOutcomeStatusType;
+import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.status.valuesets.ActionableTaskOutcomeStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.traceability.valuesets.TaskStorageStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.queue.ParticipantTaskQueueEntry;
 import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWPayloadSet;
+import net.fhirfactory.pegacorn.core.model.petasos.uow.UoWProcessingOutcomeEnum;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.services.TaskRouterFHIRTaskService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -99,22 +102,11 @@ public class TaskGridCacheServices {
     // Basic Cache Add, Get
     //
 
-    public TaskIdType addTask(String participantName, PetasosActionableTask task, ParticipantTaskQueueEntry queueEntry){
-        getLogger().debug(".addTask(): Entry, participantName->{}, task->{}", participantName, task);
-        if(StringUtils.isEmpty(participantName)){
-            getLogger().warn(".addTask(): Cannot add task to cache, participantName is empty");
-            return(null);
-        }
-        if(task == null){
-            getLogger().warn(".addTask(): Cannot add task to cache, task is empty");
-            return(null);
-        }
-        if(queueEntry == null){
-            getLogger().warn(".addTask(): Cannot add task to cache, queueEntry is empty");
-            return(null);
-        }
-        ConcurrentHashMap<String, PetasosActionableTask> taskCache = null;
+
+
+    public boolean addTaskToParticipantTaskCache(String participantName, PetasosActionableTask task){
         Object lockObject = null;
+        ConcurrentHashMap<String, PetasosActionableTask> taskCache = null;
         synchronized (getTaskCacheLock()){
             taskCache = getParticipantTaskCache().get(participantName);
             if(taskCache == null){
@@ -126,79 +118,9 @@ public class TaskGridCacheServices {
                 lockObject = new Object();
                 getParticipantTaskCacheLockMap().put(participantName, lockObject);
             }
-        }
-        synchronized (lockObject){
-            if(taskCache.size() < getMaxCachedTasksPerParticipant() ) {
-                taskCache.put(task.getTaskId().getId(), task);
-                queueEntry.setCentralCacheStatus(TaskStorageStatusEnum.TASK_SAVED);
-                queueEntry.setCentralCacheLocation(processingPlant.getSubsystemName());
-                queueEntry.setCentralCacheInstant(Instant.now());
-            }
-        }
-
-        TaskIdType taskId = saveTaskIntoPersistence(participantName, task);
-        if(taskId == null){
-            getLogger().error(".addTask(): Cannot add task to cache, task could not be persisted");
             taskCache.put(task.getTaskId().getId(), task);
-            return(null);
-        } else {
-            queueEntry.setPersistenceStatus(TaskStorageStatusEnum.TASK_SAVED);
-            queueEntry.setPersistenceLocation(processingPlant.getSubsystemName());
-            queueEntry.setPersistenceInstant(Instant.now());
         }
-
-        getLogger().debug(".addTask(): Exit, taskId->{}", taskId);
-        return(taskId);
-    }
-
-    public TaskIdType saveTaskIntoPersistence(String participantName, PetasosActionableTask task){
-        getLogger().debug(".saveTaskIntoPersistence(): Entry, participantName->{}, task->{}", participantName, task);
-        if(task == null){
-            getLogger().debug(".saveTaskIntoPersistence(): Exit, cannot save task, task is null");
-        }
-        TaskIdType taskId = getTaskPersistenceService().saveActionableTask(task);
-
-        getLogger().debug(".saveTaskIntoPersistence(): Exit, taskId->{}", taskId);
-        return(taskId);
-    }
-
-    public TaskIdType synchroniseTaskIntoPersistence(String participantName, PetasosActionableTask task,  ParticipantTaskQueueEntry queueEntry){
-        getLogger().debug(".saveTaskIntoPersistence(): Entry, participantName->{}, task->{}", participantName, task);
-        if(task == null){
-            getLogger().debug(".saveTaskIntoPersistence(): Exit, cannot save task, task is null");
-        }
-        ConcurrentHashMap<String, PetasosActionableTask> taskCache = null;
-        Object lockObject = null;
-        synchronized (getTaskCacheLock()){
-            taskCache = getParticipantTaskCache().get(participantName);
-            if(taskCache == null){
-                taskCache = new ConcurrentHashMap<>();
-                getParticipantTaskCache().put(participantName, taskCache);
-            }
-            lockObject = getParticipantTaskCacheLockMap().get(participantName);
-            if(lockObject == null){
-                lockObject = new Object();
-                getParticipantTaskCacheLockMap().put(participantName, lockObject);
-            }
-        }
-        synchronized (lockObject){
-            taskCache.put(task.getTaskId().getId(), task);
-            queueEntry.setCentralCacheStatus(TaskStorageStatusEnum.TASK_SAVED);
-            queueEntry.setCentralCacheLocation(processingPlant.getSubsystemName());
-            queueEntry.setCentralCacheInstant(Instant.now());
-        }
-
-        TaskIdType taskId = getTaskPersistenceService().saveActionableTask(task);
-        if(taskId == null){
-            getLogger().error(".addTask(): Cannot add task to cache, task could not be persisted");
-        } else {
-            queueEntry.setPersistenceStatus(TaskStorageStatusEnum.TASK_SAVED);
-            queueEntry.setPersistenceLocation(processingPlant.getSubsystemName());
-            queueEntry.setPersistenceInstant(Instant.now());
-        }
-
-        getLogger().debug(".saveTaskIntoPersistence(): Exit, taskId->{}", taskId);
-        return(taskId);
+        return(true);
     }
 
     //
@@ -231,18 +153,6 @@ public class TaskGridCacheServices {
         return(task);
     }
 
-    public PetasosActionableTask getTaskFromPersistence(String participantName, TaskIdType taskId){
-        getLogger().debug(".getTaskFromPersistence(): Entry, participantName->{}, taskId->{}", participantName, taskId);
-        if(taskId == null){
-            getLogger().debug(".getTaskFromPersistence(): Exit, cannot retrieve task, taskId is null");
-            return(null);
-        }
-        PetasosActionableTask actionableTask = getTaskPersistenceService().loadActionableTask(taskId);
-
-        getLogger().debug(".getTaskFromPersistence(): Exit, actionableTask->{}", actionableTask);
-        return(actionableTask);
-    }
-
     //
     // Delete
 
@@ -271,76 +181,27 @@ public class TaskGridCacheServices {
     }
 
     //
-    // Task Status Updates
+    // General Task Interaction Helper
     //
 
-    //
-    // Task Start
-
-    public TaskExecutionCommandEnum updateTaskStatusToStarted(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail){
-
-        return(TaskExecutionCommandEnum.TASK_COMMAND_EXECUTE);
-    }
-
-    //
-    // Task Finish
-
-    public TaskExecutionCommandEnum updateTaskStatusToFinish(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome){
 
 
-        return(TaskExecutionCommandEnum.TASK_COMMAND_FINISH);
-    }
-
-    //
-    // Task Cancellation
-
-    public TaskExecutionCommandEnum updateTaskStatusToCancelled(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome){
-
-        return(TaskExecutionCommandEnum.TASK_COMMAND_CANCEL);
-    }
-
-    //
-    // Task Failure
-
-    public TaskExecutionCommandEnum updateTaskStatusToFailed(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome){
-
-        return(TaskExecutionCommandEnum.TASK_COMMAND_FAIL);
-    }
-
-   //
-   // Finalise
-
-   public TaskExecutionCommandEnum updateTaskStatusToFinalised(String participantName, TaskIdType taskId, TaskCompletionSummaryType taskCompletionSummary){
-        getLogger().debug(".finaliseTask(): Entry, participantName->{}, task->{}, taskCompletionSummary->{}", participantName, taskId, taskCompletionSummary);
-
+    public Object getParticipantTaskSetLock(String participantName){
         if(StringUtils.isEmpty(participantName)){
-            getLogger().debug(".finaliseTask(): Cannot find task in cache, participantName is empty");
+            getLogger().error(".getParticipantTaskSetLock(): Warning, empty participantName!");
+            return(null);
         }
-
-        PetasosActionableTask taskFromCache = getTaskFromCache(participantName, taskId);
-        if(taskFromCache.getTaskCompletionSummary() == null){
-            taskFromCache.setTaskCompletionSummary(new TaskCompletionSummaryType());
+        Object lockObject = getParticipantTaskCacheLockMap().get(participantName);
+        if(lockObject == null){
+            lockObject = new Object();
+            getParticipantTaskCacheLockMap().put(participantName, lockObject);
         }
-        taskFromCache.getTaskCompletionSummary().setFinalised(true);
-
-        if(taskCompletionSummary != null) {
-            if (!taskCompletionSummary.getDownstreamTaskMap().isEmpty()) {
-                for (TaskIdType currentDownstreamTaskId : taskCompletionSummary.getDownstreamTaskMap().keySet()) {
-                    DownstreamTaskStatusType downstreamTaskStatusType = taskCompletionSummary.getDownstreamTaskMap().get(currentDownstreamTaskId);
-                    taskFromCache.getTaskCompletionSummary().getDownstreamTaskMap().put(currentDownstreamTaskId, downstreamTaskStatusType);
-                }
-            }
-        }
-       TaskIdType taskIdType = getTaskPersistenceService().saveActionableTask(taskFromCache);
-        if(taskIdType == null){
-            getLogger().error(".updateTaskStatusToFinalised(): Cannot persist Task, will hold onto it for a bit in cache! NOT GOOD");
-        } else {
-            deleteTaskFromCache(participantName, taskFromCache.getTaskId());
-        }
-
-        getLogger().debug(".finaliseTask(): Exit");
-        return(TaskExecutionCommandEnum.TASK_COMMAND_FINALISE);
+        return(lockObject);
     }
+
+
+
+
 
     //
     // Task Metrics
@@ -375,19 +236,19 @@ public class TaskGridCacheServices {
         return (LOG);
     }
 
-    protected ConcurrentHashMap<String, ConcurrentHashMap<String, PetasosActionableTask>> getParticipantTaskCache(){
+    public ConcurrentHashMap<String, ConcurrentHashMap<String, PetasosActionableTask>> getParticipantTaskCache(){
         return(participantTaskCache);
     }
 
-    protected ConcurrentHashMap<String, Object> getParticipantTaskCacheLockMap(){
+    public ConcurrentHashMap<String, Object> getParticipantTaskCacheLockMap(){
         return(participantTaskCacheLockMap);
     }
 
-    protected Object getTaskCacheLock(){
+    public Object getTaskCacheLock(){
         return(participantTaskCacheLock);
     }
 
-    protected TaskRouterFHIRTaskService getTaskPersistenceService(){
+    public TaskRouterFHIRTaskService getTaskPersistenceService(){
         return(taskPersistenceService);
     }
 

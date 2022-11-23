@@ -52,7 +52,7 @@ public abstract class PonosTaskRouterHubCommon extends JGroupsIntegrationPointBa
                 getLogger().debug(".resolveTargetAddressForTaskReceiver(): Iterating through Address list, current element->{}", currentAddress);
                 String currentService = deriveIntegrationPointSubsystemName(currentAddress.toString());
                 if (currentService.contentEquals(participantName)) {
-                    if(currentAddress.toString().contains(PetasosEndpointFunctionTypeEnum.PETASOS_TASK_DISTRIBUTION_GRID_ENDPOINT.getDisplayName())) {
+                    if(currentAddress.toString().contains(PetasosEndpointFunctionTypeEnum.PETASOS_TASK_DISTRIBUTION_GRID_ENDPOINT_ONE.getDisplayName())) {
                         getLogger().debug(".resolveTargetAddressForTaskReceiver(): Exit, A match!");
                         foundAddress = currentAddress;
                         break;

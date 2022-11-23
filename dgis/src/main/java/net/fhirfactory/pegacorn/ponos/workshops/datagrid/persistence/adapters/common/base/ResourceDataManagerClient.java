@@ -59,7 +59,7 @@ public abstract class ResourceDataManagerClient extends DataManagerClientBase {
     //
     // Create Resource
     public MethodOutcome  createResource(Resource resourceToCreate){
-        getLogger().debug(".createResource(): Entry, resourceToCreate->{}", resourceToCreate);
+        getLogger().warn(".createResource(): Entry, resourceToCreate->{}", resourceToCreate);
         MethodOutcome outcome = null;
         try {
             outcome = getClient().create()
@@ -79,7 +79,7 @@ public abstract class ResourceDataManagerClient extends DataManagerClientBase {
     //
     // Update Resource
     public MethodOutcome updateResource(Resource resourceToUpdate){
-        getLogger().debug(".updateResource(): Entry, resourceToUpdate->{}", resourceToUpdate);
+        getLogger().warn(".updateResource(): Entry, resourceToUpdate->{}", resourceToUpdate);
         MethodOutcome outcome = null;
         try {
             outcome = getClient().update()

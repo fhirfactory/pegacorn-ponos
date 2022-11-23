@@ -188,7 +188,7 @@ public class TaskLoggingCacheServices extends PetasosActionableTaskDM {
         //
         // Persist It
         try{
-            taskLogger.saveActionableTask(actionableTask);
+            taskLogger.updatePersistedTask(actionableTask);
         } catch (Exception ex){
             getLogger().warn(".registerPetasosActionableTask(): Could not save ActionableTask -> ", ex);
         }
@@ -220,7 +220,7 @@ public class TaskLoggingCacheServices extends PetasosActionableTaskDM {
         //
         // Persist It
         try{
-            taskLogger.saveActionableTask(actionableTask);
+            taskLogger.updatePersistedTask(actionableTask);
         } catch (Exception ex){
             getLogger().warn(".registerPetasosActionableTask(): Could not save ActionableTask -> ", ex);
         }
@@ -315,7 +315,7 @@ public class TaskLoggingCacheServices extends PetasosActionableTaskDM {
             PetasosActionableTaskRegistrationType actionableTaskRegistration = null;
             if(getTaskRegistrationCache().containsKey(entryKey)) {
                 PetasosActionableTask registeredActionableTask = getTaskCache().get(entryKey);
-                taskLogger.saveActionableTask(registeredActionableTask);
+                taskLogger.updatePersistedTask(registeredActionableTask);
             }
         } catch (Exception ex){
             getLogger().warn(".registerPetasosActionableTask(): Could not save ActionableTask -> ", ex);

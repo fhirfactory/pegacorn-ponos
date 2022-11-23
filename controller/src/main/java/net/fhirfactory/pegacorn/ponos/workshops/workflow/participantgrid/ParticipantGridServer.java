@@ -22,8 +22,7 @@
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.participantgrid;
 
 import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
-import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
+import net.fhirfactory.pegacorn.core.model.petasos.participant.*;
 import net.fhirfactory.pegacorn.petasos.endpoints.services.subscriptions.ParticipantServicesEndpointBase;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.ParticipantCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.oam.ProcessingPlantPathwayReportProxy;
@@ -50,22 +49,21 @@ public class ParticipantGridServer extends ParticipantServicesEndpointBase {
     @Override
     public boolean isPetasosParticipantRegistered(PetasosParticipant participant) {
         getLogger().debug(".isPetasosParticipantRegistered(): Entry, participant->{}", participant);
-        boolean isRegistered = petasosParticipantCache.getPetasosParticipantRegistration(participant.getComponentID()) != null;
+        boolean isRegistered = petasosParticipantCache.getPetasosParticipantRegistration(participant.getParticipantName()) != null;
         getLogger().debug(".isPetasosParticipantRegistered(): Exit, isRegistered->{}", isRegistered);
         return(isRegistered);
     }
 
-
     @Override
-    public Set<PetasosParticipant> getDownstreamTaskPerformersForTaskProducer(String producerParticipantName) {
-        getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): Entry, producerParticipantName->{}", producerParticipantName);
-        Set<PetasosParticipant> subscriberSet = petasosParticipantCache.getDownstreamParticipantSet(producerParticipantName);
-        if(getLogger().isInfoEnabled()){
-            getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): subscriberSet->{}", subscriberSet);
+    public PetasosParticipantRegistration getPetasosParticipantRegistration(String participantName) {
+        getLogger().info(".getPetasosParticipantRegistration(): Entry, participantName->{}", participantName);
+        if(StringUtils.isEmpty(participantName)){
+            getLogger().info(".getPetasosParticipantRegistration(): Exit, participant is null, returning null");
+            return (null);
         }
-        processingPlantPathwayReportProxy.touchProcessingPlantSubscriptionSynchronisationInstant(producerParticipantName);
-        getLogger().info(".getDownstreamTaskPerformersForTaskProducer(): Exit");
-        return(subscriberSet);
+        PetasosParticipantRegistration registration = petasosParticipantCache.getPetasosParticipantRegistration(participantName);
+        getLogger().info(".getPetasosParticipantRegistration(): Exit, registration->{}", registration);
+        return(registration);
     }
 
     @Override
@@ -107,33 +105,42 @@ public class ParticipantGridServer extends ParticipantServicesEndpointBase {
     }
 
     @Override
-    public PetasosParticipantRegistration getPetasosParticipantRegistration(ComponentIdType participantId) {
-        getLogger().debug(".getPetasosParticipantRegistration(): Entry, participantId->{}", participantId);
-        if(participantId == null){
-            getLogger().debug(".getPetasosParticipantRegistration(): Exit, participantId is null, returning null");
-            return(null);
-        }
-        PetasosParticipantRegistration registration = petasosParticipantCache.deregisterPetasosParticipant(participantId);
-        getLogger().debug(".getPetasosParticipantRegistration(): Exit, registration->{}", registration);
-        return(registration);
-    }
-
-    @Override
-    public Set<PetasosParticipantRegistration> getParticipantRegistrationSetForParticipantName(String participantName) {
-        getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Entry, participantName->{}", participantName);
-        if(StringUtils.isEmpty(participantName)){
-            getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Exit, participantName is null, returning empty set");
-            return(new HashSet<>());
-        }
-        Set<PetasosParticipantRegistration> downstreamTaskPerformers = petasosParticipantCache.getParticipantRegistrationSetForParticipantName(participantName);
-        getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Exit");
-        return (downstreamTaskPerformers);
-    }
-
-    @Override
     public Set<PetasosParticipantRegistration> getAllRegistrations() {
         Set<PetasosParticipantRegistration> allRegistrations = petasosParticipantCache.getAllRegistrations();
         return (allRegistrations);
+    }
+
+    @Override
+    public PetasosParticipantRegistrationSet updateParticipantRegistrationSet(String participantName, PetasosParticipantRegistrationSet registrationSet) {
+        getLogger().debug(".updateParticipantRegistrationSet(): Entry, participantName->{}", participantName);
+        PetasosParticipantRegistrationSet updates = new PetasosParticipantRegistrationSet();
+
+        if(registrationSet != null){
+            getLogger().debug(".updateParticipantRegistrationSet(): Not an empty set, size->{}", registrationSet.getRegistrationSet().size());
+            for(PetasosParticipantRegistration currentRegistration: registrationSet.getRegistrationSet().values()){
+                getLogger().debug(".updateParticipantRegistrationSet(): Processing->{}", currentRegistration.getParticipant().getParticipantName());
+                PetasosParticipantRegistration petasosParticipantRegistration = petasosParticipantCache.registerPetasosParticipant(currentRegistration.getParticipant());
+                updates.addRegistration(petasosParticipantRegistration);
+            }
+        }
+        getLogger().debug(".updateParticipantRegistrationSet(): Exit");
+        return(updates);
+    }
+
+    @Override
+    public PetasosParticipantStatusSet updateParticipantStatusSet(String participantName, PetasosParticipantStatusSet statusSet) {
+        getLogger().debug(".updateParticipantStatusSet(): Entry, participantName->{}", participantName);
+        PetasosParticipantStatusSet updates = new PetasosParticipantStatusSet();
+
+        if(statusSet != null){
+            getLogger().debug(".updateParticipantStatusSet(): Not an empty set, size->{}", statusSet.getStatusMap().size());
+            for(PetasosParticipantStatus currentStatus: statusSet.getStatusMap().values()){
+                getLogger().debug(".updateParticipantStatusSet(): Processing->{}", currentStatus.getParticipantName());
+                petasosParticipantCache.setParticipantStatus(currentStatus.getParticipantName(), currentStatus.getControlStatus());
+            }
+        }
+        getLogger().debug(".updateParticipantStatusSet(): Exit");
+        return(updates);
     }
 
     @Override

@@ -21,16 +21,12 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache;
 
-import ca.uhn.fhir.util.StringUtil;
-import net.fhirfactory.pegacorn.core.model.componentid.ComponentIdType;
-import net.fhirfactory.pegacorn.core.model.componentid.PegacornSystemComponentTypeTypeEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipant;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantControlStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistration;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantRegistrationStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.work.datatypes.TaskWorkItemSubscriptionType;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.core.PonosReplicatedCacheServices;
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.persistence.services.common.ActionableTaskPersistenceServiceCommon;
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.Cache;
 import org.slf4j.Logger;
@@ -50,30 +46,18 @@ public class ParticipantCacheServices {
 
     private boolean initialised;
 
-    // Cache<registrationId, publisherRegistration>
-    private Cache<String, PetasosParticipantRegistration> petasosParticipantRegistrationCache;
-    private Object petasosParticipantRegistrationCacheLock;
-
-    // Cache<componentId, registrationId>
-    private Cache<ComponentIdType, String> petasosParticipantComponentIdMap;
-    private Object petasosParticipantComponentIdMapLock;
-
-    // Cache<producerServiceName, Set<registrationId>>
-    private Cache<String, Set<String>> producerTaskConsumerMap;
-    private Object producerTaskConsumerMapLock;
-
-    // Cache<producerServiceName, Set<registrationId>>
-    private Cache<String, Set<String>> participantServiceNameToPetasosParticipantRegistration;
-    private Object participantServiceNameToPetasosParticipantRegistrationLock;
+    // Cache<participantName, participantRegistration>
+    private Cache<String, PetasosParticipantRegistration> participantRegistrationCache;
+    private final Object petasosParticipantRegistrationCacheLock;
 
     private ConcurrentHashMap<String, PetasosParticipantControlStatusEnum> participantStatusMap;
-    private Object participantStatusLock;
+    private final Object participantStatusLock;
 
     private ConcurrentHashMap<String, Instant> participantActivityTimestampMap;
-    private Object participantActivityTimestampMapLock;
+    private final Object participantActivityTimestampMapLock;
 
     private ConcurrentHashMap<String, Integer> participantCacheSizeMap;
-    private Object participantCacheSizeMapLock;
+    private final Object participantCacheSizeMapLock;
 
 
     @Inject
@@ -85,14 +69,8 @@ public class ParticipantCacheServices {
 
     public ParticipantCacheServices(){
         this.initialised = false;
-        this.petasosParticipantRegistrationCache = null;
         this.petasosParticipantRegistrationCacheLock = new Object();
-        this.participantServiceNameToPetasosParticipantRegistration = null;
-        this.participantServiceNameToPetasosParticipantRegistrationLock = new Object();
-        this.petasosParticipantRegistrationCache = null;
-        this.petasosParticipantComponentIdMapLock = new Object();
-        this.producerTaskConsumerMap = null;
-        this.producerTaskConsumerMapLock = new Object();
+        this.participantRegistrationCache = null;
         this.participantStatusMap = new ConcurrentHashMap<>();
         this.participantStatusLock = new Object();
         this.participantActivityTimestampMap = new ConcurrentHashMap<>();
@@ -108,10 +86,7 @@ public class ParticipantCacheServices {
             getLogger().info(".initialise(): Initialisation Start");
 
             getLogger().info(".initialise(): [Initialising Caches] Start");
-            petasosParticipantRegistrationCache = replicatedCacheServices.getCacheManager().createCache("PetasosParticipantRegistrationCache", replicatedCacheServices.getCacheConfigurationBuild());
-            petasosParticipantComponentIdMap = replicatedCacheServices.getCacheManager().createCache("PetasosParticipantComponentIdMap", replicatedCacheServices.getCacheConfigurationBuild());
-            producerTaskConsumerMap = replicatedCacheServices.getCacheManager().createCache("TaskProducerConsumerMap", replicatedCacheServices.getCacheConfigurationBuild());
-            participantServiceNameToPetasosParticipantRegistration = replicatedCacheServices.getCacheManager().createCache("PetasosParticipantServiceMap", replicatedCacheServices.getCacheConfigurationBuild());
+            participantRegistrationCache = replicatedCacheServices.getCacheManager().createCache("PetasosParticipantRegistrationCache", replicatedCacheServices.getCacheConfigurationBuild());
             getLogger().info(".initialise(): [Initialising Caches] End");
 
             this.initialised = true;
@@ -136,10 +111,22 @@ public class ParticipantCacheServices {
             getLogger().debug("registerPetasosParticipant(): Exit, participant is null, returning -null-");
             return(null);
         }
+        if(StringUtils.isEmpty(participant.getParticipantName())){
+            getLogger().debug("registerPetasosParticipant(): Exit, participant name is empty, returning -null-");
+            return(null);
+        }
         getLogger().trace(".registerTaskProducer(): Now, check to see if participant (instance) is already cached and, if so, do nothing!");
-        if(getPetasosParticipantComponentIdMap().containsKey(participant.getComponentID())){
-            String registrationId = getPetasosParticipantComponentIdMap().get(participant.getComponentID());
-            registration = getPetasosParticipantRegistrationCache().get(registrationId);
+        if(getParticipantRegistrationCache().containsKey(participant.getParticipantName())){
+            PetasosParticipantRegistration existingRegistration = getPetasosParticipantRegistration(participant.getParticipantName());
+            if(!existingRegistration.getParticipantInstances().contains(participant.getComponentID())){
+                existingRegistration.getParticipantInstances().add(participant.getComponentID());
+            }
+            for(TaskWorkItemSubscriptionType currentSubscription: participant.getSubscriptions())
+            {
+                if(!existingRegistration.getParticipant().getSubscriptions().contains(currentSubscription)){
+                    existingRegistration.getParticipant().getSubscriptions().add(currentSubscription);
+                }
+            }
             getLogger().debug("registerPublisherInstance(): Exit, participant already registered, registration->{}", registration);
             return(registration);
         } else {
@@ -149,19 +136,11 @@ public class ParticipantCacheServices {
             registration.setRegistrationCommentary("Publisher Registered");
             registration.setRegistrationInstant(Instant.now());
             registration.setRegistrationStatus(PetasosParticipantRegistrationStatusEnum.PETASOS_PARTICIPANT_REGISTRATION_ACTIVE);
+            registration.getParticipantInstances().add(participant.getComponentID());
             synchronized (this.petasosParticipantRegistrationCacheLock) {
-                getPetasosParticipantRegistrationCache().put(registration.getRegistrationId(), registration);
+                getParticipantRegistrationCache().put(participant.getParticipantName(), registration);
             }
-            synchronized(this.getPetasosParticipantComponentIdMapLock()){
-                getPetasosParticipantComponentIdMap().put(participant.getComponentID(), registration.getRegistrationId());
-            }
-            if(participant.getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)) {
-                for (TaskWorkItemSubscriptionType currentTaskWorkItem : participant.getSubscriptions()) {
-                    addDownstreamSubscriberParticipant(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
-                }
-                addPetasosParticipantInstanceForParticipantName(participant.getSubsystemParticipantName(), registration);
-            }
-            getLogger().debug(".registerTaskProducer(): Exit, registration->{}", registration);
+            getLogger().debug("registerPublisherInstance(): Exit, added new registration, registration->{}", registration);
             return (registration);
         }
     }
@@ -177,39 +156,25 @@ public class ParticipantCacheServices {
             getLogger().debug("deregisterPetasosParticipant(): Exit, participant is null");
             return(null);
         }
-        PetasosParticipantRegistration registration = deregisterPetasosParticipant(participant.getComponentID());
+        PetasosParticipantRegistration registration = deregisterPetasosParticipant(participant.getParticipantName());
         getLogger().debug(".deregisterPetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
     }
 
     /**
      *
-     * @param participantId
+     * @param participantName
      * @return
      */
-    public PetasosParticipantRegistration deregisterPetasosParticipant(ComponentIdType participantId) {
-        getLogger().debug(".deregisterPetasosParticipant(): Entry, participantId->{}", participantId);
-        PetasosParticipantRegistration registration = null;
-        if (participantId == null) {
-            getLogger().debug("deregisterPetasosParticipant(): Exit, participant is null");
+    public PetasosParticipantRegistration deregisterPetasosParticipant(String participantName) {
+        getLogger().debug(".deregisterPetasosParticipant(): Entry, participantName->{}", participantName);
+        if (StringUtils.isEmpty(participantName)) {
+            getLogger().debug("deregisterPetasosParticipant(): Exit, participant is empty");
             return (null);
         }
-        if(getPetasosParticipantComponentIdMap().containsKey(participantId)){
-            String registrationId = getPetasosParticipantComponentIdMap().get(participantId);
-            registration = getPetasosParticipantRegistrationCache().get(registrationId);
-            synchronized (this.petasosParticipantRegistrationCacheLock) {
-                getPetasosParticipantRegistrationCache().remove(registrationId);
-            }
-            synchronized (this.getPetasosParticipantComponentIdMapLock()) {
-                getPetasosParticipantComponentIdMap().remove(participantId);
-            }
-            if(registration.getParticipant().getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)) {
-                for (TaskWorkItemSubscriptionType currentTaskWorkItem : registration.getParticipant().getSubscriptions()) {
-                    removeDownstreamSubscriberParticipant(currentTaskWorkItem.getSourceProcessingPlantParticipantName(), registration);
-                }
-                removePetasosParticipantInstanceForParticipantName(registration.getParticipant().getSubsystemParticipantName(), registration);
-            }
-            registration.setRegistrationStatus(PetasosParticipantRegistrationStatusEnum.PETASOS_PARTICIPANT_UNREGISTERED);
+        PetasosParticipantRegistration registration = getPetasosParticipantRegistration(participantName);
+        synchronized (this.petasosParticipantRegistrationCacheLock) {
+            getParticipantRegistrationCache().remove(participantName);
         }
         getLogger().debug(".deregisterPetasosParticipant(): Exit, registration->{}", registration);
         return(registration);
@@ -226,202 +191,17 @@ public class ParticipantCacheServices {
             getLogger().debug(".updatePetasosParticipant(): Exit, participant is null, returning null");
             return(null);
         }
-        deregisterPetasosParticipant(participant.getComponentID());
-        PetasosParticipantRegistration registration = registerPetasosParticipant(participant);
-        getLogger().debug(".updatePetasosParticipant(): Exit, registration->{}", registration);
-        return(registration);
-    }
-
-    /**
-     *
-     * @param componentId
-     * @return
-     */
-    public PetasosParticipantRegistration getPetasosParticipantRegistration(ComponentIdType componentId){
-        getLogger().debug(".getPetasosParticipantRegistration(): Entry, componentId->{}", componentId);
-        if(getPetasosParticipantComponentIdMap().containsKey(componentId)){
-            String registrationId = getPetasosParticipantComponentIdMap().get(componentId);
-            if(getPetasosParticipantRegistrationCache().containsKey(registrationId)){
-                PetasosParticipantRegistration registration = getPetasosParticipantRegistrationCache().get(registrationId);
-                getLogger().debug(".getPetasosParticipantRegistration(): Exit, registration->{}", registration);
-                return(registration);
+        PetasosParticipantRegistration existingRegistration = getPetasosParticipantRegistration(participant.getParticipantName());
+        if(!existingRegistration.getParticipantInstances().contains(participant.getComponentID())){
+            existingRegistration.getParticipantInstances().add(participant.getComponentID());
+        }
+        for(TaskWorkItemSubscriptionType currentSubscription: participant.getSubscriptions()) {
+            if (!existingRegistration.getParticipant().getSubscriptions().contains(currentSubscription)) {
+                existingRegistration.getParticipant().getSubscriptions().add(currentSubscription);
             }
         }
-        getLogger().debug(".getPetasosParticipantRegistration(): Exit, could not find registration");
-        return(null);
-    }
-
-    //
-    // "Subscription" Map (ProducerTaskConsumerMap)
-    //
-
-    /**
-     *
-     * @param producerParticipantName
-     * @param downstreamParticipant
-     */
-    public void addDownstreamSubscriberParticipant(String producerParticipantName, PetasosParticipantRegistration downstreamParticipant){
-        getLogger().debug(".addDownstreamSubscriberParticipant(): Entry, producerParticipantName->{}, downstreamParticipant->{}", producerParticipantName, downstreamParticipant);
-        if(StringUtils.isEmpty(producerParticipantName)){
-            getLogger().debug(".addDownstreamSubscriberParticipant(): Exit, producerParticipantName is empty");
-            return;
-        }
-        if(downstreamParticipant == null){
-            getLogger().debug(".addDownstreamSubscriberParticipant(): Exit, downstreamParticipant is null");
-            return;
-        }
-        getLogger().trace(".addDownstreamSubscriberParticipant(): Iterating through WorkItemManifests for participant");
-        synchronized (getProducerTaskConsumerMapLock()){
-            if(getProducerTaskConsumerMap().containsKey(producerParticipantName)) {
-                Set<String> registrationIdSet = getProducerTaskConsumerMap().get(producerParticipantName);
-                if(!registrationIdSet.contains(downstreamParticipant.getRegistrationId())){
-                    getLogger().trace(".addDownstreamSubscriberParticipant(): Adding consumer into already existing set");
-                    registrationIdSet.add(downstreamParticipant.getRegistrationId());
-                }
-            } else {
-                getLogger().trace(".addDownstreamSubscriberParticipant(): Creating a new Consumer set and adding this consumer to it!");
-                Set<String> registrationIdSet = new HashSet<>();
-                registrationIdSet.add(downstreamParticipant.getRegistrationId());
-                getProducerTaskConsumerMap().put(producerParticipantName, registrationIdSet);
-            }
-        }
-        getLogger().debug(".addDownstreamSubscriberParticipant(): Exit");
-    }
-
-    /**
-     *
-     * @param producerParticipantName
-     * @param downstreamParticipant
-     */
-    public void removeDownstreamSubscriberParticipant(String producerParticipantName, PetasosParticipantRegistration downstreamParticipant){
-        getLogger().debug(".removeDownstreamSubscriberParticipant(): Entry, producerParticipantName->{}, downstreamParticipant->{}", producerParticipantName, downstreamParticipant);
-        if(StringUtils.isEmpty(producerParticipantName)){
-            getLogger().debug(".removeDownstreamSubscriberParticipant(): Exit, producerParticipantName is empty");
-            return;
-        }
-        if(downstreamParticipant == null){
-            getLogger().debug(".removeDownstreamSubscriberParticipant(): Exit, downstreamParticipant is null");
-            return;
-        }
-        getLogger().trace(".removeDownstreamSubscriberParticipant(): Iterating through WorkItemManifests for participant");
-        synchronized (getProducerTaskConsumerMapLock()){
-            if(getProducerTaskConsumerMap().containsKey(producerParticipantName)) {
-                Set<String> registrationIdSet = getProducerTaskConsumerMap().get(producerParticipantName);
-                if(registrationIdSet.contains(downstreamParticipant.getRegistrationId())){
-                    getLogger().trace(".removeDownstreamSubscriberParticipant(): Removing consumer from Consumer set");
-                    registrationIdSet.remove(downstreamParticipant.getRegistrationId());
-                }
-                if(registrationIdSet.isEmpty()){
-                    getProducerTaskConsumerMap().remove(producerParticipantName);
-                }
-            }
-        }
-        getLogger().debug(".removeDownstreamSubscriberParticipant(): Exit");
-    }
-
-    /**
-     *
-     * @param producerParticipantName
-     * @return
-     */
-    public Set<PetasosParticipant> getDownstreamParticipantSet(String producerParticipantName){
-        getLogger().debug(".getDownstreamSubscribers(): Entry, producerParticipantName->{}", producerParticipantName);
-        Set<PetasosParticipant> downstreamTaskPerformers = new HashSet<>();
-        if(StringUtils.isEmpty(producerParticipantName)){
-            getLogger().debug(".getDownstreamSubscribers(): Exit, producerParticipantName is empty, so returning empty list");
-            return(downstreamTaskPerformers);
-        }
-        if(getProducerTaskConsumerMap().containsKey(producerParticipantName)) {
-            getLogger().trace(".getDownstreamTaskPerformers(): producerParticipantName has at least one registered (downstream) consumer");
-            synchronized (getProducerTaskConsumerMapLock()) {
-                Set<String> consumerRegistrations = getProducerTaskConsumerMap().get(producerParticipantName);
-                for (String currentConsumerRegistrationId : consumerRegistrations) {
-                    if (getPetasosParticipantRegistrationCache().containsKey(currentConsumerRegistrationId)) {
-                        PetasosParticipantRegistration currentRegistration = getPetasosParticipantRegistrationCache().get(currentConsumerRegistrationId);
-                        downstreamTaskPerformers.add(currentRegistration.getParticipant());
-                    }
-                }
-            }
-        } else {
-            getLogger().trace(".getDownstreamTaskPerformers(): producerParticipantName has no (downstream) consumers");
-        }
-        getLogger().debug(".getDownstreamTaskPerformers(): Exit");
-        return(downstreamTaskPerformers);
-    }
-
-    //
-    // "Participant Service Map"
-    //
-
-    /**
-     *
-     * @param participantName
-     * @param registration
-     */
-    public void addPetasosParticipantInstanceForParticipantName(String participantName, PetasosParticipantRegistration registration){
-        getLogger().debug(".addPetasosParticipantInstanceForParticipantName(): participantName->{}, registration->{}", participantName, registration);
-        if(registration == null){
-            getLogger().debug(".addPetasosParticipantInstanceForParticipantName(): Exit, registration is null");
-            return;
-        }
-        if(registration.getParticipant().getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)){
-            if(StringUtils.isEmpty(participantName)){
-                getLogger().debug(".addPetasosParticipantInstanceForParticipantName(): Exit, participantName is empty");
-                return;
-            }
-            synchronized (getParticipantServiceNameToPetasosParticipantRegistrationLock()){
-                if(getParticipantServiceNameToPetasosParticipantRegistration().containsKey(participantName)){
-                    getLogger().debug(".addPetasosParticipantInstanceForParticipantName(): Adding registration to an existing Service Set");
-                    Set<String> instanceRegistrationSet = getParticipantServiceNameToPetasosParticipantRegistration().get(participantName);
-                    if(!instanceRegistrationSet.contains(registration.getRegistrationId())){
-                        instanceRegistrationSet.add(registration.getRegistrationId());
-                    }
-                } else {
-                    getLogger().debug(".addPetasosParticipantInstanceForParticipantName(): Creating a new Service Set and adding registration to it");
-                    Set<String> instanceRegistrationSet = new HashSet<>();
-                    instanceRegistrationSet.add(registration.getRegistrationId());
-                    getParticipantServiceNameToPetasosParticipantRegistration().put(participantName, instanceRegistrationSet);
-                }
-            }
-        } else {
-            getLogger().debug(".addPetasosParticipantInstanceForParticipantName(): registration is for a non-ProcessingPlant component, so doing nothing");
-        }
-        getLogger().debug(".addPetasosParticipantInstanceForParticipantName(): Exit");
-    }
-
-    /**
-     *
-     * @param participantName
-     * @param registration
-     */
-    public void removePetasosParticipantInstanceForParticipantName(String participantName, PetasosParticipantRegistration registration){
-        getLogger().debug(".removePetasosParticipantInstanceForParticipantName(): participantName->{}, registration->{}", participantName, registration);
-        if(registration == null){
-            getLogger().debug(".removePetasosParticipantInstanceForParticipantName(): Exit, registration is null");
-            return;
-        }
-        if(registration.getParticipant().getComponentType().equals(PegacornSystemComponentTypeTypeEnum.PROCESSING_PLANT)){
-            if(StringUtils.isEmpty(participantName)){
-                getLogger().debug(".removePetasosParticipantInstanceForParticipantName(): Exit, participantName is empty");
-                return;
-            }
-            synchronized (getParticipantServiceNameToPetasosParticipantRegistrationLock()){
-                if(getParticipantServiceNameToPetasosParticipantRegistration().containsKey(participantName)){
-                    getLogger().debug(".removePetasosParticipantInstanceForParticipantName(): Adding registration to an existing Service Set");
-                    Set<String> instanceRegistrationSet = getParticipantServiceNameToPetasosParticipantRegistration().get(participantName);
-                    if(!instanceRegistrationSet.contains(registration.getRegistrationId())){
-                        instanceRegistrationSet.remove(registration.getRegistrationId());
-                    }
-                    if(instanceRegistrationSet.isEmpty()){
-                        getParticipantServiceNameToPetasosParticipantRegistration().remove(participantName);
-                    }
-                }
-            }
-        } else {
-            getLogger().debug(".removePetasosParticipantInstanceForParticipantName(): registration is for a non-ProcessingPlant component, so doing nothing");
-        }
-        getLogger().debug(".removePetasosParticipantInstanceForParticipantName(): Exit");
-
+        getLogger().debug(".updatePetasosParticipant(): Exit, existingRegistration->{}", existingRegistration);
+        return(existingRegistration);
     }
 
     /**
@@ -429,58 +209,15 @@ public class ParticipantCacheServices {
      * @param participantName
      * @return
      */
-    public Set<PetasosParticipant> getPetasosParticipantInstancesForParticipantName(String participantName){
-        getLogger().debug(".getPetasosParticipantInstancesForParticipantName(): Entry, participantName->{}", participantName);
-        Set<PetasosParticipant> petasosParticipantSet = new HashSet<>();
+    public PetasosParticipantRegistration getPetasosParticipantRegistration(String participantName){
+        getLogger().debug(".getPetasosParticipantRegistration(): Entry, participantName->{}", participantName);
         if(StringUtils.isEmpty(participantName)){
-            getLogger().debug(".getPetasosParticipantInstancesForParticipantName(): Exit, participantName is empty");
-            return(petasosParticipantSet);
+            getLogger().debug(".getPetasosParticipantRegistration(): Exit, participantName is empty, returning null");
+            return(null);
         }
-        synchronized (getParticipantServiceNameToPetasosParticipantRegistrationLock()) {
-            if (getParticipantServiceNameToPetasosParticipantRegistration().containsKey(participantName)) {
-                Set<String> participantRegistrationIdSet = getParticipantServiceNameToPetasosParticipantRegistration().get(participantName);
-                if(!participantRegistrationIdSet.isEmpty()){
-                    for(String participantRegistrationId: participantRegistrationIdSet){
-                        if(getPetasosParticipantRegistrationCache().containsKey(participantRegistrationId)){
-                            PetasosParticipantRegistration currentRegistration = getPetasosParticipantRegistrationCache().get(participantRegistrationId);
-                            petasosParticipantSet.add(currentRegistration.getParticipant());
-                        }
-                    }
-                }
-            }
-        }
-        getLogger().debug(".getPetasosParticipantInstancesForParticipantName(): Exit");
-        return(petasosParticipantSet);
-    }
-
-    /**
-     *
-     * @param participantName
-     * @return
-     */
-
-    public Set<PetasosParticipantRegistration> getParticipantRegistrationSetForParticipantName(String participantName){
-        getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Entry, participantName->{}", participantName);
-        Set<PetasosParticipantRegistration> petasosParticipantRegistrationSet = new HashSet<>();
-        if(StringUtils.isEmpty(participantName)){
-            getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Exit, participantName is empty");
-            return(petasosParticipantRegistrationSet);
-        }
-        synchronized (getParticipantServiceNameToPetasosParticipantRegistrationLock()) {
-            if (getParticipantServiceNameToPetasosParticipantRegistration().containsKey(participantName)) {
-                Set<String> participantRegistrationIdSet = getParticipantServiceNameToPetasosParticipantRegistration().get(participantName);
-                if(!participantRegistrationIdSet.isEmpty()){
-                    for(String participantRegistrationId: participantRegistrationIdSet){
-                        if(getPetasosParticipantRegistrationCache().containsKey(participantRegistrationId)){
-                            PetasosParticipantRegistration currentRegistration = getPetasosParticipantRegistrationCache().get(participantRegistrationId);
-                            petasosParticipantRegistrationSet.add(currentRegistration);
-                        }
-                    }
-                }
-            }
-        }
-        getLogger().debug(".getParticipantRegistrationSetForParticipantName(): Exit");
-        return(petasosParticipantRegistrationSet);
+        PetasosParticipantRegistration petasosParticipantRegistration = getParticipantRegistrationCache().get(participantName);
+        getLogger().debug(".getPetasosParticipantRegistration(): Exit, petasosParticipantRegistration->{}", petasosParticipantRegistration);
+        return(petasosParticipantRegistration);
     }
 
     //
@@ -571,36 +308,13 @@ public class ParticipantCacheServices {
         return (LOG);
     }
 
-    protected Cache<String, PetasosParticipantRegistration> getPetasosParticipantRegistrationCache() {
-        return petasosParticipantRegistrationCache;
+    protected Cache<String, PetasosParticipantRegistration> getParticipantRegistrationCache() {
+        return participantRegistrationCache;
     }
 
     protected Object getPetasosParticipantRegistrationCacheLock() {
         return petasosParticipantRegistrationCacheLock;
     }
 
-    protected Cache<ComponentIdType, String> getPetasosParticipantComponentIdMap() {
-        return petasosParticipantComponentIdMap;
-    }
-
-    protected Object getPetasosParticipantComponentIdMapLock() {
-        return petasosParticipantComponentIdMapLock;
-    }
-
-    protected Cache<String, Set<String>> getParticipantServiceNameToPetasosParticipantRegistration() {
-        return participantServiceNameToPetasosParticipantRegistration;
-    }
-
-    protected Object getParticipantServiceNameToPetasosParticipantRegistrationLock() {
-        return this.participantServiceNameToPetasosParticipantRegistrationLock;
-    }
-
-    protected Cache<String, Set<String>> getProducerTaskConsumerMap() {
-        return producerTaskConsumerMap;
-    }
-
-    protected Object getProducerTaskConsumerMapLock() {
-        return producerTaskConsumerMapLock;
-    }
 
 }

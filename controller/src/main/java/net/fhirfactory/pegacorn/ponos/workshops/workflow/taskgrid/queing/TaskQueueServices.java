@@ -27,24 +27,32 @@ import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datat
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.performer.datatypes.TaskPerformerTypeType;
 import net.fhirfactory.pegacorn.core.model.petasos.task.queue.ParticipantTaskQueueEntry;
 import net.fhirfactory.pegacorn.core.model.petasos.wup.valuesets.PetasosTaskExecutionStatusEnum;
-import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskGridCacheServices;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.queues.CentralTaskQueueMap;
+import net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid.clientservices.TaskGridClientServicesManagerAlpha;
+import net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid.clientservices.TaskGridClientServicesManagerBeta;
+import net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid.clientservices.common.TaskGridClientServicesManagerBase;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.time.Instant;
 
 @ApplicationScoped
 public class TaskQueueServices {
     private static final Logger LOG = LoggerFactory.getLogger(TaskQueueServices.class);
 
+    private static final Long MAXIMUM_ACTIVITY_DURATION = 3000L;
+
     @Inject
     private CentralTaskQueueMap taskQueueMap;
 
     @Inject
-    private TaskGridCacheServices taskCache;
+    private TaskGridClientServicesManagerAlpha taskServicesManagerAlpha;
+
+    @Inject
+    private TaskGridClientServicesManagerBeta taskServicesManagerBeta;
 
     @Inject
     private ProcessingPlantInterface processingPlant;
@@ -69,19 +77,35 @@ public class TaskQueueServices {
         return(LOG);
     }
 
+    protected TaskGridClientServicesManagerBase getTaskGridClientServicesManager(){
+        if(taskServicesManagerAlpha.isBusy()){
+            if(taskServicesManagerBeta.isBusy()){
+                Long alphaActivityDuration = Instant.now().getEpochSecond() - taskServicesManagerAlpha.getBusyStartTime().getEpochSecond();
+                if(alphaActivityDuration > MAXIMUM_ACTIVITY_DURATION){
+                    return(taskServicesManagerAlpha);
+                } else {
+                    return(taskServicesManagerBeta);
+                }
+            } else {
+                return(taskServicesManagerBeta);
+            }
+        }
+        return(taskServicesManagerAlpha);
+    }
+
     //
     // Queue Input / Queue Output
     //
 
     public boolean queueTask(PetasosActionableTask actionableTask){
-        getLogger().debug(".queueTask(): Entry, actionableTask->{}", actionableTask);
+        getLogger().warn(".queueTask(): Entry, actionableTask->{}", actionableTask);
 
-        getLogger().debug(".queueTask(): [Checking actionableTask] Start" );
+        getLogger().trace(".queueTask(): [Checking actionableTask] Start" );
         if(actionableTask == null){
             getLogger().debug(".queueTask(): [Checking actionableTask] is null, exiting");
             return(false);
         }
-        getLogger().debug(".queueTask(): [Checking actionableTask] Finish (not null)" );
+        getLogger().trace(".queueTask(): [Checking actionableTask] Finish (not null)" );
 
         getLogger().trace(".queueTask(): [Check Task for TaskPerformer] Start");
         if(!actionableTask.hasTaskPerformerTypes()){
@@ -108,12 +132,12 @@ public class TaskQueueServices {
                 entry.setSequenceNumber(actionableTask.getTaskId().getTaskSequenceNumber());
                 taskQueueMap.addEntry(currentPerformer.getRequiredParticipantName(), entry);
                 actionableTask.getTaskExecutionDetail().setCurrentExecutionStatus(PetasosTaskExecutionStatusEnum.PETASOS_TASK_ACTIVITY_STATUS_QUEUED);
-                TaskIdType updatedTaskId = taskCache.addTask(currentPerformer.getRequiredParticipantName(), actionableTask, entry);
-                getLogger().info(".queueTask(): [Queue to ALL TaskPerformers] taskPerformer->{}, queueEntry->{}", currentPerformer.getRequiredParticipantName(), entry);
+                TaskIdType updatedTaskId = getTaskGridClientServicesManager().addTask(currentPerformer.getRequiredParticipantName(), actionableTask, entry);
+                getLogger().trace(".queueTask(): [Queue to ALL TaskPerformers] taskPerformer->{}, queueEntry->{}", currentPerformer.getRequiredParticipantName(), entry);
             }
 
         }
-        getLogger().debug(".queueTask(): [Queue to ALL TaskPerformers] Finish");
+        getLogger().trace(".queueTask(): [Queue to ALL TaskPerformers] Finish");
 
         getLogger().debug(".queueTask(): Exit, allGood->{}", allGood);
         return(allGood);

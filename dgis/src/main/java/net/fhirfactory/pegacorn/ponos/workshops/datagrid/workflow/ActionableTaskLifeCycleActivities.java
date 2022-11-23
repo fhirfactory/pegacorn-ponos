@@ -24,7 +24,7 @@ package net.fhirfactory.pegacorn.ponos.workshops.datagrid.workflow;
 import net.fhirfactory.pegacorn.core.interfaces.datagrid.DatagridElementKeyInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
 import net.fhirfactory.pegacorn.core.model.petasos.task.datatypes.identity.datatypes.TaskIdType;
-import net.fhirfactory.pegacorn.petasos.oam.metrics.agents.ProcessingPlantMetricsAgentAccessor;
+import net.fhirfactory.pegacorn.petasos.oam.metrics.collectors.ProcessingPlantMetricsAgentAccessor;
 import net.fhirfactory.pegacorn.ponos.workshops.datagrid.cache.TaskLoggingCacheServices;
 import net.fhirfactory.pegacorn.services.tasks.datatypes.PetasosActionableTaskRegistrationType;
 import org.slf4j.Logger;

@@ -151,7 +151,7 @@ public class CentralTaskQueueMap {
             }
         } else {
             inserted = false;
-            errorMessage = "participantName is emtpy";
+            errorMessage = "participantName is empty";
         }
         if(inserted){
             getLogger().debug(".queueTask(): Exit, task inserted!");
@@ -221,9 +221,12 @@ public class CentralTaskQueueMap {
         getLogger().debug(".peekNextTask(): Entry, participantName->{}", participantName);
         ParticipantTaskQueueEntry taskQueueEntry = null;
         if(StringUtils.isNotEmpty(participantName)){
+            getLogger().debug(".peekNextTask(): participantName is not empty");
             if(getParticipantQueueMap().containsKey(participantName)) {
+                getLogger().debug(".peekNextTask(): participantName has an associated queue");
                 synchronized (getParticipantQueueLockMap().get(participantName)) {
                     if (getParticipantQueueMap().get(participantName).hasEntries()) {
+                        getLogger().debug(".peekNextTask(): participantName Queue has entries");
                         taskQueueEntry = getParticipantQueueMap().get(participantName).peek();
                     }
                 }

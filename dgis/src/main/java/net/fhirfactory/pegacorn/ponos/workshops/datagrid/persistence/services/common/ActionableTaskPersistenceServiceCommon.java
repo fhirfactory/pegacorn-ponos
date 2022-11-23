@@ -93,67 +93,63 @@ public abstract class ActionableTaskPersistenceServiceCommon {
     // Business Logic
     //
 
-    public TaskIdType saveActionableTask(PetasosActionableTask actionableTask){
-        getLogger().debug(".savePetasosActionableTask(): Entry, actionableTask->{}", actionableTask);
+    public TaskIdType createPersistedTask(PetasosActionableTask actionableTask){
+        getLogger().debug(".createPersistedTask(): Entry, actionableTask->{}", actionableTask);
         if(actionableTask == null){
-            getLogger().debug(".savePetasosActionableTask():Exit, actionableTask is null");
+            getLogger().debug(".createPersistedTask():Exit, actionableTask is null");
             return(null);
         }
 
-        getLogger().trace(".savePetasosActionableTask(): [Convert ActionableTask to FHIR Resource Set] Start");
+        getLogger().trace(".createPersistedTask(): [Convert ActionableTask to FHIR Resource Set] Start");
         List<Resource> resourceList = actionableTaskToFHIRTaskTransformer.transformTask(actionableTask);
-        getLogger().trace(".savePetasosActionableTask(): [Convert ActionableTask to FHIR Resource Set] Finish");
+        getLogger().trace(".createPersistedTask(): [Convert ActionableTask to FHIR Resource Set] Finish");
 
         if(resourceList == null){
-            getLogger().debug(".savePetasosActionableTask():Exit, resourceList is null");
+            getLogger().debug(".createPersistedTask():Exit, resourceList is null");
             return(null);
         }
         if(resourceList.isEmpty()){
-            getLogger().debug(".savePetasosActionableTask():Exit, resourceList is empty");
+            getLogger().debug(".createPersistedTask():Exit, resourceList is empty");
             return(null);
         }
 
-        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Start");
+        getLogger().trace(".createPersistedTask(): [Save FHIR Resource Set] Start");
         IIdType id = null;
         for(Resource currentResource: resourceList){
-            getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] currentResource->{}", currentResource );
+            getLogger().warn(".createPersistedTask(): [Save FHIR Resource Set] currentResource->{}", currentResource );
             MethodOutcome outcome = null;
             if(currentResource.getResourceType().equals(ResourceType.Task)){
-                getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] processingTask" );
+                getLogger().warn(".createPersistedTask(): [Save FHIR Resource Set] processingTask" );
                 Task currentTask = (Task)currentResource;
-                Resource existingResource = getTaskFHIRClient().findResourceByIdentifier(currentTask.getIdentifierFirstRep());
-                if(existingResource == null){
-                    getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] Updating Task" );
-                    outcome = getTaskFHIRClient().createTask(currentTask);
-                } else {
-                    getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] Creating Task" );
-                    currentTask.setId(existingResource.getId());
-                    outcome = getTaskFHIRClient().updateTask(currentTask);
-                }
+                getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] Creating Task" );
+                outcome = getTaskFHIRClient().createTask(currentTask);
                 if(outcome != null){
                     if(outcome.getId() != null){
                         id = outcome.getId();
-                        getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] New Task Id->{}", id );
+                        IdType resourceId = new IdType();
+                        resourceId.setParts(id.getBaseUrl(), id.getResourceType(), id.getIdPart(), id.getVersionIdPart());
+                        actionableTask.getTaskId().setResourceId(resourceId);
+                        getLogger().warn(".createPersistedTask(): [Save FHIR Resource Set] New Task Id->{}", id );
                     }
                 }
                 if(getLogger().isTraceEnabled()) {
                     if (outcome != null) {
-                        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Task Resource Save Done, outcome->{}", outcome);
+                        getLogger().trace(".createPersistedTask(): [Save FHIR Resource Set] Task Resource Save Done, outcome->{}", outcome);
                     } else {
-                        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Task Resource Save Failed, outcome is null!");
+                        getLogger().trace(".createPersistedTask(): [Save FHIR Resource Set] Task Resource Save Failed, outcome is null!");
                     }
                 }
             }
             if(currentResource.getResourceType().equals(ResourceType.Provenance)){
-                getLogger().warn(".savePetasosActionableTask(): [Save FHIR Resource Set] processingProvenance" );
+                getLogger().warn(".createPersistedTask(): [Save FHIR Resource Set] processingProvenance" );
                 Provenance currentProvenance = (Provenance)currentResource;
                 currentProvenance.addTarget(new Reference(id));
                 outcome = getProvenanceFHIRClient().createProvenance(currentProvenance);
                 if(getLogger().isTraceEnabled()) {
                     if (outcome != null) {
-                        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Provenance Resource Save Done, outcome->{}", outcome);
+                        getLogger().trace(".createPersistedTask(): [Save FHIR Resource Set] Provenance Resource Save Done, outcome->{}", outcome);
                     } else {
-                        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Provenance Resource Save Failed, outcome is null!");
+                        getLogger().trace(".createPersistedTask(): [Save FHIR Resource Set] Provenance Resource Save Failed, outcome is null!");
                     }
                 }
             }
@@ -196,23 +192,127 @@ public abstract class ActionableTaskPersistenceServiceCommon {
             }
              */
         }
-        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Finish");
+        getLogger().trace(".createPersistedTask(): [Save FHIR Resource Set] Finish");
+        return(actionableTask.getTaskId());
+    }
+
+    public TaskIdType updatePersistedTask(PetasosActionableTask actionableTask){
+        getLogger().debug(".updatePersistedTask(): Entry, actionableTask->{}", actionableTask);
+        if(actionableTask == null){
+            getLogger().debug(".updatePersistedTask():Exit, actionableTask is null");
+            return(null);
+        }
+
+        getLogger().trace(".updatePersistedTask(): [Convert ActionableTask to FHIR Resource Set] Start");
+        List<Resource> resourceList = actionableTaskToFHIRTaskTransformer.transformTask(actionableTask);
+        getLogger().trace(".updatePersistedTask(): [Convert ActionableTask to FHIR Resource Set] Finish");
+
+        if(resourceList == null){
+            getLogger().debug(".updatePersistedTask():Exit, resourceList is null");
+            return(null);
+        }
+        if(resourceList.isEmpty()){
+            getLogger().debug(".updatePersistedTask():Exit, resourceList is empty");
+            return(null);
+        }
+
+        getLogger().trace(".updatePersistedTask(): [Save FHIR Resource Set] Start");
+        IIdType id = null;
+        for(Resource currentResource: resourceList){
+            getLogger().warn(".updatePersistedTask(): [Save FHIR Resource Set] currentResource->{}", currentResource );
+            MethodOutcome outcome = null;
+            if(currentResource.getResourceType().equals(ResourceType.Task)){
+                getLogger().warn(".updatePersistedTask(): [Save FHIR Resource Set] processingTask" );
+                Task currentTask = (Task)currentResource;
+//                Resource existingResource = getTaskFHIRClient().findResourceByIdentifier(currentTask.getIdentifierFirstRep());
+                getLogger().warn(".updatePersistedTask(): [Save FHIR Resource Set] Updating Task" );
+                outcome = getTaskFHIRClient().updateTask(currentTask);
+                if(outcome != null){
+                    if(outcome.getId() != null){
+                        id = outcome.getId();
+                        IdType resourceId = new IdType();
+                        resourceId.setParts(id.getBaseUrl(), id.getResourceType(), id.getIdPart(), id.getVersionIdPart());
+                        actionableTask.getTaskId().setResourceId(resourceId);
+                        getLogger().warn(".updatePersistedTask(): [Save FHIR Resource Set] New Task Id->{}", id );
+                    }
+                }
+                if(getLogger().isTraceEnabled()) {
+                    if (outcome != null) {
+                        getLogger().trace(".updatePersistedTask(): [Save FHIR Resource Set] Task Resource Save Done, outcome->{}", outcome);
+                    } else {
+                        getLogger().trace(".updatePersistedTask(): [Save FHIR Resource Set] Task Resource Save Failed, outcome is null!");
+                    }
+                }
+            }
+            if(currentResource.getResourceType().equals(ResourceType.Provenance)){
+                getLogger().warn(".updatePersistedTask(): [Save FHIR Resource Set] processingProvenance" );
+                Provenance currentProvenance = (Provenance)currentResource;
+                currentProvenance.addTarget(new Reference(id));
+                outcome = getProvenanceFHIRClient().updateProvenance(currentProvenance);
+                if(getLogger().isTraceEnabled()) {
+                    if (outcome != null) {
+                        getLogger().trace(".updatePersistedTask(): [Save FHIR Resource Set] Provenance Resource Save Done, outcome->{}", outcome);
+                    } else {
+                        getLogger().trace(".updatePersistedTask(): [Save FHIR Resource Set] Provenance Resource Save Failed, outcome is null!");
+                    }
+                }
+            }
+            /*
+            if(currentResource.getResourceType().equals(ResourceType.Encounter)){
+                Encounter currentEncounter = (Encounter)currentResource;
+                Resource existingResource = provenanceFHIRClient.findResourceByIdentifier(ResourceType.Encounter, currentEncounter.getIdentifierFirstRep());
+                if(existingResource == null){
+                    outcome = encounterFHIRClient.createEncounter(currentEncounter);
+                } else {
+                    currentEncounter.setId(existingResource.getId());
+                    outcome = encounterFHIRClient.createEncounter(currentEncounter);
+                }
+                if(getLogger().isTraceEnabled()) {
+                    if (outcome != null) {
+                        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Encounter Resource Save Done, outcome->{}", outcome);
+                    } else {
+                        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Encounter Resource Save Failed, outcome is null!");
+                    }
+                }
+            }
+             */
+            /*
+            if(currentResource.getResourceType().equals(ResourceType.Patient)){
+                Patient currentPatient = (Patient)currentResource;
+                Resource existingResource = provenanceFHIRClient.findResourceByIdentifier(ResourceType.Patient, currentPatient.getIdentifierFirstRep());
+                if(existingResource == null){
+                    outcome = patientFHIRClient.createPatient(currentPatient);
+                } else {
+                    currentPatient.setId(existingResource.getId());
+                    outcome = patientFHIRClient.createPatient(currentPatient);
+                }
+                if(getLogger().isTraceEnabled()) {
+                    if (outcome != null) {
+                        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Patient Resource Save Done, outcome->{}", outcome);
+                    } else {
+                        getLogger().trace(".savePetasosActionableTask(): [Save FHIR Resource Set] Patient Resource Save Failed, outcome is null!");
+                    }
+                }
+            }
+             */
+        }
+        getLogger().trace(".updatePersistedTask(): [Save FHIR Resource Set] Finish");
         return(actionableTask.getTaskId());
     }
 
 
 
-    public PetasosActionableTask loadActionableTask(TaskIdType taskId){
-        getLogger().debug(".loadActionableTask(): Entry, taskId->{}", taskId);
+    public PetasosActionableTask loadTask(TaskIdType taskId){
+        getLogger().debug(".loadTask(): Entry, taskId->{}", taskId);
 
         if(taskId == null){
-            getLogger().debug("loadActionableTask(): Exit, taskId is null");
+            getLogger().debug("loadTask(): Exit, taskId is null");
             return(null);
         }
 
         //
         // Load the Task
-        getLogger().trace(".loadActionableTask(): [Retrieve FHIR Task Resource] Start");
+        getLogger().trace(".loadTask(): [Retrieve FHIR Task Resource] Start");
         Identifier taskIdentifier = getTaskIdentifierFactory().newTaskIdentifier(TaskTypeTypeEnum.PETASOS_ACTIONABLE_TASK_TYPE, taskId);
 
         Resource resource = getTaskFHIRClient().findResourceByIdentifier(taskIdentifier);
@@ -222,10 +322,10 @@ public abstract class ActionableTaskPersistenceServiceCommon {
                 task = (Task)resource;
             }
         }
-        getLogger().trace(".loadActionableTask(): [Retrieve FHIR Task Resource] Finish, task->{}", task);
+        getLogger().trace(".loadTask(): [Retrieve FHIR Task Resource] Finish, task->{}", task);
 
         if(task == null){
-            getLogger().debug("loadActionableTask(): Exit, unable to load task!");
+            getLogger().debug("loadTask(): Exit, unable to load task!");
             return(null);
         }
 
@@ -233,9 +333,9 @@ public abstract class ActionableTaskPersistenceServiceCommon {
 
         //
         // Load the Provenance (if any)
-        getLogger().trace(".loadActionableTask(): [Retrieve FHIR Provenance Resource Set] Start");
+        getLogger().trace(".loadTask(): [Retrieve FHIR Provenance Resource Set] Start");
         List<Provenance> provenanceList = getProvenanceFHIRClient().findByReferenceToTask(taskId.getResourceId());
-        getLogger().trace(".loadActionableTask(): [Retrieve FHIR Provenance Resource Set] Finish");
+        getLogger().trace(".loadTask(): [Retrieve FHIR Provenance Resource Set] Finish");
 
         PetasosActionableTask loadedActionableTask = actionableTask;
         if(provenanceList != null) {
@@ -247,7 +347,7 @@ public abstract class ActionableTaskPersistenceServiceCommon {
             }
         }
 
-        getLogger().debug(".loadActionableTask(): Exit, loadedActionableTask->{}", loadedActionableTask);
+        getLogger().debug(".loadTask(): Exit, loadedActionableTask->{}", loadedActionableTask);
         return(loadedActionableTask);
     }
 
