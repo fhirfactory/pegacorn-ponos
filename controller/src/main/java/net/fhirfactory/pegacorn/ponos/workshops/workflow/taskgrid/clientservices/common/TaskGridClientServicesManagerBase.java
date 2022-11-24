@@ -21,7 +21,6 @@
  */
 package net.fhirfactory.pegacorn.ponos.workshops.workflow.taskgrid.clientservices.common;
 
-import net.fhirfactory.pegacorn.core.interfaces.tasks.PetasosTaskGridClientInterface;
 import net.fhirfactory.pegacorn.core.interfaces.topology.ProcessingPlantInterface;
 import net.fhirfactory.pegacorn.core.model.petasos.participant.PetasosParticipantControlStatusEnum;
 import net.fhirfactory.pegacorn.core.model.petasos.task.PetasosActionableTask;
@@ -157,7 +156,7 @@ public abstract class TaskGridClientServicesManagerBase  {
     //
 
     public PetasosActionableTask registerExternallyTriggeredTask(String participantName, PetasosActionableTask task){
-        getLogger().warn(".registerExternallyTriggeredTask(): Entry");
+        getLogger().debug(".registerExternallyTriggeredTask(): Entry");
         amBusy();
         getLogger().debug(".registerExternallyTriggeredTask(): Entry, participantName->{}, task->{}", participantName, task);
         if(StringUtils.isEmpty(participantName)){
@@ -202,12 +201,10 @@ public abstract class TaskGridClientServicesManagerBase  {
         }
         getLogger().debug(".registerExternallyTriggeredTask(): Exit, taskId->{}", taskId);
         amNotBusy();
-        getLogger().warn(".registerExternallyTriggeredTask(): Exit");
         return(task);
     }
 
     public TaskIdType addTask(String participantName, PetasosActionableTask task, ParticipantTaskQueueEntry queueEntry){
-        getLogger().warn(".addTask(): Entry");
         amBusy();
         getLogger().debug(".addTask(): Entry, participantName->{}, task->{}", participantName, task);
         if(StringUtils.isEmpty(participantName)){
@@ -265,7 +262,6 @@ public abstract class TaskGridClientServicesManagerBase  {
 
         getLogger().debug(".addTask(): Exit, taskId->{}", taskId);
         amNotBusy();
-        getLogger().warn(".addTask(): Exit");
         return(taskId);
     }
 
@@ -274,7 +270,6 @@ public abstract class TaskGridClientServicesManagerBase  {
     //
 
     protected PetasosActionableTask loadTask(String participantName, TaskIdType taskId){
-        getLogger().warn(".loadTask(): Entry");
         amBusy();
         getLogger().debug(".loadTask(): Entry, participantName->{}, taskId->{}", participantName, taskId);
         if(StringUtils.isEmpty(participantName)){
@@ -306,12 +301,10 @@ public abstract class TaskGridClientServicesManagerBase  {
         }
         getLogger().debug(".loadTask(): Exit, task->{}", task);
         amNotBusy();
-        getLogger().warn(".loadTask(): Exit");
         return(task);
     }
 
     public TaskIdType updateExistingPersistedTask(String participantName, PetasosActionableTask task){
-        getLogger().warn(".updateExistingPersistedTask(): Entry");
         amBusy();
         getLogger().debug(".updateExistingPersistedTask(): Entry, participantName->{}, task->{}", participantName, task);
         if(task == null){
@@ -329,12 +322,10 @@ public abstract class TaskGridClientServicesManagerBase  {
 
         getLogger().debug(".updateExistingPersistedTask(): Exit, taskId->{}", taskId);
         amNotBusy();
-        getLogger().warn(".updateExistingPersistedTask(): Exit");
         return(taskId);
     }
 
     public TaskIdType saveNewTask(String participantName, PetasosActionableTask task){
-        getLogger().warn(".saveNewTask(): Entry");
         amBusy();
         getLogger().debug(".saveNewTask(): Entry, participantName->{}, task->{}", participantName, task);
         if(task == null){
@@ -347,12 +338,10 @@ public abstract class TaskGridClientServicesManagerBase  {
 
         getLogger().debug(".saveNewTask(): Exit, returnedTask.getTaskId->{}", returnedTask.getTaskId());
         amNotBusy();
-        getLogger().warn(".saveNewTask(): Exit");
         return(returnedTask.getTaskId());
     }
 
     public TaskIdType synchroniseTaskIntoPersistence(String participantName, PetasosActionableTask task,  ParticipantTaskQueueEntry queueEntry){
-        getLogger().warn(".synchroniseTaskIntoPersistence(): Entry");
         amBusy();
         getLogger().debug(".synchroniseTaskIntoPersistence(): Entry, participantName->{}, task->{}", participantName, task);
         if(task == null){
@@ -397,7 +386,6 @@ public abstract class TaskGridClientServicesManagerBase  {
 
         getLogger().debug(".synchroniseTaskIntoPersistence(): Exit, taskId->{}", taskId);
         amNotBusy();
-        getLogger().warn(".synchroniseTaskIntoPersistence(): Exit");
         return(taskId);
     }
 
@@ -406,21 +394,18 @@ public abstract class TaskGridClientServicesManagerBase  {
     //
 
     public TaskIdType queueTask(PetasosActionableTask actionableTask) {
-        getLogger().warn(".queueTask(): Entry");
         amBusy();
         getLogger().debug(".queueTask(): Entry, actionableTask->{}", actionableTask);
         Boolean queued = getTaskQueueServices().queueTask(actionableTask);
         actionableTask.setRegistered(queued);
         getLogger().debug(".queueTask(): Exit, actionableTask->{}", actionableTask);
         amNotBusy();
-        getLogger().warn(".queueTask(): Exit");
         return(actionableTask.getTaskId());
     }
 
     public PetasosActionableTask getNextPendingTask(String participantName) {
-        getLogger().warn(".getNextPendingTask(): Entry");
         amBusy();
-        getLogger().warn(".getNextPendingTask(): Entry, participantName->{}", participantName);
+        getLogger().debug(".getNextPendingTask(): Entry, participantName->{}", participantName);
         if(StringUtils.isEmpty(participantName)){
             getLogger().warn(".getNextPendingTask(): Exit, participantName is empty");
             amNotBusy();
@@ -428,18 +413,18 @@ public abstract class TaskGridClientServicesManagerBase  {
         }
         PetasosParticipantControlStatusEnum participantStatus = getParticipantCacheServices().getParticipantStatus(participantName);
         if(participantStatus == null){
-            getLogger().warn(".getNextPendingTask(): Exit, participant {} is not registered, returning null", participantName);
+            getLogger().info(".getNextPendingTask(): Exit, participant {} is not registered, returning null", participantName);
             amNotBusy();
             return(null);
         }
         if(!participantStatus.equals(PetasosParticipantControlStatusEnum.PARTICIPANT_IS_ENABLED)){
-            getLogger().warn(".getNextPendingTask(): Exit, participant {} is not ENABLED, returning null", participantName);
+            getLogger().debug(".getNextPendingTask(): Exit, participant {} is not ENABLED, returning null", participantName);
             amNotBusy();
             return(null);
         }
         ParticipantTaskQueueEntry participantTaskQueueEntry = getTaskQueueMap().peekNextTask(participantName);
         if(participantTaskQueueEntry == null){
-            getLogger().warn(".getNextPendingTask(): Exit, participant {} is no PENDING tasks, returning null", participantName);
+            getLogger().debug(".getNextPendingTask(): Exit, participant {} is no PENDING tasks, returning null", participantName);
             amNotBusy();
             return(null);
         }
@@ -454,7 +439,7 @@ public abstract class TaskGridClientServicesManagerBase  {
         task.getTaskExecutionDetail().setCurrentExecutionStatus(PetasosTaskExecutionStatusEnum.PETASOS_TASK_ACTIVITY_STATUS_ASSIGNED);
         getTaskQueueMap().pollNextTask(participantName);
         amNotBusy();
-        getLogger().warn(".getNextPendingTask(): Exit, task->{}", task);
+        getLogger().debug(".getNextPendingTask(): Exit, task->{}", task);
         return(task);
     }
 
@@ -466,7 +451,6 @@ public abstract class TaskGridClientServicesManagerBase  {
     // Task Start
 
     public TaskExecutionControl updateTaskStatusToStart(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail) {
-        getLogger().warn(".updateTaskStatusToStart(): Entry");
         amBusy();
         getLogger().debug(".updateTaskStatusToStart(): Entry, participantName->{}, taskId->{}, taskFulfillmentDetail->{}", participantName, taskId, taskFulfillmentDetail);
 
@@ -511,7 +495,7 @@ public abstract class TaskGridClientServicesManagerBase  {
         getLogger().trace(".updateTaskStatusToStart(): [Update Task] Finish");
 
         taskExecutionControl.setExecutionCommand(TaskExecutionCommandEnum.TASK_COMMAND_EXECUTE);
-        getLogger().warn(".updateTaskStatusToStart(): Exit");
+        getLogger().debug(".updateTaskStatusToStart(): Exit");
         amNotBusy();
         return(taskExecutionControl);
     }
@@ -520,7 +504,6 @@ public abstract class TaskGridClientServicesManagerBase  {
     // Task Finish
 
     public TaskExecutionControl updateTaskStatusToFinish(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome, String statusReason) {
-        getLogger().warn(".updateTaskStatusToFinish(): Entry");
         amBusy();
         getLogger().debug(".updateTaskStatusToFinish(): Entry, participantName->{}, taskId->{}, taskFulfillmentDetail->{}, egressPayload->{}, taskOutcome->{}", participantName, taskId, taskFulfillmentDetail,egressPayload, taskOutcome );
 
@@ -557,7 +540,7 @@ public abstract class TaskGridClientServicesManagerBase  {
             amNotBusy();
             return(taskExecutionControl);
         }
-        getLogger().warn(".updateTaskStatusToFinish(): [Load Task] Finish, task->{}", task);
+        getLogger().trace(".updateTaskStatusToFinish(): [Load Task] Finish, task->{}", task);
 
         getLogger().trace(".updateTaskStatusToFinish(): [Update Task] Start");
         getLogger().trace(".updateTaskStatusToFinish(): [Update Task] [Update Task Fulfillment] Start");
@@ -598,7 +581,7 @@ public abstract class TaskGridClientServicesManagerBase  {
         getLogger().trace(".updateTaskStatusToFinish(): [Save Task] Finish");
 
         taskExecutionControl.setExecutionCommand(TaskExecutionCommandEnum.TASK_COMMAND_CANCEL);
-        getLogger().warn(".updateTaskStatusToFinish(): Exit");
+        getLogger().debug(".updateTaskStatusToFinish(): Exit");
         amNotBusy();
         return(taskExecutionControl);
     }
@@ -607,7 +590,6 @@ public abstract class TaskGridClientServicesManagerBase  {
     // Task Cancellation
 
     public TaskExecutionControl updateTaskStatusToCancelled(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome, String statusReason) {
-        getLogger().warn(".updateTaskStatusToCancelled(): Entry");
         amBusy();
         getLogger().debug(".updateTaskStatusToCancelled(): Entry, participantName->{}, taskId->{}, taskFulfillmentDetail->{}, egressPayload->{}, taskOutcome->{}", participantName, taskId, taskFulfillmentDetail,egressPayload, taskOutcome );
 
@@ -685,7 +667,7 @@ public abstract class TaskGridClientServicesManagerBase  {
 
         taskExecutionControl.setExecutionCommand(TaskExecutionCommandEnum.TASK_COMMAND_CANCEL);
 
-        getLogger().warn(".updateTaskStatusToCancelled(): Exit");
+        getLogger().debug(".updateTaskStatusToCancelled(): Exit");
         amNotBusy();
         return(taskExecutionControl);
     }
@@ -694,7 +676,6 @@ public abstract class TaskGridClientServicesManagerBase  {
     // Task Failure
 
     public TaskExecutionControl updateTaskStatusToFailed(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome, String failureDescription) {
-        getLogger().warn(".updateTaskStatusToFailed(): Entry");
         amBusy();
         getLogger().debug(".updateTaskStatusToFailed(): Entry, participantName->{}, taskId->{}, taskFulfillmentDetail->{}, egressPayload->{}, taskOutcome->{}, failureDescription->{}", participantName, taskId, taskFulfillmentDetail,egressPayload, taskOutcome , failureDescription);
 
@@ -771,7 +752,7 @@ public abstract class TaskGridClientServicesManagerBase  {
         getLogger().trace(".updateTaskStatusToFailed(): [Save Task] Finish");
 
         taskExecutionControl.setExecutionCommand(TaskExecutionCommandEnum.TASK_COMMAND_FAIL);
-        getLogger().warn(".updateTaskStatusToFailed(): Exit");
+        getLogger().debug(".updateTaskStatusToFailed(): Exit");
         amNotBusy();
         return(taskExecutionControl);
     }
@@ -780,7 +761,6 @@ public abstract class TaskGridClientServicesManagerBase  {
     // Finalise
 
     public TaskExecutionControl updateTaskStatusToFinalised(String participantName, TaskIdType taskId, TaskCompletionSummaryType completionSummary) {
-        getLogger().warn(".updateTaskStatusToFinalised(): Entry");
         amBusy();
         getLogger().debug(".updateTaskStatusToFinalised(): Entry, participantName->{}, taskId->{}, completionSummary->{}", participantName, taskId, completionSummary);
 
@@ -846,10 +826,8 @@ public abstract class TaskGridClientServicesManagerBase  {
 
         taskExecutionControl.setExecutionCommand(TaskExecutionCommandEnum.TASK_COMMAND_FINALISE);
 
-        getLogger().warn(".updateTaskStatusToFinalised(): Exit");
+        getLogger().debug(".updateTaskStatusToFinalised(): Exit");
         amNotBusy();
         return(taskExecutionControl);
     }
-
-
 }

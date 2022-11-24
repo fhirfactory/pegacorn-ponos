@@ -296,7 +296,9 @@ public class ParticipantCacheServices {
      */
     public Set<PetasosParticipantRegistration> getAllRegistrations(){
         Set<PetasosParticipantRegistration> registrationSet = new HashSet<>();
-
+        synchronized (petasosParticipantRegistrationCacheLock){
+            registrationSet.addAll(getParticipantRegistrationCache().values());
+        }
         return(registrationSet);
     }
 

@@ -77,16 +77,13 @@ public abstract class TaskGridServicesEndpointBase extends JGroupsIntegrationPoi
     //
 
     public PetasosActionableTask registerExternallyTriggeredTask(String participantName, PetasosActionableTask actionableTask , JGroupsIntegrationPointSummary requesterEndpointSummary) {
-        getLogger().warn(".registerExternallyTriggeredTask(): Entry");
         getLogger().debug(".registerExternallyTriggeredTask(): Entry, participantName->{}, actionableTask->{}, integrationPoint->{}", participantName, actionableTask, requesterEndpointSummary);
         PetasosActionableTask task = getTaskGridClientServicesManager().registerExternallyTriggeredTask(participantName, actionableTask);
         getLogger().debug(".registerExternallyTriggeredTask(): Exit, task->{}", task);
-        getLogger().warn(".registerExternallyTriggeredTask(): Exit");
         return(task);
     }
 
     public TaskIdType queueTask(PetasosActionableTask actionableTask, JGroupsIntegrationPointSummary integrationPoint) {
-        getLogger().warn(".queueTask(): Entry");
         getLogger().debug(".queueTask(): Entry, actionableTask->{}, integrationPoint->{}", actionableTask, integrationPoint);
         TaskIdType taskId = getTaskGridClientServicesManager().queueTask(actionableTask);
         getLogger().debug(".queueTask(): Exit, taskId->{}", taskId);
@@ -94,7 +91,6 @@ public abstract class TaskGridServicesEndpointBase extends JGroupsIntegrationPoi
     }
 
     public PetasosActionableTask getNextPendingTask(String participantName, JGroupsIntegrationPointSummary requesterEndpointSummary) {
-        getLogger().warn(".getNextPendingTask(): Entry");
         getLogger().debug(".getNextPendingTask(): Entry, participantName->{}, requesterEndpointSummary->{}", participantName, requesterEndpointSummary);
         if(StringUtils.isEmpty(participantName)){
             getLogger().debug(".getNextPendingTask(): Exit, participantName is empty");
@@ -106,7 +102,6 @@ public abstract class TaskGridServicesEndpointBase extends JGroupsIntegrationPoi
     }
 
     public TaskExecutionControl notifyTaskStart(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, JGroupsIntegrationPointSummary requesterEndpointSummary) {
-        getLogger().warn(".notifyTaskStart(): Entry");
         getLogger().debug(".notifyTaskStart(): Entry, participantName->{}, taskId->{}, taskFulfillmentDetail->{}", participantName, taskId, taskFulfillmentDetail);
         TaskExecutionControl executionControl = getTaskGridClientServicesManager().updateTaskStatusToStart(participantName, taskId, taskFulfillmentDetail);
         getLogger().debug(".notifyTaskStart(): Exit");
@@ -114,7 +109,6 @@ public abstract class TaskGridServicesEndpointBase extends JGroupsIntegrationPoi
     }
 
     public TaskExecutionControl notifyTaskFinish(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome, String statusReason, JGroupsIntegrationPointSummary requesterEndpointSummary) {
-        getLogger().warn(".notifyTaskFinish(): Entry");
         getLogger().debug(".notifyTaskFinish(): Entry, participantName->{}, taskId->{}, taskFulfillmentDetail->{}, egressPayload->{}, taskOutcome->{}", participantName, taskId, taskFulfillmentDetail,egressPayload, taskOutcome );
         TaskExecutionControl executionControl = getTaskGridClientServicesManager().updateTaskStatusToFinish(participantName, taskId, taskFulfillmentDetail, egressPayload, taskOutcome, statusReason);
         getLogger().debug(".notifyTaskFinish(): Exit");
@@ -122,7 +116,6 @@ public abstract class TaskGridServicesEndpointBase extends JGroupsIntegrationPoi
     }
 
     public TaskExecutionControl notifyTaskCancellation(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome, String statusReason, JGroupsIntegrationPointSummary requesterEndpointSummary) {
-        getLogger().warn(".notifyTaskCancellation(): Entry");
         getLogger().debug(".notifyTaskCancellation(): Entry, participantName->{}, taskId->{}, taskFulfillmentDetail->{}, egressPayload->{}, taskOutcome->{}", participantName, taskId, taskFulfillmentDetail,egressPayload, taskOutcome );
         TaskExecutionControl executionControl = getTaskGridClientServicesManager().updateTaskStatusToCancelled(participantName, taskId, taskFulfillmentDetail, egressPayload, taskOutcome, statusReason);
         getLogger().debug(".notifyTaskCancellation(): Exit");
@@ -130,7 +123,6 @@ public abstract class TaskGridServicesEndpointBase extends JGroupsIntegrationPoi
     }
 
     public TaskExecutionControl notifyTaskFailure(String participantName, TaskIdType taskId, TaskFulfillmentType taskFulfillmentDetail, UoWPayloadSet egressPayload, TaskOutcomeStatusType taskOutcome, String failureDescription, JGroupsIntegrationPointSummary requesterEndpointSummary) {
-        getLogger().warn(".notifyTaskFailure(): Entry");
         getLogger().debug(".notifyTaskFailure(): Entry, participantName->{}, taskId->{}, taskFulfillmentDetail->{}, egressPayload->{}, taskOutcome->{}, failureDescription->{}", participantName, taskId, taskFulfillmentDetail,egressPayload, taskOutcome , failureDescription);
         TaskExecutionControl executionControl = getTaskGridClientServicesManager().updateTaskStatusToFailed(participantName, taskId, taskFulfillmentDetail, egressPayload, taskOutcome, failureDescription);
         getLogger().debug(".notifyTaskFailure(): Exit");
@@ -138,7 +130,6 @@ public abstract class TaskGridServicesEndpointBase extends JGroupsIntegrationPoi
     }
 
     public TaskExecutionControl notifyTaskFinalisation(String participantName, TaskIdType taskId, TaskCompletionSummaryType completionSummary, JGroupsIntegrationPointSummary requesterEndpointSummary) {
-        getLogger().warn(".notifyTaskFinalisation(): Entry");
         getLogger().debug(".notifyTaskFinalisation(): Entry, participantName->{}, taskId->{}, completionSummary->{}", participantName, taskId, completionSummary);
         TaskExecutionControl executionControl = getTaskGridClientServicesManager().updateTaskStatusToFinalised(participantName, taskId, completionSummary);
         getLogger().debug(".notifyTaskFinalisation(): Exit");

@@ -98,30 +98,31 @@ public class GlobalTaskDistributionDecisionEngine extends TaskDistributionDecisi
 
     public List<PetasosParticipant> deriveSubscriberList(DataParcelManifest parcelManifest){
         getLogger().debug(".deriveSubscriberList(): Entry, parcelManifest->{}", parcelManifest);
-        if(getLogger().isDebugEnabled()){
+        if(getLogger().isTraceEnabled()){
             if(parcelManifest.hasContentDescriptor()){
                 String messageToken = parcelManifest.getContentDescriptor().toFDN().getToken().toTag();
-                getLogger().debug(".deriveSubscriberList(): parcel.ContentDescriptor->{}", messageToken);
+                getLogger().trace(".deriveSubscriberList(): parcel.ContentDescriptor->{}", messageToken);
             }
         }
         List<PetasosParticipant> subscriberList = new ArrayList<>();
 
         Set<PetasosParticipantRegistration> participants = getParticipantCache().getAllRegistrations();
+        getLogger().trace(".deriveSubscriberList(): participants.size()->{}", participants.size());
 
         for(PetasosParticipantRegistration currentParticipantRegistration: participants) {
-            getLogger().debug(".deriveSubscriberList(): Processing participant->{}/{}", currentParticipantRegistration.getParticipant().getParticipantName(), currentParticipantRegistration.getParticipant().getSubsystemParticipantName());
+            getLogger().trace(".deriveSubscriberList(): Processing participant->{}/{}", currentParticipantRegistration.getParticipant().getParticipantName(), currentParticipantRegistration.getParticipant().getSubsystemParticipantName());
             for (TaskWorkItemSubscriptionType currentSubscription : currentParticipantRegistration.getParticipant().getSubscriptions()) {
                 if (applySubscriptionFilter(currentSubscription, parcelManifest)) {
                     if (!subscriberList.contains(currentParticipantRegistration)) {
                         subscriberList.add(currentParticipantRegistration.getParticipant());
-                        getLogger().debug(".deriveSubscriberList(): Adding.... ");
+                        getLogger().trace(".deriveSubscriberList(): Adding.... ");
                     }
                     break;
                 }
             }
         }
 
-        getLogger().debug(".getSubscriberList(): Exit!");
+        getLogger().debug(".deriveSubscriberList(): Exit!");
         return(subscriberList);
     }
 

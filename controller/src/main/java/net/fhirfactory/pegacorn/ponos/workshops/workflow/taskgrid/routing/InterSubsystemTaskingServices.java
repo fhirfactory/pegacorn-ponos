@@ -86,11 +86,11 @@ public class InterSubsystemTaskingServices {
         TaskWorkItemType incomingUoW = actionableTask.getTaskWorkItem();
         UoWPayloadSet egressContent = incomingUoW.getEgressContent();
         Set<UoWPayload> egressPayloadList = egressContent.getPayloadElements();
-        if (getLogger().isDebugEnabled()) {
+        if (getLogger().isTraceEnabled()) {
             int counter = 0;
             for(UoWPayload currentPayload: egressPayloadList){
-                getLogger().debug(".collectOutcomesAndCreateNewTasks(): payload (UoWPayload).PayloadTopic --> [{}] {}", counter, currentPayload.getPayloadManifest());
-                getLogger().debug(".collectOutcomesAndCreateNewTasks(): payload (UoWPayload).Payload --> [{}] {}", counter, currentPayload.getPayload());
+                getLogger().trace(".collectOutcomesAndCreateNewTasks(): payload (UoWPayload).PayloadTopic --> [{}] {}", counter, currentPayload.getPayloadManifest());
+                getLogger().trace(".collectOutcomesAndCreateNewTasks(): payload (UoWPayload).Payload --> [{}] {}", counter, currentPayload.getPayload());
                 counter++;
             }
         }
@@ -108,11 +108,13 @@ public class InterSubsystemTaskingServices {
 
         Boolean hasADownstreamTask = false;
         for (UoWPayload currentPayload : egressPayloadList) {
+            getLogger().trace(".collectOutcomesAndCreateNewTasks(): Processing Egress Payload->{}", currentPayload);
             DataParcelManifest payloadManifest = currentPayload.getPayloadManifest();
             if(payloadManifest.getDataParcelFlowDirection().equals(DataParcelDirectionEnum.INFORMATION_FLOW_CORE_DISTRIBUTION)) {
+                getLogger().trace(".collectOutcomesAndCreateNewTasks(): Is an INFORMATION_FLOW_CORE_DISTRIBUTION");
                 List<PetasosParticipant> subscriberList = distributionDecisionEngine.deriveSubscriberList(payloadManifest);
-                if (getLogger().isDebugEnabled()) {
-                    getLogger().debug(".collectOutcomesAndCreateNewTasks(): number of subscribers for egressPayload->{} is count->{}", payloadManifest, subscriberList.size());
+                if (getLogger().isTraceEnabled()) {
+                    getLogger().trace(".collectOutcomesAndCreateNewTasks(): number of subscribers for egressPayload->{} is count->{}", payloadManifest, subscriberList.size());
                 }
                 if (!subscriberList.isEmpty()) {
                     for (PetasosParticipant currentSubscriber : subscriberList) {
