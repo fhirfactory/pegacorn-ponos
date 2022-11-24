@@ -93,8 +93,8 @@ public abstract class ActionableTaskPersistenceServiceCommon {
     // Business Logic
     //
 
-    public TaskIdType createPersistedTask(PetasosActionableTask actionableTask){
-        getLogger().debug(".createPersistedTask(): Entry, actionableTask->{}", actionableTask);
+    public PetasosActionableTask createPersistedTask(PetasosActionableTask actionableTask){
+        getLogger().warn(".createPersistedTask(): Entry, actionableTask->{}", actionableTask);
         if(actionableTask == null){
             getLogger().debug(".createPersistedTask():Exit, actionableTask is null");
             return(null);
@@ -147,6 +147,13 @@ public abstract class ActionableTaskPersistenceServiceCommon {
                 outcome = getProvenanceFHIRClient().createProvenance(currentProvenance);
                 if(getLogger().isTraceEnabled()) {
                     if (outcome != null) {
+                        if(outcome.getId() != null){
+                            id = outcome.getId();
+                            IdType resourceId = new IdType();
+                            resourceId.setParts(id.getBaseUrl(), id.getResourceType(), id.getIdPart(), id.getVersionIdPart());
+                            actionableTask.getTaskTraceability().setResourceId(resourceId);
+                            getLogger().warn(".createPersistedTask(): [Save FHIR Resource Set] New Task Id->{}", id );
+                        }
                         getLogger().trace(".createPersistedTask(): [Save FHIR Resource Set] Provenance Resource Save Done, outcome->{}", outcome);
                     } else {
                         getLogger().trace(".createPersistedTask(): [Save FHIR Resource Set] Provenance Resource Save Failed, outcome is null!");
@@ -193,11 +200,11 @@ public abstract class ActionableTaskPersistenceServiceCommon {
              */
         }
         getLogger().trace(".createPersistedTask(): [Save FHIR Resource Set] Finish");
-        return(actionableTask.getTaskId());
+        return(actionableTask);
     }
 
     public TaskIdType updatePersistedTask(PetasosActionableTask actionableTask){
-        getLogger().debug(".updatePersistedTask(): Entry, actionableTask->{}", actionableTask);
+        getLogger().warn(".updatePersistedTask(): Entry, actionableTask->{}", actionableTask);
         if(actionableTask == null){
             getLogger().debug(".updatePersistedTask():Exit, actionableTask is null");
             return(null);
@@ -248,9 +255,19 @@ public abstract class ActionableTaskPersistenceServiceCommon {
                 getLogger().warn(".updatePersistedTask(): [Save FHIR Resource Set] processingProvenance" );
                 Provenance currentProvenance = (Provenance)currentResource;
                 currentProvenance.addTarget(new Reference(id));
-                outcome = getProvenanceFHIRClient().updateProvenance(currentProvenance);
+                if(actionableTask.getTaskTraceability().getResourceId() == null) {
+                    outcome = getProvenanceFHIRClient().createProvenance(currentProvenance);
+                } else {
+                    outcome = getProvenanceFHIRClient().updateProvenance(currentProvenance);
+                }
                 if(getLogger().isTraceEnabled()) {
                     if (outcome != null) {
+                        if(outcome.getId() != null){
+                            id = outcome.getId();
+                            IdType resourceId = new IdType();
+                            resourceId.setParts(id.getBaseUrl(), id.getResourceType(), id.getIdPart(), id.getVersionIdPart());
+                            actionableTask.getTaskTraceability().setResourceId(resourceId);
+                        }
                         getLogger().trace(".updatePersistedTask(): [Save FHIR Resource Set] Provenance Resource Save Done, outcome->{}", outcome);
                     } else {
                         getLogger().trace(".updatePersistedTask(): [Save FHIR Resource Set] Provenance Resource Save Failed, outcome is null!");

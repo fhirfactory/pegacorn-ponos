@@ -343,25 +343,20 @@ public abstract class TaskGridClientServicesManagerBase  {
             return(null);
         }
 
-        TaskIdType taskId = getTaskPersistenceService().createPersistedTask(task);
-        if(taskId != null){
-            if(taskId.getResourceId() != null) {
-                task.getTaskId().setResourceId(taskId.getResourceId());
-            }
-        }
+        PetasosActionableTask returnedTask = getTaskPersistenceService().createPersistedTask(task);
 
-        getLogger().debug(".saveNewTask(): Exit, taskId->{}", taskId);
+        getLogger().debug(".saveNewTask(): Exit, returnedTask.getTaskId->{}", returnedTask.getTaskId());
         amNotBusy();
         getLogger().warn(".saveNewTask(): Exit");
-        return(taskId);
+        return(returnedTask.getTaskId());
     }
 
     public TaskIdType synchroniseTaskIntoPersistence(String participantName, PetasosActionableTask task,  ParticipantTaskQueueEntry queueEntry){
         getLogger().warn(".synchroniseTaskIntoPersistence(): Entry");
         amBusy();
-        getLogger().debug(".saveTaskIntoPersistence(): Entry, participantName->{}, task->{}", participantName, task);
+        getLogger().debug(".synchroniseTaskIntoPersistence(): Entry, participantName->{}, task->{}", participantName, task);
         if(task == null){
-            getLogger().debug(".saveTaskIntoPersistence(): Exit, cannot save task, task is null");
+            getLogger().debug(".synchroniseTaskIntoPersistence(): Exit, cannot save task, task is null");
             amNotBusy();
             return(null);
         }
@@ -388,7 +383,7 @@ public abstract class TaskGridClientServicesManagerBase  {
 
         TaskIdType taskId = getTaskPersistenceService().updatePersistedTask(task);
         if(taskId == null){
-            getLogger().error(".addTask(): Cannot add task to cache, task could not be persisted");
+            getLogger().error(".synchroniseTaskIntoPersistence(): Cannot add task to cache, task could not be persisted");
         } else {
             if(taskId != null){
                 if(taskId.getResourceId() != null) {
@@ -400,9 +395,9 @@ public abstract class TaskGridClientServicesManagerBase  {
             queueEntry.setPersistenceInstant(Instant.now());
         }
 
-        getLogger().debug(".saveTaskIntoPersistence(): Exit, taskId->{}", taskId);
+        getLogger().debug(".synchroniseTaskIntoPersistence(): Exit, taskId->{}", taskId);
         amNotBusy();
-        getLogger().warn(".saveTaskIntoPersistence(): Exit");
+        getLogger().warn(".synchroniseTaskIntoPersistence(): Exit");
         return(taskId);
     }
 
