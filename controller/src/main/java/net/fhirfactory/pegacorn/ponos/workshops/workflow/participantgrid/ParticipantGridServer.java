@@ -112,13 +112,13 @@ public class ParticipantGridServer extends ParticipantServicesEndpointBase {
 
     @Override
     public PetasosParticipantRegistrationSet updateParticipantRegistrationSet(String participantName, PetasosParticipantRegistrationSet registrationSet) {
-        getLogger().warn(".updateParticipantRegistrationSet(): Entry, participantName->{}", participantName);
+        getLogger().debug(".updateParticipantRegistrationSet(): Entry, participantName->{}", participantName);
         PetasosParticipantRegistrationSet updates = new PetasosParticipantRegistrationSet();
 
         if(registrationSet != null){
-            getLogger().warn(".updateParticipantRegistrationSet(): Not an empty set, size->{}", registrationSet.getRegistrationSet().size());
+            getLogger().trace(".updateParticipantRegistrationSet(): Not an empty set, size->{}", registrationSet.getRegistrationSet().size());
             for(PetasosParticipantRegistration currentRegistration: registrationSet.getRegistrationSet().values()){
-                getLogger().warn(".updateParticipantRegistrationSet(): Processing->{}", currentRegistration.getParticipant().getParticipantName());
+                getLogger().trace(".updateParticipantRegistrationSet(): Processing->{}", currentRegistration.getParticipant().getParticipantName());
                 PetasosParticipantRegistration petasosParticipantRegistration = petasosParticipantCache.registerPetasosParticipant(currentRegistration.getParticipant());
                 updates.addRegistration(petasosParticipantRegistration);
             }

@@ -144,53 +144,53 @@ public class GlobalTaskDistributionDecisionEngine extends TaskDistributionDecisi
     //
 
     public boolean applySubscriptionFilter(TaskWorkItemSubscriptionType subscription, DataParcelManifest testManifest){
-        getLogger().warn(".applySubscriptionFilter(): Entry, subscription->{}, testManifest->{}", subscription, testManifest);
+        getLogger().debug(".applySubscriptionFilter(): Entry, subscription->{}, testManifest->{}", subscription, testManifest);
 
         if(!subscription.getDataParcelFlowDirection().equals(DataParcelDirectionEnum.INFORMATION_FLOW_CORE_DISTRIBUTION)){
-            getLogger().warn(".applySubscriptionFilter(): Not a Core-Distribution Subscription, exit");
+            getLogger().debug(".applySubscriptionFilter(): Not a Core-Distribution Subscription, exit");
             return(false);
         }
 
         if(!testManifest.getDataParcelFlowDirection().equals(DataParcelDirectionEnum.INFORMATION_FLOW_CORE_DISTRIBUTION)){
-            getLogger().warn(".applySubscriptionFilter(): Not a Core-Distribution Task, exit");
+            getLogger().debug(".applySubscriptionFilter(): Not a Core-Distribution Task, exit");
             return(false);
         }
 
         boolean containerIsEqual = containerDescriptorIsEqual(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: containerIsEqual->{}",containerIsEqual);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: containerIsEqual->{}",containerIsEqual);
 
         boolean contentIsEqual = contentDescriptorIsEqual(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: contentIsEqual->{}",contentIsEqual);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: contentIsEqual->{}",contentIsEqual);
 
         boolean containerOnlyIsEqual = containerDescriptorOnlyEqual(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: containerOnlyIsEqual->{}",containerOnlyIsEqual);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: containerOnlyIsEqual->{}",containerOnlyIsEqual);
 
         boolean matchedNormalisation = normalisationMatches(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: matchedNormalisation->{}",matchedNormalisation);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: matchedNormalisation->{}",matchedNormalisation);
 
         boolean matchedValidation = validationMatches(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: matchedValidation->{}",matchedValidation);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: matchedValidation->{}",matchedValidation);
 
         boolean matchedManifestType = manifestTypeMatches(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: matchedManifestType->{}",matchedManifestType);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: matchedManifestType->{}",matchedManifestType);
 
         boolean matchedSource = sourceSystemMatches(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: matchedSource->{}",matchedSource);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: matchedSource->{}",matchedSource);
 
         boolean matchedTarget = targetSystemMatches(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: matchedTarget->{}",matchedTarget);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: matchedTarget->{}",matchedTarget);
 
         boolean matchedPEPStatus = enforcementPointApprovalStatusMatches(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: matchedPEPStatus->{}",matchedPEPStatus);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: matchedPEPStatus->{}",matchedPEPStatus);
 
         boolean matchedDistributionStatus = isDistributableMatches(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: matchedDistributionStatus->{}",matchedDistributionStatus);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: matchedDistributionStatus->{}",matchedDistributionStatus);
 
         boolean matchedOrigin = originParticipantFilter(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: originParticipant->{}",matchedOrigin);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: originParticipant->{}",matchedOrigin);
 
         boolean matchedPrevious = previousParticipantFiler(testManifest, subscription);
-        getLogger().warn(".applySubscriptionFilter(): Checking for equivalence/match: previousParticipant->{}",matchedPrevious);
+        getLogger().trace(".applySubscriptionFilter(): Checking for equivalence/match: previousParticipant->{}",matchedPrevious);
 
         boolean goodEnoughMatch = containerIsEqual
                 && contentIsEqual
@@ -203,7 +203,7 @@ public class GlobalTaskDistributionDecisionEngine extends TaskDistributionDecisi
                 && matchedDistributionStatus
                 && matchedOrigin
                 && matchedPrevious;
-        getLogger().warn(".filter(): Checking for equivalence/match: goodEnoughMatch->{}",goodEnoughMatch);
+        getLogger().trace(".filter(): Checking for equivalence/match: goodEnoughMatch->{}",goodEnoughMatch);
 
         boolean containerBasedOKMatch = containerOnlyIsEqual
                 && matchedNormalisation
@@ -213,10 +213,10 @@ public class GlobalTaskDistributionDecisionEngine extends TaskDistributionDecisi
                 && matchedTarget
                 && matchedPEPStatus
                 && matchedDistributionStatus;
-        getLogger().warn(".filter(): Checking for equivalence/match: containerBasedOKMatch->{}",containerBasedOKMatch);
+        getLogger().trace(".filter(): Checking for equivalence/match: containerBasedOKMatch->{}",containerBasedOKMatch);
 
         boolean passesFilter = goodEnoughMatch || containerBasedOKMatch;
-        getLogger().warn(".filter(): Exit, passesFilter->{}", passesFilter);
+        getLogger().trace(".filter(): Exit, passesFilter->{}", passesFilter);
         return(passesFilter);
     }
 }

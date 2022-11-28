@@ -133,7 +133,7 @@ public class TaskQueueServices {
                 taskQueueMap.addEntry(currentPerformer.getRequiredParticipantName(), entry);
                 actionableTask.getTaskExecutionDetail().setCurrentExecutionStatus(PetasosTaskExecutionStatusEnum.PETASOS_TASK_ACTIVITY_STATUS_QUEUED);
                 TaskIdType updatedTaskId = getTaskGridClientServicesManager().addTask(currentPerformer.getRequiredParticipantName(), actionableTask, entry);
-                getLogger().trace(".queueTask(): [Queue to ALL TaskPerformers] taskPerformer->{}, queueEntry->{}", currentPerformer.getRequiredParticipantName(), entry);
+                getLogger().warn(".queueTask(): [Queue to ALL TaskPerformers] taskPerformer->{}, queueEntry->{}", currentPerformer.getRequiredParticipantName(), entry);
             }
 
         }
