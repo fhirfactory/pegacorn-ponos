@@ -334,7 +334,7 @@ public abstract class TaskGridClientServicesManagerBase  {
             return(null);
         }
 
-        PetasosActionableTask returnedTask = getTaskPersistenceService().createPersistedTask(task);
+        PetasosActionableTask returnedTask = getTaskPersistenceService().persistTask(task);
 
         getLogger().debug(".saveNewTask(): Exit, returnedTask.getTaskId->{}", returnedTask.getTaskId());
         amNotBusy();
@@ -797,6 +797,7 @@ public abstract class TaskGridClientServicesManagerBase  {
         getLogger().trace(".updateTaskStatusToFinalised(): [Check for Inter-Subsystem Task Subscriptions] Finish");
 
         getLogger().trace(".updateTaskStatusToFinalised(): [Update Task] Start");
+        task.getTaskFulfillment().setFinalisationInstant(Instant.now());
         getLogger().trace(".updateTaskStatusToFinalised(): [Update Task] [Update Completion Details] Start");
         if(task.getTaskCompletionSummary() == null){
             task.setTaskCompletionSummary(new TaskCompletionSummaryType());

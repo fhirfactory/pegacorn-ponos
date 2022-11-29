@@ -98,7 +98,7 @@ public class TaskQueueServices {
     //
 
     public boolean queueTask(PetasosActionableTask actionableTask){
-        getLogger().warn(".queueTask(): Entry, actionableTask->{}", actionableTask);
+        getLogger().debug(".queueTask(): Entry, actionableTask->{}", actionableTask);
 
         getLogger().trace(".queueTask(): [Checking actionableTask] Start" );
         if(actionableTask == null){
@@ -133,7 +133,7 @@ public class TaskQueueServices {
                 taskQueueMap.addEntry(currentPerformer.getRequiredParticipantName(), entry);
                 actionableTask.getTaskExecutionDetail().setCurrentExecutionStatus(PetasosTaskExecutionStatusEnum.PETASOS_TASK_ACTIVITY_STATUS_QUEUED);
                 TaskIdType updatedTaskId = getTaskGridClientServicesManager().addTask(currentPerformer.getRequiredParticipantName(), actionableTask, entry);
-                getLogger().warn(".queueTask(): [Queue to ALL TaskPerformers] taskPerformer->{}, queueEntry->{}", currentPerformer.getRequiredParticipantName(), entry);
+                getLogger().debug(".queueTask(): [Queue to ALL TaskPerformers] taskPerformer->{}, queueEntry->{}", currentPerformer.getRequiredParticipantName(), entry);
             }
 
         }
